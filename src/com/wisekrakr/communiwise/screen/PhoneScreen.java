@@ -2,12 +2,21 @@ package com.wisekrakr.communiwise.screen;
 
 
 import com.wisekrakr.communiwise.SipManager;
+import com.wisekrakr.communiwise.SoundManager;
 import com.wisekrakr.communiwise.config.Config;
 
+import javax.media.CannotRealizeException;
+import javax.media.Manager;
+import javax.media.NoPlayerException;
+import javax.media.Player;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class PhoneScreen extends JFrame {
     private SipManager sipManager;
@@ -18,11 +27,15 @@ public class PhoneScreen extends JFrame {
 
     private JTextField sipAddress;
 
+    private SoundManager soundManager;
+
 
     public PhoneScreen(SipManager sipManager)  {
         this.sipManager = sipManager;
 
         initScreen();
+
+        soundManager = new SoundManager();
     }
 
 
@@ -34,7 +47,7 @@ public class PhoneScreen extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setIconImage(new ImageIcon("https://raw.githubusercontent.com/wisekrakr/portfolio_res/master/images/favicon/favicon-32x32.png").getImage());
 
-        java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width-288)/2, (screenSize.height-310)/2, 800, 800);
 
         getContentPane().add(status);
@@ -47,6 +60,7 @@ public class PhoneScreen extends JFrame {
         setVisible(true);
 
         System.out.println("PhoneScreen lights up!");
+
     }
 
     private void authentication(){
@@ -63,6 +77,9 @@ public class PhoneScreen extends JFrame {
         usernameInput.setBounds(120, 20, 100, 30);
         getContentPane().add(passwordInput);
         passwordInput.setBounds(120, 60, 100, 30);
+
+        sipManager.getSipProfile().setSipUserName(usernameInput.getText().trim());
+        sipManager.getSipProfile().setSipPassword(passwordInput.getText());
     }
 
     private void handleRegister(){
@@ -82,7 +99,8 @@ public class PhoneScreen extends JFrame {
         JLabel destination = new JLabel("destination");
         sipAddress = new JTextField();
         JButton callBtn = new JButton("call");
-        JButton acceptBtn = new JButton("accept");
+        JButton acceptBtn = new JButton("record");
+        JButton stopBtn = new JButton("stop");
 
         getContentPane().add(destination);
         destination.setBounds(10, 300, 100, 30);
@@ -92,12 +110,10 @@ public class PhoneScreen extends JFrame {
         callBtn.setBounds(10, 400, 100, 30);
         getContentPane().add(callBtn);
 
-
         callBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                sipManager.calling("sip:"+252+"@"+Config.SERVER,6070);
-
+                sipManager.calling("sip:"+253+"@"+Config.SERVER,6070);
             }
         });
 
@@ -106,8 +122,19 @@ public class PhoneScreen extends JFrame {
         acceptBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                sipManager.acceptingCall(6070);
-
+//                sipManager.acceptingCall(6070);
+                if(!soundManager.isRecording()){
+                    soundManager.start();
+                }
+            }
+        });
+        stopBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+//                sipManager.acceptingCall(6070);
+                if(soundManager.isRecording()){
+                    soundManager.stop();
+                }
             }
         });
     }

@@ -3,57 +3,57 @@ package com.wisekrakr.communiwise.user;
 import com.wisekrakr.communiwise.config.Config;
 
 public class SipProfile {
-    private  String localIp;
-    private  int localPort = 5080;
-    private  String transport = "udp";
+    private String localIp = Config.LOCAL_IP;
+    private int localPort = 5080;
+    private String transport = "udp";
 
-    private  String remoteIp = "127.0.0.1";
-    private  int remotePort = 5060;
-    private  String sipUserName = Config.USERNAME;
-    private  String sipPassword = Config.PASSWORD;
+    private String server = Config.SERVER;
+    private int remotePort = 5060;
+    private String sipUserName = Config.USERNAME;
+    private String sipPassword = Config.PASSWORD;
 
-    public  String getLocalIp() {
+    public String getLocalIp() {
         return localIp;
     }
 
-    public  void setLocalIp(String localIp) {
+    public void setLocalIp(String localIp) {
         System.out.println("Setting localIp:" + localIp);
         this.localIp = localIp;
     }
 
-    public  int getLocalPort() {
+    public int getLocalPort() {
         return localPort;
     }
 
-    public  void setLocalPort(int localPort) {
+    public void setLocalPort(int localPort) {
         System.out.println("Setting localPort:" + localPort);
         this.localPort = localPort;
     }
 
-    public  String getLocalEndpoint() {
+    public String getLocalEndpoint() {
         return localIp + ":" + localPort;
     }
 
-    public  String getRemoteIp() {
-        return remoteIp;
+    public String getServer() {
+        return server;
     }
 
-    public  void setRemoteIp(String remoteIp) {
-        System.out.println("Setting remoteIp:" + remoteIp);
-        this.remoteIp = remoteIp;
+    public void setServer(String server) {
+        System.out.println("Setting remoteIp:" + server);
+        this.server = server;
     }
 
-    public  int getRemotePort() {
+    public int getRemotePort() {
         return remotePort;
     }
 
-    public  void setRemotePort(int remotePort) {
+    public void setRemotePort(int remotePort) {
         System.out.println("Setting remotePort:" + remotePort);
         this.remotePort = remotePort;
     }
 
-    public  String getRemoteEndpoint() {
-        return remoteIp + ":" + remotePort;
+    public String getRemoteEndpoint() {
+        return server + ":" + remotePort;
     }
 
     public String getSipUserName() {

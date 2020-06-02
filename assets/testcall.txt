@@ -1,0 +1,240 @@
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started
+<!-- Use the  Trace Viewer in src/tools/tracesviewer to view this  trace  
+Here are the stack configuration properties 
+javax.sip.IP_ADDRESS= null
+javax.sip.STACK_NAME= Test Call
+javax.sip.ROUTER_PATH= null
+javax.sip.OUTBOUND_PROXY= 127.0.0.1:5070/udp
+-->
+<description
+ logDescription="Test Call"
+ name="Test Call"
+ auxInfo="null"/>
+ 
+INFO - value -1000 will be used for reliableConnectionKeepAliveTimeout stack property
+INFO - Setting Stack Thread priority to 10
+WARN - using default tls security policy
+INFO - the sip stack timer gov.nist.javax.sip.stack.timers.DefaultSipTimer has been started

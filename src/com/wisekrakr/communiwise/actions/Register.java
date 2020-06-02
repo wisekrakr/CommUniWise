@@ -2,6 +2,7 @@ package com.wisekrakr.communiwise.actions;
 
 
 import com.wisekrakr.communiwise.SipManager;
+import com.wisekrakr.communiwise.config.Config;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipProvider;
@@ -18,7 +19,12 @@ import java.util.ArrayList;
 
 public class Register {
 
-    public Request MakeRequest(SipManager sipManager) throws ParseException,
+    private SipManager sipManager;
+    public Register(SipManager sipManager) {
+        this.sipManager = sipManager;
+    }
+
+    public Request MakeRequest() throws ParseException,
             InvalidArgumentException {
 
         AddressFactory addressFactory = sipManager.getAddressFactory();
@@ -26,35 +32,42 @@ public class Register {
         MessageFactory messageFactory = sipManager.getMessageFactory();
         HeaderFactory headerFactory = sipManager.getHeaderFactory();
 
-        // Create addresses and via header for the request
-        Address fromAddress = addressFactory.createAddress("sip:"
-                + sipManager.getSipProfile().getSipUserName() + "@"
-                + sipManager.getSipProfile().getRemoteIp());
-        fromAddress.setDisplayName(sipManager.getSipProfile().getSipUserName());
-        Address toAddress = addressFactory.createAddress("sip:"
-                + sipManager.getSipProfile().getSipUserName() + "@"
-                + sipManager.getSipProfile().getRemoteIp());
-        toAddress.setDisplayName(sipManager.getSipProfile().getSipUserName());
+        Request request = null;
+        try {
 
-        Address contactAddress = sipManager.createContactAddress();
-        ArrayList<ViaHeader> viaHeaders = sipManager.createViaHeader();
-        URI requestURI = addressFactory.createAddress(
-                "sip:" + sipManager.getSipProfile().getRemoteEndpoint())
-                .getURI();
-        // Build the request
-        final Request request = messageFactory.createRequest(requestURI,
-                Request.REGISTER, sipProvider.getNewCallId(),
-                headerFactory.createCSeqHeader(1L, Request.REGISTER),
-                headerFactory.createFromHeader(fromAddress, "c3ff411e"),
-                headerFactory.createToHeader(toAddress, null), viaHeaders,
-                headerFactory.createMaxForwardsHeader(70));
+            // Create addresses and via header for the request
+            Address fromAddress = addressFactory.createAddress("sip:"
+                    + sipManager.getSipProfile().getSipUserName() + "@"
+                    + sipManager.getSipProfile().getServer());
+            fromAddress.setDisplayName(sipManager.getSipProfile().getSipUserName());
+            Address toAddress = addressFactory.createAddress("sip:"
+                    + sipManager.getSipProfile().getSipUserName() + "@"
+                    + sipManager.getSipProfile().getServer());
+            toAddress.setDisplayName(sipManager.getSipProfile().getSipUserName());
 
-        // Add the contact header
-        request.addHeader(headerFactory.createContactHeader(contactAddress));
-        ExpiresHeader eh = headerFactory.createExpiresHeader(300);
-        request.addHeader(eh);
-        // Print the request
-        System.out.println(request.toString());
+            Address contactAddress = sipManager.createContactAddress();
+            ArrayList<ViaHeader> viaHeaders = sipManager.createViaHeader();
+            URI requestURI = addressFactory.createAddress(
+                    "sip:" + sipManager.getSipProfile().getRemoteEndpoint())
+                    .getURI();
+            // Build the request
+            request = messageFactory.createRequest(requestURI,
+                    Request.REGISTER, sipProvider.getNewCallId(),
+                    headerFactory.createCSeqHeader(1L, Request.REGISTER),
+                    headerFactory.createFromHeader(fromAddress, "c3ff411e"),
+                    headerFactory.createToHeader(toAddress, null), viaHeaders,
+                    headerFactory.createMaxForwardsHeader(70));
+
+            // Add the contact header
+            request.addHeader(headerFactory.createContactHeader(contactAddress));
+            ExpiresHeader eh = headerFactory.createExpiresHeader(300);
+            request.addHeader(eh);
+            // Print the request
+            System.out.println(request.toString());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
         return request;
     }
 }
