@@ -48,7 +48,7 @@ public class Register {
             Address contactAddress = sipManager.createContactAddress();
             ArrayList<ViaHeader> viaHeaders = sipManager.createViaHeader();
             URI requestURI = addressFactory.createAddress(
-                    "sip:" + sipManager.getSipProfile().getRemoteEndpoint())
+                    "sip:" + sipManager.getSipProfile().getServer()) //was getRemoteEndPoint
                     .getURI();
             // Build the request
             request = messageFactory.createRequest(requestURI,

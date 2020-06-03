@@ -2,8 +2,9 @@ package com.wisekrakr.communiwise;
 
 
 
-import com.wisekrakr.copypasta.implementation.SipAccountManager;
-import com.wisekrakr.copypasta.implementation.SipEvent;
+
+import com.wisekrakr.communiwise.user.SipAccountManager;
+import com.wisekrakr.communiwise.utils.IpAddress;
 import gov.nist.javax.sdp.SessionDescriptionImpl;
 import gov.nist.javax.sdp.parser.SDPAnnounceParser;
 import gov.nist.javax.sip.SipStackExt;
@@ -13,7 +14,6 @@ import gov.nist.javax.sip.message.SIPMessage;
 import com.wisekrakr.communiwise.actions.Invite;
 import com.wisekrakr.communiwise.actions.Register;
 import com.wisekrakr.communiwise.user.SipProfile;
-import jdk.nashorn.internal.ir.SetSplitState;
 
 import javax.sdp.MediaDescription;
 import javax.sdp.SdpException;
@@ -27,7 +27,6 @@ import javax.sip.message.Response;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Properties;
 
 public class SipManager implements SipListener, SipManagerContext{
@@ -62,13 +61,14 @@ public class SipManager implements SipListener, SipManagerContext{
         initialize();
     }
     private void initialize(){
+//        sipProfile.setLocalIp(IpAddress.get(true));
 
         sipFactory = SipFactory.getInstance();
         sipFactory.resetFactory();
         sipFactory.setPathName("gov.nist");
 
         Properties properties = new Properties();
-        properties.setProperty("javax.sip.OUTBOUND_PROXY", "127.0.0.1:5070" + "/"
+        properties.setProperty("javax.sip.OUTBOUND_PROXY", sipProfile.getLocalIp() + ":" + sipProfile.getLocalPort() + "/"
                 + "udp");
         properties.setProperty("javax.sip.STACK_NAME", "Test Call");
         properties
@@ -107,6 +107,8 @@ public class SipManager implements SipListener, SipManagerContext{
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        initialized = true;
     }
 
     public ArrayList<ViaHeader> createViaHeader() {
@@ -171,6 +173,10 @@ public class SipManager implements SipListener, SipManagerContext{
         return initialized;
     }
 
+    public SipManagerState getSipManagerState() {
+        return sipManagerState;
+    }
+
     @Override
     public void processRequest(RequestEvent requestEvent) {
         Request request = requestEvent.getRequest();
@@ -194,6 +200,7 @@ public class SipManager implements SipListener, SipManagerContext{
 //                    .getFrom().getAddress().toString()));
             direction = CallDirection.NONE;
         }
+        System.out.println("request method: " + request.getMethod());
         if (request.getMethod().equals("INVITE")) {
             direction = CallDirection.INCOMING;
             processInvite(requestEvent, serverTransactionId);
@@ -212,7 +219,7 @@ public class SipManager implements SipListener, SipManagerContext{
     @Override
     public void processResponse(ResponseEvent responseEvent) {
         Response response = responseEvent.getResponse();
-        System.out.println(response.getStatusCode());
+        System.out.println("Process Response: " + response.getStatusCode());
 
         Dialog responseDialog = null;
         ClientTransaction tid = responseEvent.getClientTransaction();
@@ -263,10 +270,8 @@ public class SipManager implements SipListener, SipManagerContext{
 
             } else if (cseq.getMethod().equals(Request.CANCEL)) {
                 if (dialog.getState() == DialogState.CONFIRMED) {
-                    // oops cancel went in too late. Need to hang up the
-                    // dialog.
-                    System.out
-                            .println("Sending BYE -- cancel went in too late !!");
+
+                    System.out.println("Sending BYE -- cancel went in too late !!");
                     Request byeRequest = null;
                     try {
                         byeRequest = dialog.createRequest(Request.BYE);
@@ -283,9 +288,6 @@ public class SipManager implements SipListener, SipManagerContext{
                     }
                     try {
                         dialog.sendRequest(ct);
-                    } catch (TransactionDoesNotExistException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
                     } catch (SipException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
@@ -378,8 +380,8 @@ public class SipManager implements SipListener, SipManagerContext{
     @Override
     public void calling(String to, int localRtpPort) {
         sipManagerState = SipManagerState.CALLING;
-        Invite inviteRequest = new Invite();
-        Request r = inviteRequest.MakeRequest(this, to, localRtpPort);
+        Invite inviteRequest = new Invite(this);
+        Request r = inviteRequest.MakeRequest(to, localRtpPort);
         System.out.println(r);
         try {
             final ClientTransaction transaction = this.sipProvider

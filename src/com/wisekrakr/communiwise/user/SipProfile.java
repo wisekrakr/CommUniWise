@@ -3,8 +3,8 @@ package com.wisekrakr.communiwise.user;
 import com.wisekrakr.communiwise.config.Config;
 
 public class SipProfile {
-    private String localIp = Config.LOCAL_IP;
-    private int localPort = 5080;
+    private String localIp= Config.LOCAL_IP;
+    private int localPort = 52216;
     private String transport = "udp";
 
     private String server = Config.SERVER;

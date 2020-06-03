@@ -12,12 +12,17 @@ import javax.sip.message.Request;
 import java.util.ArrayList;
 
 public class Invite {
-    public Request MakeRequest(SipManager sipManager, String to, int port){
+    private SipManager sipManager;
 
+    public Invite(SipManager sipManager) {
+        this.sipManager = sipManager;
+    }
+
+    public Request MakeRequest(String to, int port){
 
         try {
             //Create From Header
-            SipURI from = sipManager.getAddressFactory().createSipURI(sipManager.getSipProfile().getSipUserName(), Config.SERVER);
+            SipURI from = sipManager.getAddressFactory().createSipURI(sipManager.getSipProfile().getSipUserName(), sipManager.getSipProfile().getServer());
             Address fromNameAddress = sipManager.getAddressFactory().createAddress(from);
             // fromNameAddress.setDisplayName(sipManager.getSipProfile().getSipUserName());
             FromHeader fromHeader = sipManager.getHeaderFactory().createFromHeader(fromNameAddress,

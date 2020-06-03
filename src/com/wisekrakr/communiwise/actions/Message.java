@@ -1,6 +1,7 @@
 package com.wisekrakr.communiwise.actions;
 
-import com.wisekrakr.copypasta.implementation.SipManager;
+
+import com.wisekrakr.communiwise.SipManager;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.address.Address;
@@ -13,54 +14,51 @@ import java.util.ArrayList;
 
 public class Message {
     public Request MakeRequest(SipManager sipManager, String to, String message) throws ParseException, InvalidArgumentException {
-        SipURI from = sipManager.addressFactory.createSipURI(sipManager.getSipProfile().getSipUserName(), sipManager.getSipProfile().getLocalEndpoint());
-        Address fromNameAddress = sipManager.addressFactory.createAddress(from);
+        SipURI from = sipManager.getAddressFactory().createSipURI(sipManager.getSipProfile().getSipUserName(), sipManager.getSipProfile().getLocalEndpoint());
+        Address fromNameAddress = sipManager.getAddressFactory().createAddress(from);
         // fromNameAddress.setDisplayName(sipUsername);
-        FromHeader fromHeader = sipManager.headerFactory.createFromHeader(fromNameAddress,
+        FromHeader fromHeader = sipManager.getHeaderFactory().createFromHeader(fromNameAddress,
                 "Tzt0ZEP92");
 
-        URI toAddress = sipManager.addressFactory.createURI(to);
-        Address toNameAddress = sipManager.addressFactory.createAddress(toAddress);
+        URI toAddress = sipManager.getAddressFactory().createURI(to);
+        Address toNameAddress = sipManager.getAddressFactory().createAddress(toAddress);
         // toNameAddress.setDisplayName(username);
-        ToHeader toHeader = sipManager.headerFactory.createToHeader(toNameAddress, null);
+        ToHeader toHeader = sipManager.getHeaderFactory().createToHeader(toNameAddress, null);
 
-        URI requestURI = sipManager.addressFactory.createURI(to);
+        URI requestURI = sipManager.getAddressFactory().createURI(to);
         // requestURI.setTransportParam("udp");
 
         ArrayList<ViaHeader> viaHeaders = sipManager.createViaHeader();
 
-        CallIdHeader callIdHeader = sipManager.sipProvider.getNewCallId();
+        CallIdHeader callIdHeader = sipManager.getSipProvider().getNewCallId();
 
-        CSeqHeader cSeqHeader = sipManager.headerFactory.createCSeqHeader(50l,
+        CSeqHeader cSeqHeader = sipManager.getHeaderFactory().createCSeqHeader(50l,
                 Request.MESSAGE);
 
-        MaxForwardsHeader maxForwards = sipManager.headerFactory
+        MaxForwardsHeader maxForwards = sipManager.getHeaderFactory()
                 .createMaxForwardsHeader(70);
 
-        Request request = sipManager.messageFactory.createRequest(requestURI,
+        Request request = sipManager.getMessageFactory().createRequest(requestURI,
                 Request.MESSAGE, callIdHeader, cSeqHeader, fromHeader,
                 toHeader, viaHeaders, maxForwards);
-        SupportedHeader supportedHeader = sipManager.headerFactory
+        SupportedHeader supportedHeader = sipManager.getHeaderFactory()
                 .createSupportedHeader("replaces, outbound");
         request.addHeader(supportedHeader);
 
-        SipURI routeUri = sipManager.addressFactory.createSipURI(null, sipManager.getSipProfile().getRemoteIp());
+        SipURI routeUri = sipManager.getAddressFactory().createSipURI(null, sipManager.getSipProfile().getServer());
         routeUri.setTransportParam(sipManager.getSipProfile().getTransport());
         routeUri.setLrParam();
         routeUri.setPort(sipManager.getSipProfile().getRemotePort());
 
-        Address routeAddress = sipManager.addressFactory.createAddress(routeUri);
-        RouteHeader route = sipManager.headerFactory.createRouteHeader(routeAddress);
+        Address routeAddress = sipManager.getAddressFactory().createAddress(routeUri);
+        RouteHeader route = sipManager.getHeaderFactory().createRouteHeader(routeAddress);
         request.addHeader(route);
-        ContentTypeHeader contentTypeHeader = sipManager.headerFactory
+        ContentTypeHeader contentTypeHeader = sipManager.getHeaderFactory()
                 .createContentTypeHeader("text", "plain");
         request.setContent(message, contentTypeHeader);
         System.out.println(request);
         return request;
-        //ClientTransaction transaction = sipManager.sipProvider
-        //		.getNewClientTransaction(request);
-        // Send the request statefully, through the client transaction.
-        //transaction.sendRequest();
+
     }
 
 

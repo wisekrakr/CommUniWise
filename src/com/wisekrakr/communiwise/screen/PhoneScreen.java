@@ -5,18 +5,10 @@ import com.wisekrakr.communiwise.SipManager;
 import com.wisekrakr.communiwise.SoundManager;
 import com.wisekrakr.communiwise.config.Config;
 
-import javax.media.CannotRealizeException;
-import javax.media.Manager;
-import javax.media.NoPlayerException;
-import javax.media.Player;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 public class PhoneScreen extends JFrame {
     private SipManager sipManager;
@@ -66,7 +58,7 @@ public class PhoneScreen extends JFrame {
     private void authentication(){
         JLabel username = new JLabel("username");
         JLabel password = new JLabel("password");
-        usernameInput = new JTextField(Config.USERNAME);
+        usernameInput = new JTextField();
         passwordInput = new JPasswordField(Config.PASSWORD);
 
         getContentPane().add(username);
@@ -78,8 +70,7 @@ public class PhoneScreen extends JFrame {
         getContentPane().add(passwordInput);
         passwordInput.setBounds(120, 60, 100, 30);
 
-        sipManager.getSipProfile().setSipUserName(usernameInput.getText().trim());
-        sipManager.getSipProfile().setSipPassword(passwordInput.getText());
+
     }
 
     private void handleRegister(){
@@ -90,6 +81,9 @@ public class PhoneScreen extends JFrame {
         connectBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                sipManager.getSipProfile().setSipUserName(usernameInput.getText().trim());
+                sipManager.getSipProfile().setSipPassword(Config.PASSWORD);
+
                 sipManager.registering();
             }
         });
@@ -113,18 +107,29 @@ public class PhoneScreen extends JFrame {
         callBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                sipManager.calling("sip:"+253+"@"+Config.SERVER,6070);
+                sipManager.calling("sip:"+sipAddress.getText().trim(), Config.LOCAL_RTP_PORT);
             }
         });
 
         acceptBtn.setBounds(120, 400, 100, 30);
         getContentPane().add(acceptBtn);
+
+        stopBtn.setBounds(230, 400, 100, 30);
+        getContentPane().add(stopBtn);
+
+        acceptBtn.setEnabled(true);
+        stopBtn.setEnabled(false);
+
+
         acceptBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 //                sipManager.acceptingCall(6070);
-                if(!soundManager.isRecording()){
-                    soundManager.start();
+                if(!soundManager.isServingInput()){
+                    soundManager.startClient();
+                    acceptBtn.setEnabled(false);
+                    stopBtn.setEnabled(true);
+
                 }
             }
         });
@@ -132,8 +137,11 @@ public class PhoneScreen extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 //                sipManager.acceptingCall(6070);
-                if(soundManager.isRecording()){
-                    soundManager.stop();
+                if(soundManager.isServingInput()){
+                    soundManager.stopClient();
+                    stopBtn.setEnabled(false);
+                    acceptBtn.setEnabled(true);
+
                 }
             }
         });
