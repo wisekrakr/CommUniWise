@@ -9,28 +9,32 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 
 public class InputThread extends Thread {
-    private TargetDataLine inputLine = null;
+
     private DatagramSocket datagramSocket;
-    byte buff[] = new byte[512];
+
     private InetAddress serverIp;
     private int serverPort;
 
-    private SoundManager soundManager;
+    private final SoundManager soundManager;
+    private TargetDataLine inputLine;
 
-    public InputThread(SoundManager soundManager) {
+    public InputThread(SoundManager soundManager, TargetDataLine inputLine) {
         this.soundManager = soundManager;
+        this.inputLine = inputLine;
     }
 
     @Override
     public void run() {
-        int i = 0;
+        int readBytes;
         while (soundManager.isServingInput()){
 
             try {
-                inputLine.read(buff, 0, buff.length);
+                byte[] buff = new byte[inputLine.getBufferSize()/5];
+                readBytes = inputLine.read(buff, 0, buff.length);
+
                 DatagramPacket data = new DatagramPacket(buff,buff.length, serverIp, serverPort);
 
-                System.out.println("send #" + i++);
+                System.out.println("send #" + readBytes);
                 datagramSocket.send(data);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -56,14 +60,6 @@ public class InputThread extends Thread {
 
     public void setDatagramSocket(DatagramSocket datagramSocket) {
         this.datagramSocket = datagramSocket;
-    }
-
-    public byte[] getBuff() {
-        return buff;
-    }
-
-    public void setBuff(byte[] buff) {
-        this.buff = buff;
     }
 
     public InetAddress getServerIp() {

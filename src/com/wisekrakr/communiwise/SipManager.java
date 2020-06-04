@@ -70,7 +70,7 @@ public class SipManager implements SipListener, SipManagerContext{
         Properties properties = new Properties();
         properties.setProperty("javax.sip.OUTBOUND_PROXY", sipProfile.getLocalIp() + ":" + sipProfile.getLocalPort() + "/"
                 + "udp");
-        properties.setProperty("javax.sip.STACK_NAME", "Test Call");
+        properties.setProperty("javax.sip.STACK_NAME", "CommUniWise");
         properties
                 .setProperty("gov.nist.javax.sip.MAX_MESSAGE_SIZE", "1048576");
         properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
@@ -182,7 +182,9 @@ public class SipManager implements SipListener, SipManagerContext{
         Request request = requestEvent.getRequest();
         ServerTransaction serverTransactionId = requestEvent.getServerTransaction();
         SIPMessage sp = (SIPMessage) request;
-        System.out.println(request.getMethod());
+
+        System.out.println("request method: " + request.getMethod());
+
         if (request.getMethod().equals("MESSAGE")) {
             sendOk(requestEvent);
 
@@ -200,7 +202,7 @@ public class SipManager implements SipListener, SipManagerContext{
 //                    .getFrom().getAddress().toString()));
             direction = CallDirection.NONE;
         }
-        System.out.println("request method: " + request.getMethod());
+
         if (request.getMethod().equals("INVITE")) {
             direction = CallDirection.INCOMING;
             processInvite(requestEvent, serverTransactionId);
@@ -247,11 +249,13 @@ public class SipManager implements SipListener, SipManagerContext{
 
         } else if (response.getStatusCode() == Response.OK) {
             if (cseq.getMethod().equals(Request.INVITE)) {
-                System.out.println("Dialog after 200 OK  " + dialog);
+                System.out.println("Dialog after 200 OK  " + dialog); //todo responseDialog?
                 try {
                     Request ackRequest = responseDialog.createAck(cseq
                             .getSeqNumber());
+
                     System.out.println("Sending ACK");
+
                     responseDialog.sendAck(ackRequest);
                     byte[] rawContent = response.getRawContent();
                     String sdpContent = new String(rawContent, "UTF-8");
@@ -521,19 +525,19 @@ public class SipManager implements SipListener, SipManagerContext{
 
             // Verify AUTHORIZATION !!!!!!!!!!!!!!!!
 
-			dsam = new DigestServerAuthenticationHelper();
-			if (!dsam.doAuthenticatePlainTextPassword(request,
-					sipProfile.getSipPassword())) {
-				Response challengeResponse = messageFactory.createResponse(
-						Response.PROXY_AUTHENTICATION_REQUIRED, request);
-				dsam.generateChallenge(headerFactory, challengeResponse,
-						"nist.gov");
-				st.sendResponse(challengeResponse);
-				System.out.println("INVITE:Authorization challenge sent");
-				return;
-			}
-			System.out
-					.println("INVITE:Incoming Authorization challenge Accepted");
+//			dsam = new DigestServerAuthenticationHelper();
+//			if (!dsam.doAuthenticatePlainTextPassword(request,
+//					sipProfile.getSipPassword())) {
+//				Response challengeResponse = messageFactory.createResponse(
+//						Response.PROXY_AUTHENTICATION_REQUIRED, request);
+//				dsam.generateChallenge(headerFactory, challengeResponse,
+//						"nist.gov");
+//				st.sendResponse(challengeResponse);
+//				System.out.println("INVITE:Authorization challenge sent");
+//				return;
+//			}
+//			System.out
+//					.println("INVITE:Incoming Authorization challenge Accepted");
 
             byte[] rawContent = sm.getRawContent();
             String sdpContent = new String(rawContent, "UTF-8");

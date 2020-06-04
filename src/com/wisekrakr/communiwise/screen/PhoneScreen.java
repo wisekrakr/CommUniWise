@@ -3,8 +3,10 @@ package com.wisekrakr.communiwise.screen;
 
 import com.wisekrakr.communiwise.SipManager;
 import com.wisekrakr.communiwise.SoundManager;
+import com.wisekrakr.communiwise.audio.AudioClip;
 import com.wisekrakr.communiwise.config.Config;
 
+import javax.sound.sampled.AudioSystem;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -48,6 +50,7 @@ public class PhoneScreen extends JFrame {
         authentication();
         handleRegister();
         handleCallingAndAccepting();
+        handlePlayingSoundClip();
 
         setVisible(true);
 
@@ -126,7 +129,7 @@ public class PhoneScreen extends JFrame {
             public void actionPerformed(ActionEvent e) {
 //                sipManager.acceptingCall(6070);
                 if(!soundManager.isServingInput()){
-                    soundManager.startClient();
+                    soundManager.startAudioThread();
                     acceptBtn.setEnabled(false);
                     stopBtn.setEnabled(true);
 
@@ -138,7 +141,7 @@ public class PhoneScreen extends JFrame {
             public void actionPerformed(ActionEvent e) {
 //                sipManager.acceptingCall(6070);
                 if(soundManager.isServingInput()){
-                    soundManager.stopClient();
+                    soundManager.stopServer();
                     stopBtn.setEnabled(false);
                     acceptBtn.setEnabled(true);
 
@@ -147,6 +150,30 @@ public class PhoneScreen extends JFrame {
         });
     }
 
+    /**
+     * Press a button and play a sound.
+     * Todo: add choosing own sounds
+     */
+    private void handlePlayingSoundClip(){
+        JButton playBtn = new JButton("play beep");
+        playBtn.setBounds(120, 300, 100, 30);
+        getContentPane().add(playBtn);
+
+        AudioClip audioClip = new AudioClip(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        audioClip.createClipURL("https://file-examples.com/wp-content/uploads/2017/11/file_example_WAV_1MG.wav");
+
+        playBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(!audioClip.getClip().isActive()){
+                    audioClip.getClip().start();
+                }else{
+                    audioClip.getClip().stop();
+                }
+
+            }
+        });
+    }
 
 
 }

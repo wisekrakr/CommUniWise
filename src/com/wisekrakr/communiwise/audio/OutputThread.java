@@ -23,6 +23,8 @@ public class OutputThread extends Thread{
     public void run() {
         int i = 0;
         DatagramPacket incoming = new DatagramPacket(buff,buff.length);
+        //serve
+
         while (soundManager.isServingOutput()){
             try {
                 datagramSocket.receive(incoming);

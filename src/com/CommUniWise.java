@@ -6,8 +6,7 @@ import com.wisekrakr.communiwise.screen.PhoneScreen;
 import com.wisekrakr.communiwise.user.SipProfile;
 
 
-
-public class CommUniWise {
+public class CommUniWise{
 
     private static PhoneScreen phoneScreen;
     private static SipManager sipManager;
@@ -19,9 +18,12 @@ public class CommUniWise {
         phoneScreen = new PhoneScreen(sipManager);
 
 
-
+//        for(Mixer.Info info: getMixerInfo()){
+//            System.out.println(info.getName() + " --- " + info.getDescription());
+//        }
 
 
 
     }
+
 }
