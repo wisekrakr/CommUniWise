@@ -21,7 +21,7 @@ public class PhoneScreen extends JFrame {
 
     private JTextField sipAddress;
 
-    private SoundManager soundManager;
+//    private SoundManager soundManager;
 
 
     public PhoneScreen(SipManager sipManager)  {
@@ -29,7 +29,7 @@ public class PhoneScreen extends JFrame {
 
         initScreen();
 
-        soundManager = new SoundManager();
+//        soundManager = new SoundManager();
     }
 
 
@@ -128,24 +128,23 @@ public class PhoneScreen extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 //                sipManager.acceptingCall(6070);
-                if(!soundManager.isServingInput()){
-                    soundManager.startAudioThread();
+
+
                     acceptBtn.setEnabled(false);
                     stopBtn.setEnabled(true);
 
-                }
+
             }
         });
         stopBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 //                sipManager.acceptingCall(6070);
-                if(soundManager.isServingInput()){
-                    soundManager.stopServer();
+
                     stopBtn.setEnabled(false);
                     acceptBtn.setEnabled(true);
 
-                }
+
             }
         });
     }

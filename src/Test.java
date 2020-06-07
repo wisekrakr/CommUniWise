@@ -145,13 +145,13 @@ public class Test implements SipListener {
 
     public Request createInvite(String callId) throws ParseException,
             InvalidArgumentException {
-        String fromName = "253";
+        String fromName = "252";
         String fromSipAddress = "asterisk.interzone";
-        String fromDisplayName = "damian";
+        String fromDisplayName = "damian2";
 
         String toSipAddress = "asterisk.interzone";
-        String toUser = "252";
-        String toDisplayName = "damian2";
+        String toUser = "253";
+        String toDisplayName = "damian";
 
         // create >From Header
         SipURI fromAddress = addressFactory.createSipURI(fromName,

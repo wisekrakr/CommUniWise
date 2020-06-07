@@ -1,9 +1,6 @@
 package com.wisekrakr.communiwise;
 
-import com.wisekrakr.communiwise.audio.SourceDataLineThread;
-import com.wisekrakr.communiwise.audio.InputThread;
-import com.wisekrakr.communiwise.audio.OutputThread;
-import com.wisekrakr.communiwise.audio.TargetDataLineThread;
+import com.wisekrakr.communiwise.audio.*;
 import com.wisekrakr.communiwise.config.Config;
 
 import javax.sound.sampled.*;
@@ -13,7 +10,7 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
-public class SoundManager {
+public class SoundManager{
     // path of the wav file
     File wavFile = new File("H:/CODERING/SIP_dev/assets/RecordAudio" + Math.random() + ".wav");
 
@@ -30,20 +27,9 @@ public class SoundManager {
 
 
 
-    /**
-     * Defines an audio format
-     */
-    AudioFormat getAudioFormat() {
-        float sampleRate = 44100;
-        int sampleSizeInBits = 16;
-        int channels = 2;
-
-        return new AudioFormat(sampleRate, sampleSizeInBits,
-                channels, true, true);
-    }
 
     public void startAudioThread(){
-        AudioFormat format = getAudioFormat();
+        AudioFormat format = AudioContext.getAudioFormat();
 
         try {
             DataLine.Info sourceInfo = new DataLine.Info(SourceDataLine.class, format);
@@ -64,30 +50,39 @@ public class SoundManager {
             System.out.println("Target Thread started");
 
             targetDataLineThread.start();
-            Thread.sleep(5000);
-            inputLine.stop();
-            inputLine.close();
-
-            System.out.println("Target Thread Stopped");
+//            Thread.sleep(5000);
+//            inputLine.stop();
+//            inputLine.close();
+//
+//            System.out.println("Target Thread Stopped");
 
             System.out.println("Source Thread started");
 
             sourceDataLineThread.start();
-            Thread.sleep(5000);
-            outputLine.stop();
-            outputLine.close();
+//            Thread.sleep(5000);
+//            outputLine.stop();
+//            outputLine.close();
+//
+//            System.out.println("Source Thread stopped");
 
-            System.out.println("Source Thread stopped");
 
-
-        } catch (LineUnavailableException | InterruptedException e) {
+        } catch (LineUnavailableException e) {
             e.printStackTrace();
         }
     }
 
+    public void stopAudioThread() {
+        inputLine.stop();
+        inputLine.close();
+
+        outputLine.stop();
+        outputLine.close();
+    }
+
+
     public void startClient() {
 
-        AudioFormat format = getAudioFormat();
+        AudioFormat format = AudioContext.getAudioFormat();
         DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
 
         // checks if system supports the data line
@@ -98,26 +93,21 @@ public class SoundManager {
 
         try {
             inputLine = (TargetDataLine) AudioSystem.getLine(info);
-            inputLine.open(); //open format?
+            inputLine.open(format);
             inputLine.start();   // start capturing
 
             System.out.println("Start capturing client...");
             servingInput = true;
 
 //            AudioInputStream ais = new AudioInputStream(inputLine);
-            InputThread inputThread = new InputThread(this, inputLine);
+            InputThread inputThread = new InputThread(this, inputLine,new DatagramSocket());
             InetAddress inetAddress = InetAddress.getByName(Config.LOCAL_IP);
-            inputThread.setInputLine(inputLine);
-            inputThread.setDatagramSocket(new DatagramSocket());
             inputThread.setServerIp(inetAddress);
             inputThread.setServerPort(Config.RTP_PORT);
 
             inputThread.start();
 
             System.out.println("Start recording client...");
-
-
-
 
 //            // start recording
 //            AudioSystem.write(ais, fileType, wavFile);
@@ -129,7 +119,7 @@ public class SoundManager {
 
     public void startServer() {
         try {
-            AudioFormat format = getAudioFormat();
+            AudioFormat format = AudioContext.getAudioFormat();
             DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
 
             // checks if system supports the data line
@@ -144,9 +134,8 @@ public class SoundManager {
             System.out.println("Start capturing server...");
             servingOutput = true;
 
-            OutputThread outputThread = new OutputThread(this);
-            outputThread.setOutputLine(outputLine);
-            outputThread.setDatagramSocket(new DatagramSocket(33060));
+            OutputThread outputThread = new OutputThread(this, outputLine,new DatagramSocket(Config.RTP_PORT));
+
             outputThread.start();
 
             System.out.println("Start recording server...");

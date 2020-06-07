@@ -3,6 +3,7 @@ package com.wisekrakr.communiwise.actions;
 
 import com.wisekrakr.communiwise.SipManager;
 import com.wisekrakr.communiwise.config.Config;
+import com.wisekrakr.communiwise.utils.Headers;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipProvider;
@@ -45,8 +46,8 @@ public class Register {
                     + sipManager.getSipProfile().getServer());
             toAddress.setDisplayName(sipManager.getSipProfile().getSipUserName());
 
-            Address contactAddress = sipManager.createContactAddress();
-            ArrayList<ViaHeader> viaHeaders = sipManager.createViaHeader();
+            Address contactAddress = Headers.createContactAddress(addressFactory,sipManager.getSipProfile());
+            ArrayList<ViaHeader> viaHeaders = Headers.createViaHeader(headerFactory,sipManager.getSipProfile());
             URI requestURI = addressFactory.createAddress(
                     "sip:" + sipManager.getSipProfile().getServer()) //was getRemoteEndPoint
                     .getURI();

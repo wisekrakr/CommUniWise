@@ -9,21 +9,22 @@ import java.net.DatagramSocket;
 
 public class OutputThread extends Thread{
 
-    private SourceDataLine outputLine = null;
+    private SourceDataLine outputLine;
     private DatagramSocket datagramSocket;
     byte buff[] = new byte[512];
 
     private SoundManager soundManager;
 
-    public OutputThread(SoundManager soundManager) {
+    public OutputThread(SoundManager soundManager, SourceDataLine outputLine, DatagramSocket datagramSocket) {
         this.soundManager = soundManager;
+        this.outputLine = outputLine;
+        this.datagramSocket = datagramSocket;
     }
 
     @Override
     public void run() {
         int i = 0;
         DatagramPacket incoming = new DatagramPacket(buff,buff.length);
-        //serve
 
         while (soundManager.isServingOutput()){
             try {
@@ -33,7 +34,7 @@ public class OutputThread extends Thread{
 
                 outputLine.write(buff, 0 , buff.length);
 
-                System.out.println("received #" + i++);
+//                System.out.println("received #" + i++);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -44,19 +45,5 @@ public class OutputThread extends Thread{
         System.out.println("Output Thread finished");
     }
 
-    public SourceDataLine getOutputLine() {
-        return outputLine;
-    }
 
-    public void setOutputLine(SourceDataLine outputLine) {
-        this.outputLine = outputLine;
-    }
-
-    public DatagramSocket getDatagramSocket() {
-        return datagramSocket;
-    }
-
-    public void setDatagramSocket(DatagramSocket datagramSocket) {
-        this.datagramSocket = datagramSocket;
-    }
 }

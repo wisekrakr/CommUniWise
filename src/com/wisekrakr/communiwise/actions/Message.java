@@ -2,6 +2,7 @@ package com.wisekrakr.communiwise.actions;
 
 
 import com.wisekrakr.communiwise.SipManager;
+import com.wisekrakr.communiwise.utils.Headers;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.address.Address;
@@ -28,7 +29,7 @@ public class Message {
         URI requestURI = sipManager.getAddressFactory().createURI(to);
         // requestURI.setTransportParam("udp");
 
-        ArrayList<ViaHeader> viaHeaders = sipManager.createViaHeader();
+        ArrayList<ViaHeader> viaHeaders = Headers.createViaHeader(sipManager.getHeaderFactory(), sipManager.getSipProfile());
 
         CallIdHeader callIdHeader = sipManager.getSipProvider().getNewCallId();
 
@@ -56,11 +57,9 @@ public class Message {
         ContentTypeHeader contentTypeHeader = sipManager.getHeaderFactory()
                 .createContentTypeHeader("text", "plain");
         request.setContent(message, contentTypeHeader);
+
         System.out.println(request);
+
         return request;
-
     }
-
-
-
 }

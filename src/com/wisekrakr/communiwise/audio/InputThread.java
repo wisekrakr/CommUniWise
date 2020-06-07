@@ -10,31 +10,30 @@ import java.net.InetAddress;
 
 public class InputThread extends Thread {
 
-    private DatagramSocket datagramSocket;
-
     private InetAddress serverIp;
     private int serverPort;
 
     private final SoundManager soundManager;
-    private TargetDataLine inputLine;
+    private final TargetDataLine inputLine;
+    private final DatagramSocket datagramSocket;
 
-    public InputThread(SoundManager soundManager, TargetDataLine inputLine) {
+    public InputThread(SoundManager soundManager, TargetDataLine inputLine, DatagramSocket datagramSocket) {
         this.soundManager = soundManager;
         this.inputLine = inputLine;
+        this.datagramSocket = datagramSocket;
     }
 
     @Override
     public void run() {
-        int readBytes;
-        while (soundManager.isServingInput()){
 
+        while (soundManager.isServingInput()){
             try {
                 byte[] buff = new byte[inputLine.getBufferSize()/5];
-                readBytes = inputLine.read(buff, 0, buff.length);
+                inputLine.read(buff, 0, buff.length);
 
                 DatagramPacket data = new DatagramPacket(buff,buff.length, serverIp, serverPort);
 
-                System.out.println("send #" + readBytes);
+//                System.out.println("send #" + readBytes);
                 datagramSocket.send(data);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -46,21 +45,6 @@ public class InputThread extends Thread {
         System.out.println("Input Thread finished");
     }
 
-    public TargetDataLine getInputLine() {
-        return inputLine;
-    }
-
-    public void setInputLine(TargetDataLine inputLine) {
-        this.inputLine = inputLine;
-    }
-
-    public DatagramSocket getDatagramSocket() {
-        return datagramSocket;
-    }
-
-    public void setDatagramSocket(DatagramSocket datagramSocket) {
-        this.datagramSocket = datagramSocket;
-    }
 
     public InetAddress getServerIp() {
         return serverIp;

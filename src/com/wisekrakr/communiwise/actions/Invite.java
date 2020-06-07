@@ -3,6 +3,7 @@ package com.wisekrakr.communiwise.actions;
 
 import com.wisekrakr.communiwise.SipManager;
 import com.wisekrakr.communiwise.config.Config;
+import com.wisekrakr.communiwise.utils.Headers;
 
 import javax.sip.address.Address;
 import javax.sip.address.SipURI;
@@ -19,10 +20,11 @@ public class Invite {
     }
 
     public Request MakeRequest(String to, int port){
-
+        Request callRequest = null;
         try {
             //Create From Header
-            SipURI from = sipManager.getAddressFactory().createSipURI(sipManager.getSipProfile().getSipUserName(), sipManager.getSipProfile().getServer());
+            SipURI from = sipManager.getAddressFactory().createSipURI(sipManager.getSipProfile().getSipUserName(),
+                    sipManager.getSipProfile().getServer());
             Address fromNameAddress = sipManager.getAddressFactory().createAddress(from);
             // fromNameAddress.setDisplayName(sipManager.getSipProfile().getSipUserName());
             FromHeader fromHeader = sipManager.getHeaderFactory().createFromHeader(fromNameAddress,
@@ -38,7 +40,8 @@ public class Invite {
             URI requestURI = sipManager.getAddressFactory().createURI(to);
 
             //Create Via Header
-            ArrayList<ViaHeader> viaHeaders = sipManager.createViaHeader();
+            ArrayList<ViaHeader> viaHeaders = Headers.createViaHeader(sipManager.getHeaderFactory(),
+                    sipManager.getSipProfile());
 
             //Create CSeq Header
             CSeqHeader cSeqHeader = sipManager.getHeaderFactory().createCSeqHeader(1l,
@@ -52,7 +55,7 @@ public class Invite {
             CallIdHeader callIdHeader = sipManager.getSipProvider().getNewCallId();
 
             // Create the request.
-            Request callRequest = sipManager.getMessageFactory().createRequest(requestURI,
+            callRequest = sipManager.getMessageFactory().createRequest(requestURI,
                     Request.INVITE, callIdHeader, cSeqHeader, fromHeader,
                     toHeader, viaHeaders, maxForwards);
             SupportedHeader supportedHeader = sipManager.getHeaderFactory()
@@ -107,13 +110,13 @@ public class Invite {
                     "<http://www.antd.nist.gov>");
             callRequest.addHeader(callInfoHeader);
 
-            return callRequest;
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
 
         }
-        return null;
+        return callRequest;
     }
 
 
