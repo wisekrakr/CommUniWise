@@ -1,4 +1,4 @@
-package com;
+package com.wisekrakr.communiwise;
 
 
 import com.wisekrakr.communiwise.SipManager;

@@ -29,7 +29,7 @@ public class Message {
         URI requestURI = sipManager.getAddressFactory().createURI(to);
         // requestURI.setTransportParam("udp");
 
-        ArrayList<ViaHeader> viaHeaders = Headers.createViaHeader(sipManager.getHeaderFactory(), sipManager.getSipProfile());
+        ArrayList<ViaHeader> viaHeaders = Headers.createViaHeader(sipManager.getHeaderFactory(), sipManager.getSipProfile(), sipManager.getSipProvider());
 
         CallIdHeader callIdHeader = sipManager.getSipProvider().getNewCallId();
 

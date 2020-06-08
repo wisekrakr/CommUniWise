@@ -6,4 +6,5 @@ public interface SipManagerContext {
     void registering();
     void calling(String to, int localRtpPort);
     void hangingUp();
+    void acceptingCall(final int port);
 }

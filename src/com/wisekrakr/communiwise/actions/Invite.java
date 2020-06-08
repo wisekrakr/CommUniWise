@@ -2,13 +2,16 @@ package com.wisekrakr.communiwise.actions;
 
 
 import com.wisekrakr.communiwise.SipManager;
-import com.wisekrakr.communiwise.config.Config;
+import com.wisekrakr.communiwise.user.SipProfile;
 import com.wisekrakr.communiwise.utils.Headers;
 
+import javax.sip.SipProvider;
 import javax.sip.address.Address;
+import javax.sip.address.AddressFactory;
 import javax.sip.address.SipURI;
 import javax.sip.address.URI;
 import javax.sip.header.*;
+import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import java.util.ArrayList;
 
@@ -20,81 +23,85 @@ public class Invite {
     }
 
     public Request MakeRequest(String to, int port){
-        Request callRequest = null;
+
+        AddressFactory addressFactory = sipManager.getAddressFactory();
+        SipProvider sipProvider = sipManager.getSipProvider();
+        MessageFactory messageFactory = sipManager.getMessageFactory();
+        HeaderFactory headerFactory = sipManager.getHeaderFactory();
+
+        SipProfile sipProfile = sipManager.getSipProfile();
+
         try {
             //Create From Header
-            SipURI from = sipManager.getAddressFactory().createSipURI(sipManager.getSipProfile().getSipUserName(),
-                    sipManager.getSipProfile().getServer());
-            Address fromNameAddress = sipManager.getAddressFactory().createAddress(from);
+            SipURI from = addressFactory.createSipURI(sipProfile.getSipUserName(), sipProfile.getServer());
+            Address fromNameAddress = addressFactory.createAddress(from);
             // fromNameAddress.setDisplayName(sipManager.getSipProfile().getSipUserName());
-            FromHeader fromHeader = sipManager.getHeaderFactory().createFromHeader(fromNameAddress,
-                    "12345");
-
-            //Create To Header
-            URI toAddress = sipManager.getAddressFactory().createURI(to);
-            Address toNameAddress = sipManager.getAddressFactory().createAddress(toAddress);
-            // toNameAddress.setDisplayName(username);
-            ToHeader toHeader = sipManager.getHeaderFactory().createToHeader(toNameAddress, null);
+            FromHeader fromHeader = headerFactory.createFromHeader(fromNameAddress,"12345");
 
             //Create Request URI
-            URI requestURI = sipManager.getAddressFactory().createURI(to);
+            URI requestURI = addressFactory.createURI(to);
+
+            //Create To Header
+//            URI toAddress = sipManager.getAddressFactory().createURI(to);
+            Address toNameAddress = addressFactory.createAddress(requestURI);
+            // toNameAddress.setDisplayName(username);
+            ToHeader toHeader = headerFactory.createToHeader(toNameAddress, null);
+
+
 
             //Create Via Header
-            ArrayList<ViaHeader> viaHeaders = Headers.createViaHeader(sipManager.getHeaderFactory(),
-                    sipManager.getSipProfile());
+            ArrayList<ViaHeader> viaHeaders = Headers.createViaHeader(headerFactory,
+                    sipProfile, sipProvider);
 
             //Create CSeq Header
-            CSeqHeader cSeqHeader = sipManager.getHeaderFactory().createCSeqHeader(1l,
-                    Request.INVITE);
+            CSeqHeader cSeqHeader = headerFactory.createCSeqHeader(1l, Request.INVITE);
 
             // Create a new MaxForwardsHeader
-            MaxForwardsHeader maxForwards = sipManager.getHeaderFactory()
-                    .createMaxForwardsHeader(70);
+            MaxForwardsHeader maxForwards = headerFactory.createMaxForwardsHeader(70);
 
             // Create a new CallId header
-            CallIdHeader callIdHeader = sipManager.getSipProvider().getNewCallId();
+            CallIdHeader callIdHeader = sipProvider.getNewCallId();
 
             // Create the request.
-            callRequest = sipManager.getMessageFactory().createRequest(requestURI,
+            Request callRequest = messageFactory.createRequest(requestURI,
                     Request.INVITE, callIdHeader, cSeqHeader, fromHeader,
                     toHeader, viaHeaders, maxForwards);
-            SupportedHeader supportedHeader = sipManager.getHeaderFactory()
+            SupportedHeader supportedHeader = headerFactory
                     .createSupportedHeader("replaces, outbound");
             callRequest.addHeader(supportedHeader);
 
 
-            SipURI routeUri = sipManager.getAddressFactory().createSipURI(sipManager.getSipProfile().getSipUserName(), sipManager.getSipProfile().getServer());
-            routeUri.setTransportParam(sipManager.getSipProfile().getTransport());
+            SipURI routeUri = addressFactory.createSipURI(sipProfile.getSipUserName(), sipProfile.getServer());
+            routeUri.setTransportParam(sipProfile.getTransport());
             routeUri.setLrParam();
-            routeUri.setPort(sipManager.getSipProfile().getRemotePort());
+            routeUri.setPort(sipProfile.getRemotePort());
 
-            Address routeAddress = sipManager.getAddressFactory().createAddress(routeUri);
-            RouteHeader route = sipManager.getHeaderFactory().createRouteHeader(routeAddress);
+            Address routeAddress = addressFactory.createAddress(routeUri);
+            RouteHeader route = headerFactory.createRouteHeader(routeAddress);
             callRequest.addHeader(route);
 
             // Create ContentTypeHeader
-            ContentTypeHeader contentTypeHeader = sipManager.getHeaderFactory()
-                    .createContentTypeHeader("application", "sdp");
+            ContentTypeHeader contentTypeHeader = headerFactory.createContentTypeHeader("application", "sdp");
 
             // Create the contact name address.
-            SipURI contactURI = sipManager.getAddressFactory().createSipURI(sipManager.getSipProfile().getSipUserName(), sipManager.getSipProfile().getLocalIp());
-            contactURI.setPort(sipManager.getSipProvider().getListeningPoint(sipManager.getSipProfile().getTransport())
+            SipURI contactURI = addressFactory.createSipURI(sipProfile.getSipUserName(), sipProfile.getLocalIp());
+            contactURI.setPort(sipProvider.getListeningPoint(sipProfile.getTransport())
                     .getPort());
 
-            Address contactAddress = sipManager.getAddressFactory().createAddress(contactURI);
+            Address contactAddress = addressFactory.createAddress(contactURI);
 
             // Add the contact address.
             //contactAddress.setDisplayName(fromName);
 
-            ContactHeader contactHeader = sipManager.getHeaderFactory().createContactHeader(contactAddress);
+            ContactHeader contactHeader = headerFactory.createContactHeader(contactAddress);
             callRequest.addHeader(contactHeader);
 
             String sdpData= "v=0\r\n" +
-                    "o=- 13760799956958020 13760799956958020" + " IN IP4 " + sipManager.getSipProfile().getLocalIp() +"\r\n" +
+                    "o=- 13760799956958020 13760799956958020" + " IN IP4 " + sipProfile.getLocalIp() +"\r\n" +
                     "s=mysession session\r\n" +
                     "s=-\r\n" +
                     //"p=+46 8 52018010\r\n" +
-                    "c=IN IP4 " + sipManager.getSipProfile().getLocalIp()+"\r\n" +
+                    "c=IN IP4 " + sipProfile.getLocalIp()+"\r\n" +
                     "t=0 0\r\n" +
                     "m=audio " + port + " RTP/AVP 0\r\n" +
                     "m=audio " + port + " RTP/AVP 0 4 18\r\n" +
@@ -106,17 +113,17 @@ public class Invite {
 
             callRequest.setContent(contents, contentTypeHeader);
 
-            Header callInfoHeader = sipManager.getHeaderFactory().createHeader("sipphone.Call-Info",
+            Header callInfoHeader = headerFactory.createHeader("sipphone.Call-Info",
                     "<http://www.antd.nist.gov>");
             callRequest.addHeader(callInfoHeader);
 
-
+            return callRequest;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
 
         }
-        return callRequest;
+        return null;
     }
 
 

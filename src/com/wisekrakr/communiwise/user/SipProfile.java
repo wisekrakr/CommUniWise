@@ -4,11 +4,11 @@ import com.wisekrakr.communiwise.config.Config;
 
 public class SipProfile {
     private String localIp= Config.LOCAL_IP;
-    private int localPort = 52216;
+    private int localPort = 5080;
     private String transport = "udp";
 
     private String server = Config.SERVER;
-    private int remotePort = 5060;
+    private int remotePort = Config.MASTER_PORT;
     private String sipUserName = Config.USERNAME;
     private String sipPassword = Config.PASSWORD;
 

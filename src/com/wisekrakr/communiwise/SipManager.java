@@ -22,6 +22,7 @@ import javax.sdp.SdpException;
 import javax.sip.*;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
+import javax.sip.address.SipURI;
 import javax.sip.header.*;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
@@ -60,14 +61,16 @@ public class SipManager implements SipListener, SipManagerContext{
     }
     private void initialize(){
 //        sipProfile.setLocalIp(IpAddress.get(true));
+        sipManagerState = SipManagerState.REGISTERING;
 
         sipFactory = SipFactory.getInstance();
         sipFactory.resetFactory();
         sipFactory.setPathName("gov.nist");
 
         Properties properties = new Properties();
-        properties.setProperty("javax.sip.OUTBOUND_PROXY", sipProfile.getLocalIp() + ":" + sipProfile.getLocalPort() + "/"
-                + "udp");
+
+//        properties.setProperty("javax.sip.OUTBOUND_PROXY", sipProfile.getRemoteEndpoint() + "/"
+//                + sipProfile.getTransport());
         properties.setProperty("javax.sip.STACK_NAME", "CommUniWise");
         properties
                 .setProperty("gov.nist.javax.sip.MAX_MESSAGE_SIZE", "1048576");
@@ -153,8 +156,12 @@ public class SipManager implements SipListener, SipManagerContext{
         ServerTransaction serverTransactionId = requestEvent.getServerTransaction();
         SIPMessage sp = (SIPMessage) request;
 
-        System.out.println("Process Request: " + request.getMethod());
-        System.out.println("Process Request ST: " + serverTransactionId);
+        System.out.println("\n\nRequest " + request.getMethod()
+                + " received at " + sipStack.getStackName()
+                + " with server transaction id " + serverTransactionId);
+
+        SipURI uri = (SipURI) ((FromHeader)request.getHeader(FromHeader.NAME)).getAddress().getURI();
+        System.out.println("Request Header: " + uri);
 
         switch (request.getMethod()) {
             case "MESSAGE":
@@ -175,7 +182,9 @@ public class SipManager implements SipListener, SipManagerContext{
                 break;
             case Request.ACK:
                 processAck(request, serverTransactionId);
-//                sendOk(requestEvent);
+                break;
+            case Request.REGISTER:
+                sendOk(requestEvent);
                 break;
             case "INVITE":
                 direction = CallDirection.INCOMING;
@@ -193,48 +202,56 @@ public class SipManager implements SipListener, SipManagerContext{
     @Override
     public void processResponse(ResponseEvent responseEvent) {
         Response response = responseEvent.getResponse();
-        System.out.println("Process Response: " + response.getStatusCode());
-
-        Dialog resDialog;
-        ClientTransaction tid = responseEvent.getClientTransaction();
-        if (tid != null) {
-            resDialog = tid.getDialog();
-        } else {
-            resDialog = responseEvent.getDialog();
-        }
         CSeqHeader cseq = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
+        ClientTransaction tid = responseEvent.getClientTransaction();
 
-//        if (response.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED
-//                || response.getStatusCode() == Response.UNAUTHORIZED) {
-//            AuthenticationHelper authenticationHelper = ((SipStackExt) sipStack)
-//                    .getAuthenticationHelper(
-//                            new SipAccountManager(sipProfile.getSipUserName(),
-//                                    sipProfile.getServer(), sipProfile
-//                                    .getSipPassword()), headerFactory);
-//            try {
-//                ClientTransaction inviteTid = authenticationHelper
-//                        .handleChallenge(response, tid, sipProvider, 5);
-//                currentClientTransaction = inviteTid;
-//                inviteTid.sendRequest();
-//            } catch (NullPointerException | SipException e) {
-//                e.printStackTrace();
-//            }
-//
-//        }
+        System.out.println("Response received : Status Code = "
+                + response.getStatusCode() + " " + cseq);
+        if (tid == null) {
+            System.out.println("Stray response -- dropping ");
+            return;
+        }else{
+            System.out.println("transaction state is " + tid.getState());
+            System.out.println("Dialog = " + tid.getDialog());
+//            System.out.println("Dialog State is " + tid.getDialog().getState());
+        }
+
+        //TODO with registering this must be call upon
+
+        if (response.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED
+                || response.getStatusCode() == Response.UNAUTHORIZED) {
+            System.out.println("Go for Authentication");
+
+            AuthenticationHelper authenticationHelper = ((SipStackExt) sipStack)
+                    .getAuthenticationHelper(
+                            new SipAccountManager(sipProfile.getSipUserName(),
+                                    sipProfile.getServer(), sipProfile
+                                    .getSipPassword()), headerFactory);
+            try {
+                currentClientTransaction = authenticationHelper
+                        .handleChallenge(response, tid, sipProvider, 5);
+
+                currentClientTransaction.sendRequest();
+            } catch (NullPointerException | SipException e) {
+                e.printStackTrace();
+            }
+
+        }
 
         if (response.getStatusCode() == Response.OK) {
             switch (cseq.getMethod()) {
                 case Request.INVITE:
-                    System.out.println("Dialog after 200 OK  " + resDialog);
-                    System.out.println("CT after 200 OK  " + tid);
+                    System.out.println("Dialog after 200 OK  " );
 
                     try {
-                        Request ackRequest = resDialog.createAck(cseq
+                        Dialog dialog = currentClientTransaction.getDialog();
+
+                        Request ackRequest = dialog.createAck(cseq
                                 .getSeqNumber());
 
-                        System.out.println("Sending ACK");
+                        System.out.println("Sending ACK " + ackRequest);
 
-                        resDialog.sendAck(ackRequest);
+                        dialog.sendAck(ackRequest);
 
                     } // TODO Auto-generated catch block
                     catch (SipException | InvalidArgumentException e) {
@@ -318,10 +335,10 @@ public class SipManager implements SipListener, SipManagerContext{
     @Override
     public void processTransactionTerminated(TransactionTerminatedEvent transactionTerminatedEvent) {
         if (transactionTerminatedEvent.isServerTransaction())
-            System.out.println("Transaction terminated event received "
+            System.out.println("Server Transaction terminated event received "
                     + transactionTerminatedEvent.getServerTransaction());
         else {
-            System.out.println("Transaction terminated "
+            System.out.println("Client Transaction terminated "
                     + transactionTerminatedEvent.getClientTransaction());
         }
     }
@@ -339,16 +356,13 @@ public class SipManager implements SipListener, SipManagerContext{
 
             final ClientTransaction transaction = this.sipProvider
                     .getNewClientTransaction(r);
-            Thread thread = new Thread() {
-                public void run() {
-                    try {
-                        transaction.sendRequest();
-                    } catch (SipException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            thread.start();
+
+            try {
+                transaction.sendRequest();
+            } catch (SipException e) {
+                e.printStackTrace();
+            }
+
         } catch (TransactionUnavailableException | ParseException | InvalidArgumentException e) {
             e.printStackTrace();
         }
@@ -363,20 +377,19 @@ public class SipManager implements SipListener, SipManagerContext{
         Register registerRequest = new Register(this);
         try {
             Request r = registerRequest.MakeRequest();
-            final ClientTransaction transaction = this.sipProvider
+            currentClientTransaction = this.sipProvider
                     .getNewClientTransaction(r);
 
-            Thread thread = new Thread() {
-                public void run() {
-                    try {
-                        transaction.sendRequest();
+            try {
+                currentClientTransaction.sendRequest();
 
-                    } catch (SipException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            thread.start();
+                System.out.println("Registering: " + currentClientTransaction.getDialog());
+
+
+            } catch (SipException e) {
+                e.printStackTrace();
+            }
+
 
         } catch (ParseException | TransactionUnavailableException | InvalidArgumentException e) {
             e.printStackTrace();
@@ -390,22 +403,19 @@ public class SipManager implements SipListener, SipManagerContext{
         Request r = inviteRequest.MakeRequest(to, localRtpPort);
         System.out.println(r);
         try {
-            final ClientTransaction transaction = this.sipProvider
+            currentClientTransaction = this.sipProvider
                     .getNewClientTransaction(r);
-            currentClientTransaction = transaction;
-            Thread thread = new Thread() {
-                public void run() {
-                    try {
-                        transaction.sendRequest();
 
-                        System.out.println("Calling: " + transaction.getDialog());
+            try {
+                currentClientTransaction.sendRequest();
 
-                    } catch (SipException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            thread.start();
+                System.out.println("Calling: " + currentClientTransaction.getDialog());
+
+            } catch (SipException e) {
+                e.printStackTrace();
+            }
+
+
         } catch (TransactionUnavailableException e) {
             e.printStackTrace();
         }
@@ -428,52 +438,49 @@ public class SipManager implements SipListener, SipManagerContext{
         }
     }
 
+    @Override
     public void acceptingCall(final int port) {
         if (currentServerTransaction == null)
             return;
-        Thread thread = new Thread() {
-            public void run() {
-                try {
-                    SIPMessage sm = (SIPMessage) currentServerTransaction
-                            .getRequest();
-                    Response responseOK = messageFactory.createResponse(
-                            Response.OK, currentServerTransaction.getRequest());
-                    Address address = Headers.createContactAddress(addressFactory, sipProfile);
-                    ContactHeader contactHeader = headerFactory
-                            .createContactHeader(address);
-                    responseOK.addHeader(contactHeader);
-                    ToHeader toHeader = (ToHeader) responseOK
-                            .getHeader(ToHeader.NAME);
-                    toHeader.setTag("4321"); // Application is supposed to set.
-                    responseOK.addHeader(contactHeader);
+
+            try {
+                Response responseOK = messageFactory.createResponse(
+                        Response.OK, currentServerTransaction.getRequest());
+                Address address = Headers.createContactAddress(addressFactory, sipProfile);
+                ContactHeader contactHeader = headerFactory
+                        .createContactHeader(address);
+                responseOK.addHeader(contactHeader);
+                ToHeader toHeader = (ToHeader) responseOK
+                        .getHeader(ToHeader.NAME);
+                toHeader.setTag("4321"); // Application is supposed to set.
+                responseOK.addHeader(contactHeader);
 
 
-                    String sdpData = "v=0\r\n"
-                            + "o=4855 13760799956958020 13760799956958020"
-                            + " IN IP4 " + sipProfile.getLocalIp() + "\r\n"
-                            + "s=mysession session\r\n"
-                            + "p=+46 8 52018010\r\n" + "c=IN IP4 "
-                            + sipProfile.getLocalIp() + "\r\n" + "t=0 0\r\n"
-                            + "m=audio " + String.valueOf(port)
-                            + " RTP/AVP 0 4 18\r\n"
-                            + "a=rtpmap:0 PCMU/8000\r\n"
-                            + "a=rtpmap:4 G723/8000\r\n"
-                            + "a=rtpmap:18 G729A/8000\r\n" + "a=ptime:20\r\n";
-                    byte[] contents = sdpData.getBytes();
+                String sdpData = "v=0\r\n"
+                        + "o=4855 13760799956958020 13760799956958020"
+                        + " IN IP4 " + sipProfile.getLocalIp() + "\r\n"
+                        + "s=mysession session\r\n"
+                        + "p=+46 8 52018010\r\n" + "c=IN IP4 "
+                        + sipProfile.getLocalIp() + "\r\n" + "t=0 0\r\n"
+                        + "m=audio " + String.valueOf(port)
+                        + " RTP/AVP 0 4 18\r\n"
+                        + "a=rtpmap:0 PCMU/8000\r\n"
+                        + "a=rtpmap:4 G723/8000\r\n"
+                        + "a=rtpmap:18 G729A/8000\r\n" + "a=ptime:20\r\n";
+                byte[] contents = sdpData.getBytes();
 
-                    ContentTypeHeader contentTypeHeader = headerFactory
-                            .createContentTypeHeader("application", "sdp");
-                    responseOK.setContent(contents, contentTypeHeader);
+                ContentTypeHeader contentTypeHeader = headerFactory
+                        .createContentTypeHeader("application", "sdp");
+                responseOK.setContent(contents, contentTypeHeader);
 
-                    currentServerTransaction.sendResponse(responseOK);
+                currentServerTransaction.sendResponse(responseOK);
 
-                    sipManagerState = SipManagerState.ESTABLISHED;
-                } catch (ParseException | InvalidArgumentException | SipException e) {
-                    e.printStackTrace();
-                }
+                sipManagerState = SipManagerState.ESTABLISHED;
+            } catch (ParseException | InvalidArgumentException | SipException e) {
+                e.printStackTrace();
             }
-        };
-        thread.start();
+
+
         sipManagerState = SipManagerState.ESTABLISHED;
     }
 
@@ -482,25 +489,19 @@ public class SipManager implements SipListener, SipManagerContext{
         sipManagerState = SipManagerState.IDLE;
     }
 
-
-
     private void sendDecline(Request request) {
-        Thread thread = new Thread() {
-            public void run() {
 
-                Response responseBye;
-                try {
-                    responseBye = messageFactory.createResponse(
-                            Response.DECLINE,
-                            request);
-                    currentServerTransaction.sendResponse(responseBye);
+        try {
+            Response responseBye = messageFactory.createResponse(
+                    Response.DECLINE,
+                    request);
+            currentServerTransaction.sendResponse(responseBye);
 
-                } catch (ParseException | InvalidArgumentException | SipException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        thread.start();
+        } catch (ParseException | InvalidArgumentException | SipException e) {
+            e.printStackTrace();
+        }
+
+
         direction = CallDirection.NONE;
     }
 
@@ -527,6 +528,9 @@ public class SipManager implements SipListener, SipManagerContext{
             System.out.println("INVITE: sending Trying");
             Response response = messageFactory.createResponse(Response.TRYING,
                     request);
+
+            dialog = st.getDialog();
+
             st.sendResponse(response);
             System.out.println("INVITE:Trying Sent");
 
@@ -647,20 +651,20 @@ public class SipManager implements SipListener, SipManagerContext{
     public void processAck(Request request,
                            ServerTransaction serverTransactionId) {
         System.out.println("Process Ack: got an ACK! " + request);
-        System.out.println("Ack Dialog State = " + dialog.getState());
-//        try {
-//            if (serverTransactionId == null) {
-//                System.out.println("null server transaction -- ignoring the ACK!");
-//                return;
-//            }
-//            Dialog dialog = serverTransactionId.getDialog();
-//
-//            System.out.println("Dialog Created = " + dialog.getDialogId() + " Dialog State = " + dialog.getState());
-//
-//            System.out.println("Waiting for INFO");
-//
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//        }
+        System.out.println("Ack Dialog State = " + currentClientTransaction.getDialog().getState());
+        try {
+            if (serverTransactionId == null) {
+                System.out.println("null server transaction -- ignoring the ACK!");
+                return;
+            }
+            Dialog dialog = serverTransactionId.getDialog();
+
+            System.out.println("Dialog Created = " + dialog.getDialogId() + " Dialog State = " + dialog.getState());
+
+            System.out.println("Waiting for INFO");
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }

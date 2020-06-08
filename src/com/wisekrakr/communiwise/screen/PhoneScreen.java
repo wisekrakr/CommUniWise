@@ -96,8 +96,8 @@ public class PhoneScreen extends JFrame {
         JLabel destination = new JLabel("destination");
         sipAddress = new JTextField();
         JButton callBtn = new JButton("call");
-        JButton acceptBtn = new JButton("record");
-        JButton stopBtn = new JButton("stop");
+        JButton acceptBtn = new JButton("accept");
+        JButton stopBtn = new JButton("hang up");
 
         getContentPane().add(destination);
         destination.setBounds(10, 300, 100, 30);
@@ -120,29 +120,25 @@ public class PhoneScreen extends JFrame {
         stopBtn.setBounds(230, 400, 100, 30);
         getContentPane().add(stopBtn);
 
-        acceptBtn.setEnabled(true);
-        stopBtn.setEnabled(false);
 
 
         acceptBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-//                sipManager.acceptingCall(6070);
+                sipManager.acceptingCall(sipManager.getSipProfile().getRemotePort());
+                System.out.println("Clicked accept");
 
-
-                    acceptBtn.setEnabled(false);
-                    stopBtn.setEnabled(true);
-
-
+                acceptBtn.setEnabled(false);
+                stopBtn.setEnabled(true);
             }
         });
         stopBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-//                sipManager.acceptingCall(6070);
-
-                    stopBtn.setEnabled(false);
-                    acceptBtn.setEnabled(true);
+                sipManager.hangingUp();
+                System.out.println("Clicked hanging up");
+                stopBtn.setEnabled(false);
+                acceptBtn.setEnabled(true);
 
 
             }
