@@ -8,7 +8,7 @@ public abstract class Config {
     public static String LOCAL_IP = "192.168.84.87"; //"127.0.0.1"; //
     public static String ANOTHER_IP = "192.168.1.107";
     public static Integer RTP_PORT = 33060;
-    public static Integer LOCAL_RTP_PORT = 17000;
+    public static Integer LOCAL_RTP_PORT = 14000;
     public static Integer MASTER_PORT = 5060;
 
 

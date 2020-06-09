@@ -1,7 +1,8 @@
 package com.wisekrakr.communiwise;
 
 
-import com.wisekrakr.communiwise.SipManager;
+import com.wisekrakr.communiwise.phone.Device;
+import com.wisekrakr.communiwise.phone.SipManager;
 import com.wisekrakr.communiwise.screen.PhoneScreen;
 import com.wisekrakr.communiwise.user.SipProfile;
 
@@ -9,18 +10,14 @@ import com.wisekrakr.communiwise.user.SipProfile;
 public class CommUniWise{
 
     private static PhoneScreen phoneScreen;
-    private static SipManager sipManager;
-    private static SipProfile sipProfile;
+    private static Device device = Device.GetInstance();
+
 
     public static void main(String[] args) {
-        sipProfile = new SipProfile();
-        sipManager = new SipManager(sipProfile);
-        phoneScreen = new PhoneScreen(sipManager);
+
+        phoneScreen = new PhoneScreen(device);
 
 
-//        for(Mixer.Info info: getMixerInfo()){
-//            System.out.println(info.getName() + " --- " + info.getDescription());
-//        }
 
 
 

@@ -1,7 +1,7 @@
-package com.wisekrakr.communiwise.actions;
+package com.wisekrakr.communiwise.phone.impl;
 
 
-import com.wisekrakr.communiwise.SipManager;
+import com.wisekrakr.communiwise.phone.SipManager;
 import com.wisekrakr.communiwise.user.SipProfile;
 import com.wisekrakr.communiwise.utils.Headers;
 

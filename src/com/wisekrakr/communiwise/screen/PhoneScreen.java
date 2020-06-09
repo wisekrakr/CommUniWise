@@ -1,10 +1,11 @@
 package com.wisekrakr.communiwise.screen;
 
 
-import com.wisekrakr.communiwise.SipManager;
-import com.wisekrakr.communiwise.SoundManager;
-import com.wisekrakr.communiwise.audio.AudioClip;
+import com.wisekrakr.communiwise.phone.Device;
+import com.wisekrakr.communiwise.phone.SipManager;
+import com.wisekrakr.communiwise.phone.audio.impl.AudioClip;
 import com.wisekrakr.communiwise.config.Config;
+import com.wisekrakr.communiwise.utils.NotInitializedException;
 
 import javax.sound.sampled.AudioSystem;
 import javax.swing.*;
@@ -13,23 +14,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class PhoneScreen extends JFrame {
-    private SipManager sipManager;
 
     private JLabel status;
     private JTextField usernameInput;
     private JPasswordField passwordInput;
 
     private JTextField sipAddress;
+    private Device device;
 
-//    private SoundManager soundManager;
 
+    public PhoneScreen(Device device)  {
+        this.device = device;
 
-    public PhoneScreen(SipManager sipManager)  {
-        this.sipManager = sipManager;
 
         initScreen();
 
-//        soundManager = new SoundManager();
     }
 
 
@@ -84,10 +83,10 @@ public class PhoneScreen extends JFrame {
         connectBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                sipManager.getSipProfile().setSipUserName(usernameInput.getText().trim());
-                sipManager.getSipProfile().setSipPassword(Config.PASSWORD);
+                device.getSipManager().getSipProfile().setSipUserName(usernameInput.getText().trim());
+                device.getSipManager().getSipProfile().setSipPassword(Config.PASSWORD);
 
-                sipManager.registering();
+                device.getSipManager().registering();
             }
         });
     }
@@ -110,7 +109,11 @@ public class PhoneScreen extends JFrame {
         callBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                sipManager.calling("sip:"+sipAddress.getText().trim(), Config.LOCAL_RTP_PORT);
+                try {
+                    device.getSipManager().calling("sip:"+sipAddress.getText().trim(), Config.RTP_PORT);
+                } catch (NotInitializedException notInitializedException) {
+                    notInitializedException.printStackTrace();
+                }
             }
         });
 
@@ -125,20 +128,24 @@ public class PhoneScreen extends JFrame {
         acceptBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                sipManager.acceptingCall(sipManager.getSipProfile().getRemotePort());
+                device.getSipManager().acceptingCall(Config.RTP_PORT);
                 System.out.println("Clicked accept");
 
-                acceptBtn.setEnabled(false);
-                stopBtn.setEnabled(true);
+//                acceptBtn.setEnabled(false);
+//                stopBtn.setEnabled(true);
             }
         });
         stopBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                sipManager.hangingUp();
+                try {
+                    device.getSipManager().hangingUp();
+                } catch (NotInitializedException notInitializedException) {
+                    notInitializedException.printStackTrace();
+                }
                 System.out.println("Clicked hanging up");
-                stopBtn.setEnabled(false);
-                acceptBtn.setEnabled(true);
+//                stopBtn.setEnabled(false);
+//                acceptBtn.setEnabled(true);
 
 
             }
@@ -154,7 +161,7 @@ public class PhoneScreen extends JFrame {
         playBtn.setBounds(120, 300, 100, 30);
         getContentPane().add(playBtn);
 
-        AudioClip audioClip = new AudioClip(AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]));
+        AudioClip audioClip = new AudioClip();
         audioClip.createClipURL("https://file-examples.com/wp-content/uploads/2017/11/file_example_WAV_1MG.wav");
 
         playBtn.addActionListener(new ActionListener() {

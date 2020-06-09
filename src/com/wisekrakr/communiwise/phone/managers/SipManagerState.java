@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise;
+package com.wisekrakr.communiwise.phone.managers;
 
 public enum SipManagerState {
     /**

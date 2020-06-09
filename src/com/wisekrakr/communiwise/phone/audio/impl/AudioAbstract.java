@@ -1,14 +1,10 @@
-package com.wisekrakr.communiwise.audio;
+package com.wisekrakr.communiwise.phone.audio.impl;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.Mixer;
 
-public abstract class AudioContext {
-    private Mixer mixer;
+public abstract class AudioAbstract implements AudioContext{
 
-    public AudioContext(Mixer mixer) {
-        this.mixer = mixer;
-    }
 
     public static AudioFormat getAudioFormat() {
         float sampleRate = 44100;
@@ -19,14 +15,8 @@ public abstract class AudioContext {
                 channels, true, true);
     }
 
-    public AudioContext() {
+    public AudioAbstract() {
     }
 
-    public Mixer getMixer() {
-        return mixer;
-    }
 
-    public void setMixer(Mixer mixer) {
-        this.mixer = mixer;
-    }
 }

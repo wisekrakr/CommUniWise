@@ -1,15 +1,16 @@
-package com.wisekrakr.communiwise.audio;
+package com.wisekrakr.communiwise.phone.audio.impl;
 
 import javax.sound.sampled.*;
 import java.io.IOException;
 import java.net.URL;
 
-public class AudioClip extends AudioContext{
+public class AudioClip  {
 
     private Clip clip;
+    private Mixer mixer;
 
-    public AudioClip(Mixer mixer) {
-        super(mixer);
+    public AudioClip() {
+        mixer = AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]);
     }
 
     public void createClipURL(String path){
@@ -22,7 +23,7 @@ public class AudioClip extends AudioContext{
 
             DataLine.Info dataInfo = new DataLine.Info(Clip.class, format);
 
-            clip = (Clip)getMixer().getLine(dataInfo);
+            clip = (Clip)mixer.getLine(dataInfo);
             clip.open(audioInputStream);
         } catch (IOException | LineUnavailableException | UnsupportedAudioFileException e) {
             e.printStackTrace();
