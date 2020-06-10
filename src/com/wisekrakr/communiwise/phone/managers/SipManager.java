@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone;
+package com.wisekrakr.communiwise.phone.managers;
 
 
 
@@ -8,8 +8,8 @@ import com.wisekrakr.communiwise.phone.events.SipEventListenerContext;
 import com.wisekrakr.communiwise.phone.impl.Message;
 import com.wisekrakr.communiwise.phone.audio.impl.ClientAudio;
 import com.wisekrakr.communiwise.phone.audio.impl.ServerAudio;
-import com.wisekrakr.communiwise.phone.managers.SipManagerContext;
-import com.wisekrakr.communiwise.phone.managers.SipManagerState;
+import com.wisekrakr.communiwise.phone.managers.ext.SipManagerContext;
+import com.wisekrakr.communiwise.phone.managers.ext.SipManagerState;
 import com.wisekrakr.communiwise.user.SipAccountManager;
 import com.wisekrakr.communiwise.utils.Headers;
 import com.wisekrakr.communiwise.utils.NotInitializedException;
@@ -21,11 +21,9 @@ import gov.nist.javax.sip.message.SIPMessage;
 import com.wisekrakr.communiwise.phone.impl.Invite;
 import com.wisekrakr.communiwise.phone.impl.Register;
 import com.wisekrakr.communiwise.user.SipProfile;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.sdp.MediaDescription;
 import javax.sdp.SdpException;
-import javax.sdp.SdpParseException;
 import javax.sip.*;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;

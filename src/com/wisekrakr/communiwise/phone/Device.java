@@ -3,9 +3,12 @@ package com.wisekrakr.communiwise.phone;
 
 
 import com.wisekrakr.communiwise.config.Config;
+import com.wisekrakr.communiwise.phone.device.DeviceContext;
+import com.wisekrakr.communiwise.phone.device.SipDeviceListener;
 import com.wisekrakr.communiwise.phone.events.SipConnectionListener;
 import com.wisekrakr.communiwise.phone.events.SipEvent;
-import com.wisekrakr.communiwise.phone.listeners.SipDeviceListener;
+import com.wisekrakr.communiwise.phone.managers.SipManager;
+import com.wisekrakr.communiwise.phone.managers.SoundManager;
 import com.wisekrakr.communiwise.user.SipProfile;
 
 import java.io.*;

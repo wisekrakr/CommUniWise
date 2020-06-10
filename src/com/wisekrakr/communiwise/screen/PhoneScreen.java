@@ -2,12 +2,9 @@ package com.wisekrakr.communiwise.screen;
 
 
 import com.wisekrakr.communiwise.phone.Device;
-import com.wisekrakr.communiwise.phone.SipManager;
 import com.wisekrakr.communiwise.phone.audio.impl.AudioClip;
 import com.wisekrakr.communiwise.config.Config;
-import com.wisekrakr.communiwise.utils.NotInitializedException;
 
-import javax.sound.sampled.AudioSystem;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;

@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone;
+package com.wisekrakr.communiwise.phone.managers;
 
 
 import com.wisekrakr.communiwise.phone.audio.impl.ClientAudio;

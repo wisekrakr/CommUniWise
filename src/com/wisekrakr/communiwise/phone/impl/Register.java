@@ -1,7 +1,7 @@
 package com.wisekrakr.communiwise.phone.impl;
 
 
-import com.wisekrakr.communiwise.phone.SipManager;
+import com.wisekrakr.communiwise.phone.managers.SipManager;
 import com.wisekrakr.communiwise.utils.Headers;
 
 import javax.sip.InvalidArgumentException;

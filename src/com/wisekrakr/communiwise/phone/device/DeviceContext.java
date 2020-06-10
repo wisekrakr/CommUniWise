@@ -1,8 +1,9 @@
-package com.wisekrakr.communiwise.phone;
+package com.wisekrakr.communiwise.phone.device;
 
 
 
 import com.wisekrakr.communiwise.phone.events.SipEventListenerContext;
+import com.wisekrakr.communiwise.phone.managers.SipManager;
 
 public interface DeviceContext  extends SipEventListenerContext {
     void register();
