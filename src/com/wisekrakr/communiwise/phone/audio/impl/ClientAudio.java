@@ -2,18 +2,19 @@ package com.wisekrakr.communiwise.phone.audio.impl;
 
 import com.wisekrakr.communiwise.phone.audio.listener.IncomingAudioListener;
 
+import java.net.DatagramSocket;
+
 public class ClientAudio extends AudioAbstract {
 
     private IncomingAudioListener isl;
 
-    public ClientAudio(){
-
-    }
 
     @Override
-    public void init(int remoteRtpPort, String server) {
+    public void init(int remoteRtpPort, String server, DatagramSocket socket) {
         try {
-            isl = new IncomingAudioListener(getAudioFormat(), remoteRtpPort, server);
+
+
+            isl = new IncomingAudioListener(getAudioFormat(), remoteRtpPort, server, socket);
             isl.runListener();
         }catch (Exception e){
             e.printStackTrace();

@@ -7,12 +7,12 @@ public abstract class AudioAbstract implements AudioContext{
 
 
     public static AudioFormat getAudioFormat() {
-        float sampleRate = 44100;
+        float sampleRate = 8000;
         int sampleSizeInBits = 16;
-        int channels = 2;
+        int channels = 1;
 
         return new AudioFormat(sampleRate, sampleSizeInBits,
-                channels, true, true);
+                channels, true, false);
     }
 
     public AudioAbstract() {

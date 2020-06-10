@@ -44,60 +44,66 @@ public class Device implements DeviceContext, Serializable {
 
     @Override
     public void onSipMessage(final SipEvent sipEventObject) {
-        System.out.println("Sip Event fired");
-        if (sipEventObject.type == SipEvent.SipEventType.MESSAGE) {
-            if (this.sipDeviceListener != null) {
-                this.sipDeviceListener.onSipUAMessageArrived(new SipEvent(this, SipEvent.SipEventType.MESSAGE, sipEventObject.content, sipEventObject.from));
-            }
-        } else if (sipEventObject.type == SipEvent.SipEventType.BYE) {
-            soundManager.stopAudioStream();
-            if (this.sipConnectionListener != null) {
-                // notify our listener that we are connected
-                this.sipConnectionListener.onSipUADisconnected(null);
-            }
-        } else if (sipEventObject.type == SipEvent.SipEventType.REMOTE_CANCEL) {
-            soundManager.stopAudioStream();
+        System.out.println("Sip Event fired: " + sipEventObject.type);
+        switch (sipEventObject.type) {
+            case MESSAGE:
+                if (this.sipDeviceListener != null) {
+                    this.sipDeviceListener.onSipUAMessageArrived(new SipEvent(this, SipEvent.SipEventType.MESSAGE, sipEventObject.content, sipEventObject.from));
+                }
+                break;
+            case BYE:
+                soundManager.stopAudioStream();
+                if (this.sipConnectionListener != null) {
+                    // notify our listener that we are connected
+                    this.sipConnectionListener.onSipUADisconnected(null);
+                }
+                break;
+            case REMOTE_CANCEL:
+                soundManager.stopAudioStream();
 
-            if (this.sipConnectionListener != null) {
-                // notify our listener that we are connected
-                this.sipConnectionListener.onSipUACancelled(null);
-            }
-        } else if (sipEventObject.type == SipEvent.SipEventType.DECLINED) {
-            soundManager.stopAudioStream();
+                if (this.sipConnectionListener != null) {
+                    // notify our listener that we are connected
+                    this.sipConnectionListener.onSipUACancelled(null);
+                }
+                break;
+            case DECLINED:
+                soundManager.stopAudioStream();
 
-            if (this.sipConnectionListener != null) {
-                // notify our listener that we are connected
-                this.sipConnectionListener.onSipUADeclined(null);
-            }
-        }else if (sipEventObject.type == SipEvent.SipEventType.BUSY_HERE) {
-            soundManager.stopAudioStream();
+                if (this.sipConnectionListener != null) {
+                    // notify our listener that we are connected
+                    this.sipConnectionListener.onSipUADeclined(null);
+                }
+                break;
+            case BUSY_HERE:
+            case SERVICE_UNAVAILABLE:
+                soundManager.stopAudioStream();
+                break;
+            case CALL_CONNECTED:
+                soundManager.startAudioStream(sipEventObject.remoteRtpPort, sipProfile.getServer()); //TODO: changed from REMOTE IP
 
-        } else if (sipEventObject.type == SipEvent.SipEventType.SERVICE_UNAVAILABLE) {
-            soundManager.stopAudioStream();
-
-        } else if (sipEventObject.type == SipEvent.SipEventType.CALL_CONNECTED) {
-            soundManager.startAudioStream(sipEventObject.remoteRtpPort, this.sipProfile.getServer());
-
-            if (this.sipConnectionListener != null) {
-                // notify our listener that we are connected
-                this.sipConnectionListener.onSipUAConnected(null);
-            }
-        } else if (sipEventObject.type == SipEvent.SipEventType.REMOTE_RINGING) {
-            if (this.sipConnectionListener != null) {
-                // notify our listener that we are connecting
-                this.sipConnectionListener.onSipUAConnecting(null);
-            }
-        } else if (sipEventObject.type == SipEvent.SipEventType.LOCAL_RINGING) {
-            if (this.sipDeviceListener != null) {
-                this.sipDeviceListener.onSipUAConnectionArrived(null);
-            }
+                if (this.sipConnectionListener != null) {
+                    // notify our listener that we are connected
+                    this.sipConnectionListener.onSipUAConnected(null);
+                }
+                break;
+            case REMOTE_RINGING:
+                if (this.sipConnectionListener != null) {
+                    // notify our listener that we are connecting
+                    this.sipConnectionListener.onSipUAConnecting(null);
+                }
+                break;
+            case LOCAL_RINGING:
+                if (this.sipDeviceListener != null) {
+                    this.sipDeviceListener.onSipUAConnectionArrived(null);
+                }
+                break;
         }
     }
 
     @Override
     public void call(String to) {
         try {
-            this.sipManager.calling(to, Config.RTP_PORT);
+            this.sipManager.calling(to, Config.LOCAL_RTP_PORT);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -105,7 +111,7 @@ public class Device implements DeviceContext, Serializable {
 
     @Override
     public void accept() {
-//        sipManager.AcceptCall(soundManager.setupAudioStream());
+        sipManager.acceptingCall(Config.LOCAL_RTP_PORT);
     }
 
     @Override
@@ -116,14 +122,12 @@ public class Device implements DeviceContext, Serializable {
 
     @Override
     public void hangup() {
-        if (this.sipManager.getDirection() == SipManager.CallDirection.OUTGOING ||
-                this.sipManager.getDirection() == SipManager.CallDirection.INCOMING) {
-            try {
-                this.sipManager.hangingUp();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        try {
+            this.sipManager.hangingUp();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
 
     @Override

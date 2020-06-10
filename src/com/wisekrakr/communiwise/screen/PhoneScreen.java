@@ -86,7 +86,7 @@ public class PhoneScreen extends JFrame {
                 device.getSipManager().getSipProfile().setSipUserName(usernameInput.getText().trim());
                 device.getSipManager().getSipProfile().setSipPassword(Config.PASSWORD);
 
-                device.getSipManager().registering();
+                device.register();
             }
         });
     }
@@ -109,11 +109,7 @@ public class PhoneScreen extends JFrame {
         callBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    device.getSipManager().calling("sip:"+sipAddress.getText().trim(), Config.RTP_PORT);
-                } catch (NotInitializedException notInitializedException) {
-                    notInitializedException.printStackTrace();
-                }
+                device.call("sip:"+sipAddress.getText().trim());
             }
         });
 
@@ -128,7 +124,7 @@ public class PhoneScreen extends JFrame {
         acceptBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                device.getSipManager().acceptingCall(Config.RTP_PORT);
+                device.accept();
                 System.out.println("Clicked accept");
 
 //                acceptBtn.setEnabled(false);
@@ -138,11 +134,7 @@ public class PhoneScreen extends JFrame {
         stopBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    device.getSipManager().hangingUp();
-                } catch (NotInitializedException notInitializedException) {
-                    notInitializedException.printStackTrace();
-                }
+                device.hangup();
                 System.out.println("Clicked hanging up");
 //                stopBtn.setEnabled(false);
 //                acceptBtn.setEnabled(true);

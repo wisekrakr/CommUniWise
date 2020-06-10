@@ -96,6 +96,7 @@ public class Invite {
             ContactHeader contactHeader = headerFactory.createContactHeader(contactAddress);
             callRequest.addHeader(contactHeader);
 
+            //TODO: PCMA/8000 was PCMU/8000
             String sdpData= "v=0\r\n" +
                     "o=- 13760799956958020 13760799956958020" + " IN IP4 " + sipProfile.getLocalIp() +"\r\n" +
                     "s=mysession session\r\n" +
@@ -105,7 +106,7 @@ public class Invite {
                     "t=0 0\r\n" +
                     "m=audio " + port + " RTP/AVP 0\r\n" +
                     "m=audio " + port + " RTP/AVP 0 4 18\r\n" +
-                    "a=rtpmap:0 PCMU/8000\r\n" +
+                    "a=rtpmap:0 PCMA/8000\r\n" +
                     "a=rtpmap:4 G723/8000\r\n" +
                     "a=rtpmap:18 G729A/8000\r\n" +
                     "a=ptime:20\r\n";
