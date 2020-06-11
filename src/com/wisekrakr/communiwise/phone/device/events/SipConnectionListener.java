@@ -1,5 +1,4 @@
-package com.wisekrakr.communiwise.phone.events;
-
+package com.wisekrakr.communiwise.phone.device.events;
 
 public interface SipConnectionListener {
     void onSipUAConnecting(SipEvent event);

@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone.events;
+package com.wisekrakr.communiwise.phone.device.events;
 
 import java.util.EventObject;
 

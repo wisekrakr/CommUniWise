@@ -25,7 +25,9 @@ public class ClientAudio extends AudioAbstract {
     @Override
     public void stop() {
         try {
-            isl.endListener();
+            if(isl != null){
+                isl.endListener();
+            }
         }catch (Exception e){
             e.printStackTrace();
         }

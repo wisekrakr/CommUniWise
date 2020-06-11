@@ -11,6 +11,9 @@ public class SipProfile {
     private int remotePort = Config.MASTER_PORT;
     private String sipUserName = Config.USERNAME;
     private String sipPassword = Config.PASSWORD;
+    private String sipAddress;
+
+    private boolean isAuthenticated;
 
     public String getLocalIp() {
         return localIp;
@@ -56,6 +59,14 @@ public class SipProfile {
         return server + ":" + remotePort;
     }
 
+    public String getSipAddress() {
+        return sipAddress;
+    }
+
+    public void setSipAddress(String sipAddress) {
+        this.sipAddress = sipAddress;
+    }
+
     public String getSipUserName() {
         return sipUserName;
     }
@@ -81,5 +92,13 @@ public class SipProfile {
     public void setTransport(String transport) {
         System.out.println("Setting transport:" + transport);
         this.transport = transport;
+    }
+
+    public boolean isAuthenticated() {
+        return isAuthenticated;
+    }
+
+    public void setAuthenticated(boolean authenticated) {
+        isAuthenticated = authenticated;
     }
 }

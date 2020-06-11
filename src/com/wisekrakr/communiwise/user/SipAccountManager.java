@@ -6,17 +6,18 @@ import gov.nist.javax.sip.clientauthutils.UserCredentials;
 import javax.sip.ClientTransaction;
 
 public class SipAccountManager implements AccountManager {
-    String Username;
-    String Password;
-    String RemoteIp;
-    public SipAccountManager(String username,String RemoteIp, String password) {
-        this.Username = username;
-        this.Password = password;
-        this.RemoteIp = RemoteIp;
+    String username;
+    String password;
+    String server;
+
+    public SipAccountManager(String username, String server, String password) {
+        this.username = username;
+        this.password = password;
+        this.server = server;
 
     }
 
     public UserCredentials getCredentials(ClientTransaction challengedTransaction, String realm) {
-        return new SipUserCredentials(Username,RemoteIp,Password);
+        return new SipUserCredentials(username, server, password);
     }
 }

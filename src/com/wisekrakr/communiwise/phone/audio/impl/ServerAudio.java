@@ -31,7 +31,9 @@ public class ServerAudio extends AudioAbstract {
         try{
             System.out.println("Stopping Server Socket...");
 
-            osl.endListener();
+            if(osl != null){
+                osl.endListener();
+            }
         }catch(Exception e){
             e.printStackTrace();
         }

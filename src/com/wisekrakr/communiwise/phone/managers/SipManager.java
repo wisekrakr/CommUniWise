@@ -3,11 +3,11 @@ package com.wisekrakr.communiwise.phone.managers;
 
 
 
-import com.wisekrakr.communiwise.phone.events.SipEvent;
-import com.wisekrakr.communiwise.phone.events.SipEventListenerContext;
+import com.wisekrakr.communiwise.phone.device.events.SipEvent;
+import com.wisekrakr.communiwise.phone.device.events.SipEventListenerContext;
+import com.wisekrakr.communiwise.phone.device.layout.LayoutListenerContext;
+import com.wisekrakr.communiwise.phone.device.layout.ScreenEvent;
 import com.wisekrakr.communiwise.phone.impl.Message;
-import com.wisekrakr.communiwise.phone.audio.impl.ClientAudio;
-import com.wisekrakr.communiwise.phone.audio.impl.ServerAudio;
 import com.wisekrakr.communiwise.phone.managers.ext.SipManagerContext;
 import com.wisekrakr.communiwise.phone.managers.ext.SipManagerState;
 import com.wisekrakr.communiwise.user.SipAccountManager;
@@ -42,7 +42,9 @@ public class SipManager implements SipListener, SipManagerContext {
 
     private Dialog dialog;
     private ArrayList<SipEventListenerContext> sipEventListenerList = new ArrayList<SipEventListenerContext>();
+    private ArrayList<LayoutListenerContext> layoutListenerList = new ArrayList<LayoutListenerContext>();
     private int rtpPort;
+    private Response processedResponse; //Response that will be processed and used in other classes for data retrieval
 
     public enum CallDirection{ NONE, INCOMING, OUTGOING};
 
@@ -61,14 +63,10 @@ public class SipManager implements SipListener, SipManagerContext {
 
     private CallDirection direction = CallDirection.NONE;
 
-    private ClientAudio clientAudio;
-    private ServerAudio serverAudio;
+
 
     public SipManager(SipProfile sipProfile) {
         this.sipProfile = sipProfile;
-
-        clientAudio = new ClientAudio();
-        serverAudio = new ServerAudio();
 
         initialize();
     }
@@ -167,6 +165,10 @@ public class SipManager implements SipListener, SipManagerContext {
         return sipManagerState;
     }
 
+    public Response getProcessedResponse() {
+        return processedResponse;
+    }
+
     @Override
     public void processRequest(RequestEvent requestEvent) {
         Request request = requestEvent.getRequest();
@@ -197,6 +199,9 @@ public class SipManager implements SipListener, SipManagerContext {
                 sipManagerState = SipManagerState.IDLE;
                 processBye(requestEvent, serverTransactionId);
 
+                dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.EXITING));
+
+
                 dispatchSipEvent(new SipEvent(this, SipEvent.SipEventType.BYE, "", sp
                         .getFrom().getAddress().toString()));
 
@@ -216,6 +221,8 @@ public class SipManager implements SipListener, SipManagerContext {
                 sipManagerState = SipManagerState.IDLE;
                 processCancel(requestEvent, serverTransactionId);
 
+                dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.EXITING));
+
                 dispatchSipEvent(new SipEvent(this, SipEvent.SipEventType.REMOTE_CANCEL, "", sp
                         .getFrom().getAddress().toString()));
 
@@ -226,12 +233,12 @@ public class SipManager implements SipListener, SipManagerContext {
 
     @Override
     public void processResponse(ResponseEvent responseEvent) {
-        Response response = responseEvent.getResponse();
-        CSeqHeader cseq = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
+        processedResponse = responseEvent.getResponse();
+        CSeqHeader cseq = (CSeqHeader) processedResponse.getHeader(CSeqHeader.NAME);
         ClientTransaction tid = responseEvent.getClientTransaction();
 
         System.out.println("Response received : Status Code = "
-                + response.getStatusCode() + " " + cseq);
+                + processedResponse.getStatusCode() + " " + cseq);
         if (tid == null) {
             System.out.println("Stray response -- dropping ");
             return;
@@ -242,10 +249,9 @@ public class SipManager implements SipListener, SipManagerContext {
 //            System.out.println("Dialog State is " + tid.getDialog().getState());
 
         currentClientTransaction = tid;
-        //TODO with registering this must be call upon
 
-        if (response.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED
-                || response.getStatusCode() == Response.UNAUTHORIZED) {
+        if (processedResponse.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED
+                || processedResponse.getStatusCode() == Response.UNAUTHORIZED) {
             System.out.println("Go for Authentication");
 
             AuthenticationHelper authenticationHelper = ((SipStackExt) sipStack)
@@ -253,9 +259,10 @@ public class SipManager implements SipListener, SipManagerContext {
                             new SipAccountManager(sipProfile.getSipUserName(),
                                     sipProfile.getServer(), sipProfile
                                     .getSipPassword()), headerFactory);
+
             try {
                 currentClientTransaction = authenticationHelper
-                        .handleChallenge(response, tid, sipProvider, 5);
+                        .handleChallenge(processedResponse, tid, sipProvider, 5);
 
                 currentClientTransaction.sendRequest();
             } catch (NullPointerException | SipException e) {
@@ -264,8 +271,13 @@ public class SipManager implements SipListener, SipManagerContext {
 
         }
 
-        if (response.getStatusCode() == Response.OK) {
+        if (processedResponse.getStatusCode() == Response.OK) {
             switch (cseq.getMethod()) {
+                case Request.REGISTER:
+                    sipProfile.setAuthenticated(true);
+                    System.out.println("REGISTERED: " + sipProfile.getSipUserName() + " /AUTH: " + sipProfile.isAuthenticated());
+                    dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.REGISTERED));
+                    break;
                 case Request.INVITE:
                     System.out.println("Dialog after 200 OK  " );
 
@@ -279,7 +291,7 @@ public class SipManager implements SipListener, SipManagerContext {
 
                         dialog.sendAck(ackRequest);
 
-                        byte[] rawContent = response.getRawContent();
+                        byte[] rawContent = processedResponse.getRawContent();
                         String sdpContent = new String(rawContent, StandardCharsets.UTF_8);
                         SDPAnnounceParser parser = new SDPAnnounceParser(sdpContent);
                         SessionDescriptionImpl sessionDescription = parser.parse();
@@ -290,8 +302,12 @@ public class SipManager implements SipListener, SipManagerContext {
 
                         System.out.println("Process Response INVITE rtpPort: " + rtpPort);
 
+                        dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.AUDIO_CALLING));
+
                         dispatchSipEvent(new SipEvent(this,
                                 SipEvent.SipEventType.CALL_CONNECTED, "", "", rtpPort));
+
+
 
                     } // TODO Auto-generated catch block
                     catch (SipException | InvalidArgumentException | SdpException | ParseException e) {
@@ -325,30 +341,36 @@ public class SipManager implements SipListener, SipManagerContext {
                         }
 
                     }
+                    dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.EXITING));
 
                     break;
                 case Request.BYE:
                     sipManagerState = SipManagerState.IDLE;
                     System.out.println("--- Got 200 OK in UAC outgoing BYE");
 
+                    dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.EXITING));
                     dispatchSipEvent(new SipEvent(this, SipEvent.SipEventType.BYE, "", ""));
+
+
                     break;
             }
 
-        } else if (response.getStatusCode() == Response.DECLINE || response.getStatusCode() == Response.TEMPORARILY_UNAVAILABLE) {
+        } else if (processedResponse.getStatusCode() == Response.DECLINE || processedResponse.getStatusCode() == Response.TEMPORARILY_UNAVAILABLE) {
             System.out.println("CALL DECLINED");
+            dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.EXITING));
+
             dispatchSipEvent(new SipEvent(this, SipEvent.SipEventType.DECLINED, "", ""));
-        } else if (response.getStatusCode() == Response.NOT_FOUND) {
+        } else if (processedResponse.getStatusCode() == Response.NOT_FOUND) {
             System.out.println("NOT FOUND");
-        } else if (response.getStatusCode() == Response.ACCEPTED) {
+        } else if (processedResponse.getStatusCode() == Response.ACCEPTED) {
             System.out.println("ACCEPTED");
-        } else if (response.getStatusCode() == Response.BUSY_HERE) {
+        } else if (processedResponse.getStatusCode() == Response.BUSY_HERE) {
             System.out.println("BUSY");
             dispatchSipEvent(new SipEvent(this, SipEvent.SipEventType.BUSY_HERE, "", ""));
-        } else if (response.getStatusCode() == Response.RINGING) {
+        } else if (processedResponse.getStatusCode() == Response.RINGING) {
             System.out.println("RINGING");
             dispatchSipEvent(new SipEvent(this, SipEvent.SipEventType.REMOTE_RINGING, "", ""));
-        } else if (response.getStatusCode() == Response.SERVICE_UNAVAILABLE) {
+        } else if (processedResponse.getStatusCode() == Response.SERVICE_UNAVAILABLE) {
             System.out.println("SERVICE_UNAVAILABLE");
             dispatchSipEvent(new SipEvent(this, SipEvent.SipEventType.SERVICE_UNAVAILABLE, "", ""));
         }
@@ -445,8 +467,6 @@ public class SipManager implements SipListener, SipManagerContext {
                 }
             };
             thread.start();
-
-
         } catch (ParseException | TransactionUnavailableException | InvalidArgumentException e) {
             e.printStackTrace();
         }
@@ -462,7 +482,6 @@ public class SipManager implements SipListener, SipManagerContext {
         Invite inviteRequest = new Invite(this);
         Request r = inviteRequest.MakeRequest(to, localRtpPort);
         System.out.println(r);
-
 
         try {
             currentClientTransaction = this.sipProvider
@@ -495,13 +514,11 @@ public class SipManager implements SipListener, SipManagerContext {
         if (direction == CallDirection.OUTGOING) {
             if (currentClientTransaction != null) {
                 sendByeClient(currentClientTransaction);
-//                sipManagerState = SipManagerState.IDLE;
             }
         }
         else if (direction == CallDirection.INCOMING) {
             if (currentServerTransaction != null) {
                 sendByeClient(currentServerTransaction);
-                //
             }
         }
     }
@@ -549,6 +566,8 @@ public class SipManager implements SipListener, SipManagerContext {
 
                     currentServerTransaction.sendResponse(responseOK);
 
+                    dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.AUDIO_CALLING));
+
                     dispatchSipEvent(new SipEvent(this,
                             SipEvent.SipEventType.CALL_CONNECTED, "", sm.getFrom()
                             .getAddress().toString(), rtpPort));
@@ -556,13 +575,14 @@ public class SipManager implements SipListener, SipManagerContext {
                     System.out.println("Call connected on port: " + rtpPort);
 
                     sipManagerState = SipManagerState.ESTABLISHED;
+
+
                 } catch (ParseException | InvalidArgumentException | SipException e) {
                     e.printStackTrace();
                 }
             }
         };
         thread.start();
-
 
         sipManagerState = SipManagerState.ESTABLISHED;
     }
@@ -670,7 +690,6 @@ public class SipManager implements SipListener, SipManagerContext {
             try {
                 byeRequest = dialog.createRequest(Request.BYE);
             } catch (SipException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
 
@@ -678,7 +697,6 @@ public class SipManager implements SipListener, SipManagerContext {
             try {
                 newTransaction = sipProvider.getNewClientTransaction(byeRequest);
             } catch (TransactionUnavailableException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             final ClientTransaction ct = newTransaction;
@@ -689,16 +707,12 @@ public class SipManager implements SipListener, SipManagerContext {
                         dialog.sendRequest(ct);
 
                         System.out.println("Send Bye Client: Adios!");
-
-
                     } catch (SipException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
                 }
             };
             thread.start();
-
         }
 
         direction = CallDirection.NONE;
@@ -796,4 +810,29 @@ public class SipManager implements SipListener, SipManagerContext {
             sipEventListenerList.add(listener);
         }
     }
+
+    @SuppressWarnings("unchecked")
+    private void dispatchScreenEvent(ScreenEvent screenEvent) {
+        System.out.println("Dispatching screen event:" + screenEvent.type);
+        ArrayList<LayoutListenerContext> tmpLayoutListenerList;
+
+        synchronized (this) {
+            if (layoutListenerList.size() == 0)
+                return;
+            tmpLayoutListenerList = (ArrayList<LayoutListenerContext>) layoutListenerList
+                    .clone();
+        }
+
+        for (LayoutListenerContext listener : tmpLayoutListenerList) {
+            listener.onScreenEventMessage(screenEvent);
+        }
+    }
+
+    public synchronized void addScreenListener(LayoutListenerContext listener) {
+        if (!layoutListenerList.contains(listener)) {
+            layoutListenerList.add(listener);
+        }
+    }
+
+
 }
