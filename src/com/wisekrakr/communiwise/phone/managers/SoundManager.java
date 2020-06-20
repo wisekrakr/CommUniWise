@@ -1,44 +1,53 @@
 package com.wisekrakr.communiwise.phone.managers;
 
 
-import com.wisekrakr.communiwise.phone.audio.impl.ClientAudio;
-import com.wisekrakr.communiwise.phone.audio.impl.ServerAudio;
+import com.wisekrakr.communiwise.config.Config;
+import com.wisekrakr.communiwise.phone.Device;
+import com.wisekrakr.communiwise.phone.audio.impl.IncomingAudio;
+import com.wisekrakr.communiwise.phone.audio.impl.OutgoingAudio;
 
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 
 public class SoundManager{
 
-    private ClientAudio clientAudio;
-    private ServerAudio serverAudio;
-    private DatagramSocket socket;
+    private final IncomingAudio incomingAudio;
+    private final OutgoingAudio outgoingAudio;
+    private final Device device;
 
-    public SoundManager() {
-        serverAudio = new ServerAudio();
-        clientAudio = new ClientAudio();
+    public SoundManager(Device device) {
+        this.device = device;
 
+        incomingAudio = new IncomingAudio();
+        outgoingAudio = new OutgoingAudio();
     }
 
-    public void startAudioStream(int remoteRtpPort, String remoteIp){
-
+    public void startAudioStream(int rtpPort, String ipAddress){
 
         try {
-            socket = new DatagramSocket();
+            Thread threadOne = new Thread(){
+                @Override
+                public void run() {
+                    incomingAudio.init(rtpPort, ipAddress);
+                }
+            };
+            threadOne.start();
 
-            InetAddress address = InetAddress.getByName(remoteIp);
+            Thread threadTwo = new Thread(){
+                @Override
+                public void run() {
+                    outgoingAudio.init(Config.ANOTHER_RTP_PORT, device.getSipManager().getSipProfile().getLocalIp());
 
-            socket.connect(address, remoteRtpPort);
-        } catch (SocketException | UnknownHostException e) {
+                }
+            };
+            threadTwo.start();
+        }catch (Exception e){
             e.printStackTrace();
         }
-        serverAudio.init(remoteRtpPort, remoteIp, socket);
-        clientAudio.init(remoteRtpPort, remoteIp, socket);
+
+
     }
 
     public void stopAudioStream(){
-        clientAudio.stop();
-        serverAudio.stop();
+        incomingAudio.stop();
+        outgoingAudio.stop();
     }
 }

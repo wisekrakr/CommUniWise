@@ -1,72 +1,93 @@
 package com.wisekrakr.communiwise.phone.audio.listener;
 
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.TargetDataLine;
+import javax.sound.sampled.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Arrays;
 
+import static com.wisekrakr.communiwise.phone.rtp.AudioConversion.decode;
+import static com.wisekrakr.communiwise.phone.rtp.AudioConversion.encode;
+
 public class OutgoingAudioListener {
 
     private final AudioFormat format;
-    private final String serverIp;
-    private final int serverPort;
-    private final DatagramSocket socket;
+    private final String localIp;
+    private final int localRtpPort;
 
     boolean talking;
     private TargetDataLine mic;
 
-    public OutgoingAudioListener(AudioFormat format, String serverIp, int serverPort, DatagramSocket socket) {
+    // path of the wav file
+    File wavFile = new File("test/RecordAudio outgoing"+ "-" + Math.random() * 1000 + ".wav");
+
+    // format of audio file
+    AudioFileFormat.Type fileType = AudioFileFormat.Type.WAVE;
+
+    public OutgoingAudioListener(AudioFormat format, String localIp, int localRtpPort) {
         this.format = format;
-        this.serverIp = serverIp;
-        this.serverPort = serverPort;
-        this.socket = socket;
+        this.localIp = localIp;
+        this.localRtpPort = localRtpPort;
     }
 
     public void runListener(){
         try{
 
             System.out.println("Listening from mic.");
-            InetAddress serverAddress = InetAddress.getByName(serverIp);
-//            DatagramSocket serverSocket = new DatagramSocket();
-//            socket.connect(serverAddress, serverPort);
+            InetAddress localAddress = InetAddress.getByName(localIp);
 
-//            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            DatagramSocket socket = new DatagramSocket();
+            socket.connect(localAddress, localRtpPort);
 
+            System.out.println("Connecting to Client:"+localAddress.getHostAddress()+" Port:"+localRtpPort);
 
             DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class,format);
+
+            // checks if system supports the data line
+            if (!AudioSystem.isLineSupported(micInfo)) {
+                System.out.println("Line not supported");
+                System.exit(0);
+            }
+
+//            Mixer mixer = AudioSystem.getMixer(getMixerInfo()[1]);
             mic = (TargetDataLine) AudioSystem.getLine(micInfo);
 
+//            for(Mixer.Info info: getMixerInfo()){
+//                System.out.println(info.getName() + " --- " + info.getDescription() + Arrays.toString(mixer.getTargetLineInfo()));
+//            }
+
             mic.open(format);
+            mic.start();
             System.out.println("Mic open.");
 
-            byte[] tmpBuff = new byte[mic.getBufferSize()/5];
-
-            mic.start();
+            byte[] tmpBuff = new byte[4096];
 
             talking = true;
 
             while(talking) {
+                AudioInputStream ais = new AudioInputStream(mic);
 
                 int count = mic.read(tmpBuff,0,tmpBuff.length);
 
-                DatagramPacket packet = new DatagramPacket(tmpBuff,count, serverAddress, serverPort );
+                DatagramPacket packet = new DatagramPacket(tmpBuff,count, localAddress, localRtpPort);
+
+                ByteArrayOutputStream out = new ByteArrayOutputStream(packet.getLength());
+
+                AudioSystem.write(ais, fileType, wavFile);
 
                 if (count > 0){
-//                    System.out.println("Writing buffer to server " + Arrays.toString(packet.getData()));
-//                    out.write(tmpBuff, 0, count);
 
                     socket.send(packet);
+
+                    out.write(tmpBuff, 0, count);
+
                 }
-
             }
-            mic.drain();
-            mic.close();
+//            mic.close();
+//            mic.drain();
 
-            System.out.println("Stopped listening from mic.");
 
         }catch(Exception e){
             e.printStackTrace();
@@ -76,9 +97,8 @@ public class OutgoingAudioListener {
     public void endListener(){
         try {
             if(mic != null){
-                mic.drain();
+                mic.stop();
                 mic.close();
-                socket.close();
 
                 talking = false;
 

@@ -27,7 +27,7 @@ public class Message {
         ToHeader toHeader = sipManager.getHeaderFactory().createToHeader(toNameAddress, null);
 
         URI requestURI = sipManager.getAddressFactory().createURI(to);
-        // requestURI.setTransportParam("udp");
+        // requestURI.setTransportParam("tcp");
 
         ArrayList<ViaHeader> viaHeaders = Headers.createViaHeader(sipManager.getHeaderFactory(), sipManager.getSipProfile(), sipManager.getSipProvider());
 

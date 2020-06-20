@@ -1,26 +1,25 @@
 package com.wisekrakr.communiwise.phone.audio.impl;
 
+import com.wisekrakr.communiwise.phone.audio.impl.ext.AudioAbstract;
 import com.wisekrakr.communiwise.phone.audio.listener.OutgoingAudioListener;
 
-import java.net.DatagramSocket;
 
+public class OutgoingAudio extends AudioAbstract {
 
-public class ServerAudio extends AudioAbstract {
-
-    private OutgoingAudioListener osl;
+    private OutgoingAudioListener outgoingAudioListener;
 
 //    public ServerAudio(){
 //    }
 
     @Override
-    public void init(int remoteRtpPort, String server, DatagramSocket socket) {
+    public void init(int rtpPort, String ipAddress) {
 
         try{
             System.out.println("Creating Server Socket...");
 
-            osl = new OutgoingAudioListener( getAudioFormat(), server, remoteRtpPort, socket);
+            outgoingAudioListener = new OutgoingAudioListener(getAudioFormat(), ipAddress, rtpPort);
 
-            osl.runListener();
+            outgoingAudioListener.runListener();
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -31,8 +30,8 @@ public class ServerAudio extends AudioAbstract {
         try{
             System.out.println("Stopping Server Socket...");
 
-            if(osl != null){
-                osl.endListener();
+            if(outgoingAudioListener != null){
+                outgoingAudioListener.endListener();
             }
         }catch(Exception e){
             e.printStackTrace();

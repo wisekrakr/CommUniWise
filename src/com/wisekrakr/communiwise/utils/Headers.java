@@ -19,7 +19,7 @@ public class Headers {
         ViaHeader myViaHeader;
         try {
             myViaHeader = headerFactory.createViaHeader(
-                    sipProfile.getLocalIp(), sipProvider.getListeningPoint(sipProfile.getTransport()).getPort(),
+                    sipProfile.getLocalIp(), sipProvider.getListeningPoint(sipProfile.getTransport()).getPort(), // sipProfile.getLocalPort()
                     sipProfile.getTransport(), null);
             myViaHeader.setRPort();
             viaHeaders.add(myViaHeader);
@@ -33,7 +33,7 @@ public class Headers {
         try {
             return addressFactory.createAddress("sip:"
                     + sipProfile.getSipUserName() + "@"
-                    + sipProfile.getLocalEndpoint() + ";transport=udp"
+                    + sipProfile.getLocalEndpoint() + ";transport=" + sipProfile.getTransport()
                     + ";registering_acc=" + sipProfile.getServer());
         } catch (ParseException e) {
             return null;

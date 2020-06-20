@@ -70,8 +70,5 @@ public class Register {
             e.printStackTrace();
         }
         return null;
-
-
-
     }
 }

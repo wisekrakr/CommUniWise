@@ -1,11 +1,12 @@
 package com.wisekrakr.communiwise.screens.layouts;
 
 
+import com.wisekrakr.communiwise.config.Config;
 import com.wisekrakr.communiwise.phone.Device;
 import com.wisekrakr.communiwise.phone.audio.impl.AudioClip;
 import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
-import com.wisekrakr.communiwise.screens.ext.FrameContext;
 import com.wisekrakr.communiwise.screens.layouts.objects.Button;
+import com.wisekrakr.communiwise.screens.layouts.panes.PhonePane;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,7 +17,6 @@ public class PhoneScreen extends AbstractScreen {
 
     private JLabel status;
 
-    private JTextField sipAddress;
     private Device device;
 
 
@@ -29,13 +29,25 @@ public class PhoneScreen extends AbstractScreen {
     @Override
     public void initScreen() {
 
-        getContentPane().setLayout(null);
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+            ex.printStackTrace();
+        }
         setTitle("CommUniWise Phone");
+//        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        add(new PhonePane(device));
+//        pack();
+//        setLocationRelativeTo(null);
+//        setVisible(true);
+
+        getContentPane().setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setIconImage(new ImageIcon("https://raw.githubusercontent.com/wisekrakr/portfolio_res/master/images/favicon/favicon-32x32.png").getImage());
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+//        setBounds((screenSize.width-288)/2, (screenSize.height-310)/2, 700, 300);
         setBounds((screenSize.width-288)/2, (screenSize.height-310)/2, 800, 800);
+
         setBackground(new Color(176,228,234));
 
         JLabel statusText = new JLabel("status: ");
@@ -51,27 +63,42 @@ public class PhoneScreen extends AbstractScreen {
 
         handleCallingAndAccepting();
         handlePlayingSoundClip();
+        audioOptions();
     }
 
     private void handleCallingAndAccepting(){
-        JLabel destination = new JLabel("destination");
-        sipAddress = new JTextField();
+        JLabel destinationLabel = new JLabel("destination: ");
+
+        final JTextField sipTargetName;
+        sipTargetName = new JTextField("253");
+        final JTextField sipTargetAddress;
+        sipTargetAddress = new JTextField(Config.SERVER);
+        final JTextField sipTargetPort;
+        sipTargetPort = new JTextField(Config.MASTER_PORT.toString());
+
         Button callBtn = new Button("call",10, 400);
         Button acceptBtn = new Button("accept",120, 400 );
         Button stopBtn = new Button("hang up",230, 400);
 
-        getContentPane().add(destination);
-        destination.setBounds(10, 300, 100, 30);
-        getContentPane().add(sipAddress);
-        sipAddress.setBounds(10, 360, 100, 30);
+        getContentPane().add(destinationLabel);
+        destinationLabel.setBounds(10, 360, 70, 30);
+        getContentPane().add(sipTargetName);
+        sipTargetName.setBounds(80, 360, 70, 30);
+        getContentPane().add(sipTargetAddress);
+        sipTargetAddress.setBounds(160, 360, 70, 30);
+        getContentPane().add(sipTargetPort);
+        sipTargetPort.setBounds(240, 360, 70, 30);
 
         getContentPane().add(callBtn);
 
         callBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                device.call("sip:"+sipAddress.getText().trim());
-                device.getSipManager().getSipProfile().setSipAddress(sipAddress.getText());
+                String newCall = sipTargetName.getText().trim() + "@" + sipTargetAddress.getText().trim();
+
+                device.call("sip:"+ newCall);
+                device.getSipManager().getSipProfile().setSipAddress(newCall);
+                device.getSipManager().getSipProfile().setRemotePort(Integer.parseInt(sipTargetPort.getText()));
             }
         });
 
@@ -170,12 +197,12 @@ public class PhoneScreen extends AbstractScreen {
         getContentPane().add(playBtn);
 
         AudioClip audioClip = new AudioClip();
-        audioClip.createClipURL("https://file-examples.com/wp-content/uploads/2017/11/file_example_WAV_1MG.wav");
+        audioClip.createClipURL("audio/beep.wav");
 
         playBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(!audioClip.getClip().isActive()){
+                if(!audioClip.getClip().isRunning()){
                     audioClip.getClip().start();
                 }else{
                     audioClip.getClip().stop();
@@ -183,6 +210,62 @@ public class PhoneScreen extends AbstractScreen {
 
             }
         });
+    }
+
+
+    private void audioOptions(){
+//        JButton startEncodeBtn = new JButton("Start Encode");
+//        getContentPane().add(startEncodeBtn);
+//        startEncodeBtn.setBounds(400, 20, 50, 20);
+//        startEncodeBtn.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                Global.ok = false;
+//                if (device.getRtpApp() != null) {
+//                    try {
+//                        device.getRtpApp().releaseSocket();
+//                    } catch (IOException ex) {
+//                        ex.printStackTrace();
+//                        startEncodeBtn.setEnabled(true);
+//                        return;
+//                    }
+//                    device.setRtpApp(null);
+//
+//                }
+//                device.getAudioWrapper().startRecord();
+//                device.getAudioWrapper().startListen(device.getRtpApp());
+//                startEncodeBtn.setEnabled(true);
+//                Global.ok = true;
+//            }
+//        });
+//
+//
+//        JButton stopEncodeBtn = new JButton("Stop Encode");
+//        getContentPane().add(stopEncodeBtn);
+//        stopEncodeBtn.setBounds(460, 20, 50, 20);
+//        stopEncodeBtn.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                stopEncodeBtn.setEnabled(false);
+//                Global.ok = false;
+//
+//                device.getAudioWrapper().stopRecord();
+//                device.getAudioWrapper().stopListen();
+//                if (device.getRtpApp() != null) {
+//                    try {
+//                        device.getRtpApp() .releaseSocket();
+//                    } catch (IOException ex) {
+//                        ex.printStackTrace();
+//                        stopEncodeBtn.setEnabled(true);
+//                        return;
+//                    }
+//                    device.setRtpApp(null);
+//
+//                }
+//                stopEncodeBtn.setEnabled(true);
+//            }
+//        });
+//        stopEncodeBtn.setEnabled(false);
     }
 
 

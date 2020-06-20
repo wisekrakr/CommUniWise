@@ -2,6 +2,7 @@ package com.wisekrakr.communiwise.phone.impl;
 
 
 import com.wisekrakr.communiwise.phone.managers.SipManager;
+import com.wisekrakr.communiwise.phone.rtp.SdpOffer;
 import com.wisekrakr.communiwise.user.SipProfile;
 import com.wisekrakr.communiwise.utils.Headers;
 
@@ -46,8 +47,6 @@ public class Invite {
             Address toNameAddress = addressFactory.createAddress(requestURI);
             // toNameAddress.setDisplayName(username);
             ToHeader toHeader = headerFactory.createToHeader(toNameAddress, null);
-
-
 
             //Create Via Header
             ArrayList<ViaHeader> viaHeaders = Headers.createViaHeader(headerFactory,
@@ -109,13 +108,18 @@ public class Invite {
                     "a=rtpmap:0 PCMA/8000\r\n" +
                     "a=rtpmap:4 G723/8000\r\n" +
                     "a=rtpmap:18 G729A/8000\r\n" +
+//                    "a=rtpmap:18 G7222/16000\r\n" +
                     "a=ptime:20\r\n";
             byte[] contents = sdpData.getBytes();
+
+//            SdpOffer sdpOffer = new SdpOffer();
+//            byte[] contents = sdpOffer.createSdp(sipProfile.getLocalIp(), port);
 
             callRequest.setContent(contents, contentTypeHeader);
 
             Header callInfoHeader = headerFactory.createHeader("sipphone.Call-Info",
                     "<http://www.antd.nist.gov>");
+
             callRequest.addHeader(callInfoHeader);
 
             return callRequest;

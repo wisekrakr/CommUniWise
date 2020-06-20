@@ -1,13 +1,14 @@
 package com.wisekrakr.communiwise.phone.audio.impl;
 
 import javax.sound.sampled.*;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
 public class AudioClip  {
 
     private Clip clip;
-    private Mixer mixer;
+    private final Mixer mixer;
 
     public AudioClip() {
         mixer = AudioSystem.getMixer(AudioSystem.getMixerInfo()[0]);
@@ -15,9 +16,8 @@ public class AudioClip  {
 
     public void createClipURL(String path){
         try {
-            URL soundURL = new URL(path);
 
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(soundURL);
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(path));
 
             AudioFormat format = audioInputStream.getFormat();
 

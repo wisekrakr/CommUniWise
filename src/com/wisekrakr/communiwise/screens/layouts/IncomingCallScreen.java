@@ -29,7 +29,6 @@ public class IncomingCallScreen extends AbstractScreen {
     @Override
     public void initScreen() {
 //        setLayout(new BorderLayout());
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("Login to CommUniWise");
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -46,10 +45,7 @@ public class IncomingCallScreen extends AbstractScreen {
         handleDeclining();
 
         setVisible(true);
-
     }
-
-
 
     private void handleAccepting(){
         Button acceptBtn = new Button("Accept", 10, 80);
