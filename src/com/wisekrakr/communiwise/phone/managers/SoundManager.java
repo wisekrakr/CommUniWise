@@ -35,15 +35,12 @@ public class SoundManager{
                 @Override
                 public void run() {
                     outgoingAudio.init(Config.ANOTHER_RTP_PORT, device.getSipManager().getSipProfile().getLocalIp());
-
                 }
             };
             threadTwo.start();
         }catch (Exception e){
             e.printStackTrace();
         }
-
-
     }
 
     public void stopAudioStream(){

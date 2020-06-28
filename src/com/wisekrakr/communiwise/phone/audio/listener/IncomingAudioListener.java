@@ -12,7 +12,7 @@ import static com.wisekrakr.communiwise.phone.rtp.AudioConversion.decode;
 import static com.wisekrakr.communiwise.phone.rtp.AudioConversion.encode;
 import static javax.sound.sampled.AudioSystem.getMixerInfo;
 
-public class IncomingAudioListener extends Thread {
+public class IncomingAudioListener {
 
     private final AudioFormat format;
     private final int remoteRtpPort;
@@ -28,7 +28,6 @@ public class IncomingAudioListener extends Thread {
     AudioFileFormat.Type fileType = AudioFileFormat.Type.WAVE;
 
     public IncomingAudioListener(AudioFormat format, int remoteRtpPort, String server) {
-        super();
         this.format = format;
         this.remoteRtpPort = remoteRtpPort;
         this.server = server;
@@ -59,7 +58,7 @@ public class IncomingAudioListener extends Thread {
             speaker.open(format);
             speaker.start();
 
-            byte[] receivedData = new byte[4096];
+            byte[] receivedData = new byte[512];
 
             while(listening){
 
@@ -82,15 +81,19 @@ public class IncomingAudioListener extends Thread {
 
                     speaker.write(receivedData,0,bytesRead);
 
+                    System.out.println(socket.getRemoteSocketAddress() + " " + socket.isConnected());
+
+
                     //                 bais.reset();
                 }
 
-                ais.close();
-                bais.close();
+//                ais.close();
+//                bais.close();
             }
 
-//            speaker.drain();
-//            speaker.close();
+            speaker.drain();
+            speaker.close();
+
         }catch(Exception e){
             e.printStackTrace();
         }

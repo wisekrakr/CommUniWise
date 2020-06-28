@@ -28,7 +28,7 @@ public class Register {
             InvalidArgumentException {
 
         AddressFactory addressFactory = sipManager.getAddressFactory();
-        SipProvider sipProvider = sipManager.getSipProvider();
+        SipProvider sipProvider = sipManager.getUdpSipProvider();
         MessageFactory messageFactory = sipManager.getMessageFactory();
         HeaderFactory headerFactory = sipManager.getHeaderFactory();
 

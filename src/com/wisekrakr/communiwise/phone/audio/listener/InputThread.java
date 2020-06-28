@@ -5,13 +5,14 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.Arrays;
 
 public class InputThread extends Thread {
-    private TargetDataLine inputLine = null;
-    private DatagramSocket datagramSocket;
-    byte[] buff = new byte[4096];
-    private InetAddress serverIp;
-    private int serverPort;
+    private TargetDataLine mic = null;
+    private DatagramSocket socket;
+    byte[] sendData;
+    private InetAddress localIp;
+    private int localRtpPort;
 
     private final AudioManager audioManager;
 
@@ -21,62 +22,50 @@ public class InputThread extends Thread {
 
     @Override
     public void run() {
-        int i = 0;
+        System.out.println("input socket info: " + socket.getLocalPort() + " " + socket.getPort() + " " + socket.getLocalSocketAddress() + " " + socket.getRemoteSocketAddress());
+
         while (audioManager.isServingInput()) {
 
             try {
-                inputLine.read(buff, 0, buff.length);
-                DatagramPacket data = new DatagramPacket(buff, buff.length, serverIp, serverPort);
+                mic.read(sendData, 0, sendData.length);
+                DatagramPacket data = new DatagramPacket(sendData, sendData.length, 0, socket.getRemoteSocketAddress());
 
-//                System.out.println("send #" + i++);
-                datagramSocket.send(data);
+//                System.out.println("mic check: "  + Arrays.toString(data.getData()));
+
+                socket.send(data);
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        inputLine.close();
-        inputLine.drain();
+        mic.close();
+        mic.drain();
 
         System.out.println("Input Thread finished");
     }
 
-    public TargetDataLine getInputLine() {
-        return inputLine;
+    public void setMic(TargetDataLine mic) {
+        this.mic = mic;
     }
 
-    public void setInputLine(TargetDataLine inputLine) {
-        this.inputLine = inputLine;
+    public DatagramSocket getSocket() {
+        return socket;
     }
 
-    public DatagramSocket getDatagramSocket() {
-        return datagramSocket;
-    }
-
-    public void setDatagramSocket(DatagramSocket datagramSocket) {
-        this.datagramSocket = datagramSocket;
-    }
-
-    public byte[] getBuff() {
-        return buff;
+    public void setSocket(DatagramSocket socket) {
+        this.socket = socket;
     }
 
     public void setBuff(byte[] buff) {
-        this.buff = buff;
+        this.sendData = buff;
     }
 
-    public InetAddress getServerIp() {
-        return serverIp;
+    public void setLocalIp(InetAddress localIp) {
+        this.localIp = localIp;
     }
 
-    public void setServerIp(InetAddress serverIp) {
-        this.serverIp = serverIp;
-    }
 
-    public int getServerPort() {
-        return serverPort;
-    }
-
-    public void setServerPort(int serverPort) {
-        this.serverPort = serverPort;
+    public void setLocalRtpPort(int localRtpPort) {
+        this.localRtpPort = localRtpPort;
     }
 }

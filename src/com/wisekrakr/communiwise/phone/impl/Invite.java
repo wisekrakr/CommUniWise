@@ -2,7 +2,6 @@ package com.wisekrakr.communiwise.phone.impl;
 
 
 import com.wisekrakr.communiwise.phone.managers.SipManager;
-import com.wisekrakr.communiwise.phone.rtp.SdpOffer;
 import com.wisekrakr.communiwise.user.SipProfile;
 import com.wisekrakr.communiwise.utils.Headers;
 
@@ -26,7 +25,7 @@ public class Invite {
     public Request MakeRequest(String to, int port){
 
         AddressFactory addressFactory = sipManager.getAddressFactory();
-        SipProvider sipProvider = sipManager.getSipProvider();
+        SipProvider sipProvider = sipManager.getUdpSipProvider();
         MessageFactory messageFactory = sipManager.getMessageFactory();
         HeaderFactory headerFactory = sipManager.getHeaderFactory();
 
@@ -69,6 +68,7 @@ public class Invite {
                     .createSupportedHeader("replaces, outbound");
             callRequest.addHeader(supportedHeader);
 
+//            sipProfile.setTransport("tcp");
 
             SipURI routeUri = addressFactory.createSipURI(sipProfile.getSipUserName(), sipProfile.getServer());
             routeUri.setTransportParam(sipProfile.getTransport());
@@ -96,20 +96,37 @@ public class Invite {
             callRequest.addHeader(contactHeader);
 
             //TODO: PCMA/8000 was PCMU/8000
+//            String sdpData= "v=0\r\n" +
+//                    "o=- 13760799956958020 13760799956958020" + " IN IP4 " + sipProfile.getLocalIp() +"\r\n" +
+//                    "s=mysession session\r\n" +
+//                    "s=-\r\n" +
+//                    //"p=+46 8 52018010\r\n" +
+//                    "c=IN IP4 " + sipProfile.getLocalIp()+"\r\n" +
+//                    "t=0 0\r\n" +
+//                    "m=audio " + port + " RTP/AVP 0\r\n" +
+//                    "m=audio " + port + " RTP/AVP 0 4 18\r\n" +
+//                    "a=rtpmap:0 PCMU/8000\r\n" + //was PCMA
+//                    "a=rtpmap:4 G723/8000\r\n" +
+//                    "a=rtpmap:18 G729A/8000\r\n" +
+////                    "a=rtpmap:18 G7222/16000\r\n" +
+//                    "a=ptime:20\r\n";
             String sdpData= "v=0\r\n" +
                     "o=- 13760799956958020 13760799956958020" + " IN IP4 " + sipProfile.getLocalIp() +"\r\n" +
                     "s=mysession session\r\n" +
-                    "s=-\r\n" +
-                    //"p=+46 8 52018010\r\n" +
                     "c=IN IP4 " + sipProfile.getLocalIp()+"\r\n" +
                     "t=0 0\r\n" +
                     "m=audio " + port + " RTP/AVP 0\r\n" +
-                    "m=audio " + port + " RTP/AVP 0 4 18\r\n" +
-                    "a=rtpmap:0 PCMA/8000\r\n" +
+                    "m=audio " + port + " RTP/AVP 0 4 18 101\r\n" +
+                    "a=rtpmap:0 PCMU/8000\r\n" +
                     "a=rtpmap:4 G723/8000\r\n" +
                     "a=rtpmap:18 G729A/8000\r\n" +
-//                    "a=rtpmap:18 G7222/16000\r\n" +
+                    "a=rtpmap:101 telephone-event/8000\r\n" +
+                    "a=maxptime:150\r\n" +
+                    "a=sendrecv\r\n" +
                     "a=ptime:20\r\n";
+//
+
+
             byte[] contents = sdpData.getBytes();
 
 //            SdpOffer sdpOffer = new SdpOffer();

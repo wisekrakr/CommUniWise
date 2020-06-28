@@ -22,6 +22,9 @@ import com.wisekrakr.communiwise.user.SipProfile;
 
 import javax.sound.sampled.Clip;
 import java.io.*;
+import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
+import java.net.SocketException;
 
 public class Device implements DeviceContext, Serializable {
 
@@ -44,6 +47,7 @@ public class Device implements DeviceContext, Serializable {
 //    private AudioWrapper audioWrapper;
 //    private RtpApp rtpApp;
     private AudioManager audioManager;
+    private DatagramSocket datagramSocket;
 
 
     private Device(){
@@ -64,6 +68,7 @@ public class Device implements DeviceContext, Serializable {
         soundManager = new SoundManager(this);
 
         audioManager = new AudioManager();
+
 
         sipManager.addSipListener(this);
         sipManager.addScreenListener(this);
@@ -135,7 +140,7 @@ public class Device implements DeviceContext, Serializable {
                 break;
             case BYE:
                 soundManager.stopAudioStream();
-//                audioManager.stopStreaming();
+                audioManager.stopStreaming();
 
                 if (this.sipConnectionListener != null) {
                     // notify our listener that we are connected
@@ -144,7 +149,7 @@ public class Device implements DeviceContext, Serializable {
                 break;
             case REMOTE_CANCEL:
                 soundManager.stopAudioStream();
-//                audioManager.stopStreaming();
+                audioManager.stopStreaming();
 
                 if (this.sipConnectionListener != null) {
                     // notify our listener that we are connected
@@ -153,7 +158,7 @@ public class Device implements DeviceContext, Serializable {
                 break;
             case DECLINED:
                 soundManager.stopAudioStream();
-//                audioManager.stopStreaming();
+                audioManager.stopStreaming();
 
                 if (this.sipConnectionListener != null) {
                     // notify our listener that we are connected
@@ -163,13 +168,12 @@ public class Device implements DeviceContext, Serializable {
             case BUSY_HERE:
             case SERVICE_UNAVAILABLE:
                 soundManager.stopAudioStream();
-//                audioManager.stopStreaming();
+                audioManager.stopStreaming();
 
                 break;
             case CALL_CONNECTED:
-                soundManager.startAudioStream(sipEventObject.rtpPort, sipProfile.getServer());
-//                audioManager.startClient();
-//                audioManager.startServer( sipProfile.getServer(),sipEventObject.rtpPort);
+//                soundManager.startAudioStream(sipEventObject.rtpPort, sipProfile.getServer());
+                audioManager.start( sipProfile.getServer(),sipEventObject.rtpPort, datagramSocket);
 
                 if (this.sipConnectionListener != null) {
                     // notify our listener that we are connected
@@ -185,7 +189,6 @@ public class Device implements DeviceContext, Serializable {
                 break;
             case LOCAL_RINGING:
                 audioClip.getClip().loop(Clip.LOOP_CONTINUOUSLY);
-
 
 
                 if (this.sipDeviceListener != null) {
@@ -230,7 +233,15 @@ public class Device implements DeviceContext, Serializable {
     @Override
     public void call(String to) {
         try {
-            this.sipManager.calling(to, Config.ANOTHER_RTP_PORT);
+            datagramSocket = new DatagramSocket();
+            sipProfile.setLocalRtpPort(datagramSocket.getLocalPort());
+
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+        try {
+            System.out.println("call from " + datagramSocket.getLocalAddress());
+            this.sipManager.calling(to, sipProfile.getLocalRtpPort());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -238,7 +249,7 @@ public class Device implements DeviceContext, Serializable {
 
     @Override
     public void accept() {
-        this.sipManager.acceptingCall(Config.ANOTHER_RTP_PORT);
+//        this.sipManager.acceptingCall(Config.ANOTHER_RTP_PORT);
         audioClip.getClip().stop();
 
     }
@@ -286,6 +297,9 @@ public class Device implements DeviceContext, Serializable {
         return sipManager;
     }
 
+    public AudioManager getAudioManager() {
+        return audioManager;
+    }
 
     @Override
     public ScreenState getScreenState() {

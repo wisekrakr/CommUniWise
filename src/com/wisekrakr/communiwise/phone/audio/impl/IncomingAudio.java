@@ -7,32 +7,21 @@ public class IncomingAudio extends AudioAbstract {
 
     private IncomingAudioListener incomingAudioListener;
 
-
     @Override
     public void init(int rtpPort, String server) {
-        try {
-            System.out.println("Creating Client Socket...");
 
-
-            incomingAudioListener = new IncomingAudioListener(getAudioFormat(), rtpPort, server);
-            incomingAudioListener.runListener();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+        System.out.println("Creating Client Socket...");
+        incomingAudioListener = new IncomingAudioListener(getAudioFormat(), rtpPort, server);
+        incomingAudioListener.runListener();
 
     }
 
     @Override
     public void stop() {
-        try {
-            System.out.println("Stopping Client Socket...");
+        System.out.println("Stopping Client Socket...");
 
-            if(incomingAudioListener != null){
-                incomingAudioListener.endListener();
-            }
-        }catch (Exception e){
-            e.printStackTrace();
+        if(incomingAudioListener != null){
+            incomingAudioListener.endListener();
         }
-
     }
 }

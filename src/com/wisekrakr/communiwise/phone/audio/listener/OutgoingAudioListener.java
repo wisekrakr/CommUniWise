@@ -62,9 +62,9 @@ public class OutgoingAudioListener {
             mic.start();
             System.out.println("Mic open.");
 
-            byte[] tmpBuff = new byte[4096];
+            byte[] tmpBuff = new byte[512];
 
-            talking = true;
+            setTalking(true);
 
             while(talking) {
                 AudioInputStream ais = new AudioInputStream(mic);
@@ -83,11 +83,11 @@ public class OutgoingAudioListener {
 
                     out.write(tmpBuff, 0, count);
 
+                    System.out.println(socket.getLocalSocketAddress() + " " + socket.isConnected());
                 }
             }
-//            mic.close();
-//            mic.drain();
-
+            mic.close();
+            mic.drain();
 
         }catch(Exception e){
             e.printStackTrace();
@@ -100,7 +100,7 @@ public class OutgoingAudioListener {
                 mic.stop();
                 mic.close();
 
-                talking = false;
+                setTalking(false);
 
                 System.out.println("Stopped listening from mic.");
             }
@@ -108,5 +108,13 @@ public class OutgoingAudioListener {
         }catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    public boolean isTalking() {
+        return talking;
+    }
+
+    public void setTalking(boolean talking) {
+        this.talking = talking;
     }
 }

@@ -6,6 +6,7 @@ public class SipProfile {
     private String localIp= Config.LOCAL_IP;
     private int localPort = Config.LOCAL_PORT;
     private String transport = "udp";
+    private int localRtpPort;
 
     private String server = Config.SERVER;
     private int remotePort = Config.MASTER_PORT;
@@ -22,6 +23,14 @@ public class SipProfile {
     public void setLocalIp(String localIp) {
         System.out.println("Setting localIp:" + localIp);
         this.localIp = localIp;
+    }
+
+    public int getLocalRtpPort() {
+        return localRtpPort;
+    }
+
+    public void setLocalRtpPort(int localRtpPort) {
+        this.localRtpPort = localRtpPort;
     }
 
     public int getLocalPort() {

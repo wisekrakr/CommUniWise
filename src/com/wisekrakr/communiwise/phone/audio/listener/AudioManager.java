@@ -5,16 +5,14 @@ import com.wisekrakr.communiwise.config.Config;
 import javax.sound.sampled.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
+import java.net.*;
 
 import static com.wisekrakr.communiwise.phone.audio.impl.ext.AudioAbstract.getAudioFormat;
 
+
 public class AudioManager {
-    // record duration, in milliseconds
-    static final long RECORD_TIME = 60000;  // 1 minute
+
+    byte[] buff = new byte[512]; //4096
 
     // path of the wav file
     File wavFile = new File("test/RecordAudio input thread "+ "-" + Math.random() * 1000 + ".wav");
@@ -29,83 +27,116 @@ public class AudioManager {
     boolean servingInput;
     boolean servingOutput;
 
+    private String remoteAddress;
+    private int remotePort;
+    private DatagramSocket socket;
+    private AudioFormat format;
 
-    public void startClient(){
+
+    public void start(String remoteAddress, int remotePort, DatagramSocket socket)  {
+        this.remoteAddress = remoteAddress;
+        this.remotePort = remotePort;
+        this.socket = socket;
+
+        format = getAudioFormat();
+
+
+        startSpeaker();
+        startMicrophone();
+
+    }
+
+
+
+
+    private void startMicrophone(){
         try {
-            AudioFormat format = getAudioFormat();
-            DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
+
+            DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class, format);
 
             // checks if system supports the data line
-            if (!AudioSystem.isLineSupported(info)) {
+            if (!AudioSystem.isLineSupported(micInfo)) {
                 System.out.println("Line not supported");
                 System.exit(0);
             }
-            mic = (TargetDataLine) AudioSystem.getLine(info);
+            mic = (TargetDataLine) AudioSystem.getLine(micInfo);
             mic.open(format);
             mic.start();   // start capturing
 
-            System.out.println("Start capturing client...");
+            System.out.println("Start capturing client... " + socket.getLocalAddress());
 
             AudioInputStream ais = new AudioInputStream(mic);
             InputThread inputThread = new InputThread(this);
-            InetAddress inetAddress = InetAddress.getByName(Config.LOCAL_IP);
-            inputThread.setInputLine(mic);
-            inputThread.setDatagramSocket(new DatagramSocket());
-            inputThread.setServerIp(inetAddress);
-            inputThread.setServerPort(Config.ANOTHER_RTP_PORT);
+            inputThread.setMic(mic);
+
+            inputThread.setSocket(socket);
+            inputThread.setLocalIp(socket.getLocalAddress());
+            inputThread.setLocalRtpPort(socket.getLocalPort());
+            inputThread.setBuff(buff);
+
+//            socket.connect(socket.getLocalAddress(), socket.getLocalPort());
 
             inputThread.start();
 
-            System.out.println("Start recording client...");
+            System.out.println("Start recording client... connected: " + socket.isConnected());
 
             servingInput = true;
 //            // start recording
             AudioSystem.write(ais, fileType, wavFile);
 
-        } catch (LineUnavailableException | IOException ex) {
+        } catch (LineUnavailableException  ex) {
             ex.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public void startServer(String ipAddress, int rtpPort) {
+    private void startSpeaker() {
         try {
-            AudioFormat format = getAudioFormat();
-            DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
+
+            DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class, format);
 
             // checks if system supports the data line
-            if (!AudioSystem.isLineSupported(info)) {
+            if (!AudioSystem.isLineSupported(speakerInfo)) {
                 System.out.println("Line not supported");
                 System.exit(0);
             }
-            speaker = (SourceDataLine) AudioSystem.getLine(info);
+            speaker = (SourceDataLine) AudioSystem.getLine(speakerInfo);
             speaker.open(format);
             speaker.start();   // start capturing
 
             System.out.println("Start capturing server...");
 
             OutputThread outputThread = new OutputThread(this);
-            outputThread.setOutputLine(speaker);
-            SocketAddress serverAddress = new InetSocketAddress(ipAddress, rtpPort);
-            DatagramSocket socket = new DatagramSocket();
+            outputThread.setSpeaker(speaker);
+            outputThread.setBuff(buff);
 
+            //TODO: switch addresses with mic.
+
+            InetSocketAddress serverAddress = new InetSocketAddress(remoteAddress, remotePort);
+//            DatagramSocket socket = new DatagramSocket(remotePort);
             socket.connect(serverAddress);
-            outputThread.setDatagramSocket(socket);
-            outputThread.start();
+            outputThread.setSocket(socket);
 
             System.out.println("Start recording server...");
 
             servingOutput = true;
 
+            outputThread.start();
 
-
-        } catch (LineUnavailableException | IOException ex) {
+        } catch (LineUnavailableException  ex) {
             ex.printStackTrace();
+        } catch (SocketException e) {
+            e.printStackTrace();
         }
     }
 
     public void stopStreaming(){
         stopClient();
         stopServer();
+
+        socket.disconnect();
+        socket.close();
     }
 
     private void stopClient() {

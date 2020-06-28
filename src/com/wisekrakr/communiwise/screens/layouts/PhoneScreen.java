@@ -35,17 +35,14 @@ public class PhoneScreen extends AbstractScreen {
             ex.printStackTrace();
         }
         setTitle("CommUniWise Phone");
-//        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //        add(new PhonePane(device));
-//        pack();
-//        setLocationRelativeTo(null);
-//        setVisible(true);
+        setVisible(true);
 
         getContentPane().setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+//
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-//        setBounds((screenSize.width-288)/2, (screenSize.height-310)/2, 700, 300);
+        setBounds((screenSize.width-288)/2, (screenSize.height-310)/2, 700, 300);
         setBounds((screenSize.width-288)/2, (screenSize.height-310)/2, 800, 800);
 
         setBackground(new Color(176,228,234));
@@ -56,8 +53,6 @@ public class PhoneScreen extends AbstractScreen {
         status = new JLabel();
         getContentPane().add(status);
         status.setBounds(700, 20, 100, 30);
-
-        setVisible(true);
 
         System.out.println("PhoneScreen lights up!");
 

@@ -29,9 +29,9 @@ public class Message {
         URI requestURI = sipManager.getAddressFactory().createURI(to);
         // requestURI.setTransportParam("tcp");
 
-        ArrayList<ViaHeader> viaHeaders = Headers.createViaHeader(sipManager.getHeaderFactory(), sipManager.getSipProfile(), sipManager.getSipProvider());
+        ArrayList<ViaHeader> viaHeaders = Headers.createViaHeader(sipManager.getHeaderFactory(), sipManager.getSipProfile(), sipManager.getUdpSipProvider());
 
-        CallIdHeader callIdHeader = sipManager.getSipProvider().getNewCallId();
+        CallIdHeader callIdHeader = sipManager.getUdpSipProvider().getNewCallId();
 
         CSeqHeader cSeqHeader = sipManager.getHeaderFactory().createCSeqHeader(50l,
                 Request.MESSAGE);
