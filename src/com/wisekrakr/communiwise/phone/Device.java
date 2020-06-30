@@ -21,6 +21,7 @@ import com.wisekrakr.communiwise.screens.layouts.LoginScreen;
 import com.wisekrakr.communiwise.user.SipProfile;
 
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
 import java.io.*;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
@@ -31,7 +32,6 @@ public class Device implements DeviceContext, Serializable {
     private static Device device;
     SipManager sipManager;
     SipProfile sipProfile;
-    SoundManager soundManager;
     boolean isInitialized;
     AbstractScreen currentScreen;
     public SipDeviceListener sipDeviceListener = null;
@@ -65,7 +65,6 @@ public class Device implements DeviceContext, Serializable {
     public void Initialize(SipProfile sipProfile){
         this.sipProfile = sipProfile;
         sipManager = new SipManager(sipProfile);
-        soundManager = new SoundManager(this);
 
         audioManager = new AudioManager();
 
@@ -139,50 +138,44 @@ public class Device implements DeviceContext, Serializable {
                 }
                 break;
             case BYE:
-                soundManager.stopAudioStream();
                 audioManager.stopStreaming();
 
                 if (this.sipConnectionListener != null) {
-                    // notify our listener that we are connected
                     this.sipConnectionListener.onSipUADisconnected(null);
                 }
                 break;
             case REMOTE_CANCEL:
-                soundManager.stopAudioStream();
                 audioManager.stopStreaming();
 
                 if (this.sipConnectionListener != null) {
-                    // notify our listener that we are connected
                     this.sipConnectionListener.onSipUACancelled(null);
                 }
                 break;
             case DECLINED:
-                soundManager.stopAudioStream();
                 audioManager.stopStreaming();
 
                 if (this.sipConnectionListener != null) {
-                    // notify our listener that we are connected
                     this.sipConnectionListener.onSipUADeclined(null);
                 }
                 break;
             case BUSY_HERE:
             case SERVICE_UNAVAILABLE:
-                soundManager.stopAudioStream();
                 audioManager.stopStreaming();
 
                 break;
             case CALL_CONNECTED:
-//                soundManager.startAudioStream(sipEventObject.rtpPort, sipProfile.getServer());
-                audioManager.start( sipProfile.getServer(),sipEventObject.rtpPort, datagramSocket);
+                try {
+                    audioManager.start( sipProfile.getServer(),sipEventObject.rtpPort, datagramSocket);
+                } catch (SocketException | LineUnavailableException e) {
+                    e.printStackTrace();
+                }
 
                 if (this.sipConnectionListener != null) {
-                    // notify our listener that we are connected
                     this.sipConnectionListener.onSipUAConnected(null);
                 }
                 break;
             case REMOTE_RINGING:
                 if (this.sipConnectionListener != null) {
-                    // notify our listener that we are connecting
                     this.sipConnectionListener.onSipUAConnecting(null);
                 }
 
@@ -240,7 +233,6 @@ public class Device implements DeviceContext, Serializable {
             e.printStackTrace();
         }
         try {
-            System.out.println("call from " + datagramSocket.getLocalAddress());
             this.sipManager.calling(to, sipProfile.getLocalRtpPort());
         } catch (Exception e) {
             e.printStackTrace();
