@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.screens.layouts.panes.singles;
+package com.wisekrakr.communiwise.screens.layouts.panes.main;
 
 import com.wisekrakr.communiwise.phone.Device;
 
@@ -62,11 +62,11 @@ public class ControlsPane extends JPanel {
         audioCall.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String newCall = DestinationPane.getSipTargetName() + "@" + DestinationPane.getSipTargetAddress();
+                String newCall = DestinationPane.getSipTargetName().trim() + "@" + DestinationPane.getSipTargetAddress().trim();
+                device.call("sip:"+ newCall);
+
                 device.getSipManager().getSipProfile().setSipAddress(newCall);
                 device.getSipManager().getSipProfile().setRemotePort(Integer.parseInt(DestinationPane.getSipTargetPort()));
-
-                device.call("sip:"+ device.getSipManager().getSipProfile().getSipAddress());
             }
         });
     }

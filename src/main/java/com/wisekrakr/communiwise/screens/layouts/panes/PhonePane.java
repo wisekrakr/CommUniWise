@@ -1,24 +1,26 @@
 package com.wisekrakr.communiwise.screens.layouts.panes;
 
+import com.wisekrakr.communiwise.config.Config;
 import com.wisekrakr.communiwise.phone.Device;
-import com.wisekrakr.communiwise.screens.layouts.panes.singles.MenuPane;
-import com.wisekrakr.communiwise.screens.layouts.panes.singles.ControlsPane;
-import com.wisekrakr.communiwise.screens.layouts.panes.singles.DestinationPane;
+import com.wisekrakr.communiwise.screens.layouts.panes.background.GradientPanel;
+import com.wisekrakr.communiwise.screens.layouts.panes.main.MenuPane;
+import com.wisekrakr.communiwise.screens.layouts.panes.main.ControlsPane;
+import com.wisekrakr.communiwise.screens.layouts.panes.main.DestinationPane;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class PhonePane extends JPanel {
+public class PhonePane extends GradientPanel {
 
     private DestinationPane destinationPane;
     private ControlsPane controlsPane;
-//    private SystemDatabasePane systemDatabasePane;
     private MenuPane menuPane;
 
-    final Device device;
+    private final Device device;
 
     public PhonePane(Device device) {
         this.device = device;
+
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -33,7 +35,6 @@ public class PhonePane extends JPanel {
         gbc.gridy++;
         add((controlsPane = new ControlsPane(device)), gbc);
         gbc.gridy++;
-//        add((systemDatabasePane = new SystemDatabasePane()), gbc);
 
         gbc.gridy = 0;
         gbc.gridx++;
@@ -41,7 +42,24 @@ public class PhonePane extends JPanel {
         gbc.fill = GridBagConstraints.VERTICAL;
         gbc.weighty = 1;
         gbc.weightx = 0;
-        add((menuPane = new MenuPane()), gbc);
+        add((menuPane = new MenuPane(device)), gbc);
     }
 
+//    @Override
+//    public void paint(Graphics g) {
+//        super.paint(g);
+//
+//        Graphics2D g2 = (Graphics2D) g.create();
+//
+//        int w = this.getWidth();
+//        int h = this.getHeight();
+//
+//        g2.setComposite(AlphaComposite.getInstance(
+//                AlphaComposite.SRC_OVER, .2f));
+//        g2.setPaint(new GradientPaint(0, 0, Config.LIGHT_CYAN, 0, h, Config.DARK_CYAN));
+//
+//        g2.fillRect(0, 0, w, h);
+//
+//        g2.dispose();
+//    }
 }

@@ -1,27 +1,29 @@
-package com.wisekrakr.communiwise.screens.layouts.panes.singles;
+package com.wisekrakr.communiwise.screens.layouts.panes.main;
 
 import com.wisekrakr.communiwise.config.Config;
 import com.wisekrakr.communiwise.phone.Device;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class DestinationPane extends JPanel {
-    static JTextField sipTargetName;
-    static JTextField sipTargetAddress;
-    static JTextField sipTargetPort;
+    private static JTextField sipTargetName;
+    private static JTextField sipTargetAddress;
+    private static JTextField sipTargetPort;
 
-    final Device device;
+    private final Device device;
 
     public DestinationPane(Device device) {
         this.device = device;
+
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
+
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
+
+
 
         add(new JLabel("Contact Name (or Number): "), gbc);
         gbc.gridy++;
@@ -40,7 +42,9 @@ public class DestinationPane extends JPanel {
         gbc.gridy++;
         add((sipTargetPort = new JTextField(Integer.toString(Config.MASTER_PORT),3)), gbc);
 
+
     }
+
 
 
     protected static String getSipTargetName() {

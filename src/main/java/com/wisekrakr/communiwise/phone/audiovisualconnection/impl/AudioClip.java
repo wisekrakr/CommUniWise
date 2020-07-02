@@ -1,9 +1,8 @@
-package com.wisekrakr.communiwise.phone.audio.impl;
+package com.wisekrakr.communiwise.phone.audiovisualconnection.impl;
 
 import javax.sound.sampled.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 public class AudioClip  {
 

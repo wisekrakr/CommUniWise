@@ -37,7 +37,7 @@ public class LoginScreen extends AbstractScreen {
         setBounds((screenSize.width-288)/2, (screenSize.height-310)/2, 400, 150);
 
         panel = new JPanel();
-        panel.setBackground(new Color(176,228,234));
+        panel.setBackground(Config.LIGHT_CYAN);
         panel.setForeground(Color.WHITE);
 
         add(panel);

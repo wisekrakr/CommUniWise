@@ -2,40 +2,61 @@ package com.wisekrakr.communiwise.phone;
 
 
 
-import com.wisekrakr.communiwise.config.Config;
-import com.wisekrakr.communiwise.phone.audio.impl.AudioClip;
-import com.wisekrakr.communiwise.phone.audio.listener.AudioManager;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.impl.AudioClip;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.AVConnectionStream;
 import com.wisekrakr.communiwise.phone.device.DeviceContext;
 import com.wisekrakr.communiwise.phone.device.SipDeviceListener;
 import com.wisekrakr.communiwise.phone.device.events.SipConnectionListener;
 import com.wisekrakr.communiwise.phone.device.events.SipEvent;
 import com.wisekrakr.communiwise.phone.device.layout.ScreenEvent;
 import com.wisekrakr.communiwise.phone.managers.SipManager;
-import com.wisekrakr.communiwise.phone.managers.SoundManager;
 import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
-import com.wisekrakr.communiwise.screens.layouts.AudioCallScreen;
-import com.wisekrakr.communiwise.screens.layouts.IncomingCallScreen;
-import com.wisekrakr.communiwise.screens.layouts.PhoneScreen;
+import com.wisekrakr.communiwise.screens.layouts.*;
 import com.wisekrakr.communiwise.screens.ext.ScreenState;
-import com.wisekrakr.communiwise.screens.layouts.LoginScreen;
 import com.wisekrakr.communiwise.user.SipProfile;
 
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import java.io.*;
 import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
 import java.net.SocketException;
 
 public class Device implements DeviceContext, Serializable {
 
     private static Device device;
-    SipManager sipManager;
-    SipProfile sipProfile;
-    boolean isInitialized;
-    AbstractScreen currentScreen;
-    public SipDeviceListener sipDeviceListener = null;
-    public SipConnectionListener sipConnectionListener = null;
+    private SipManager sipManager;
+    private SipProfile sipProfile;
+    private boolean isInitialized;
+    private AbstractScreen currentScreen;
+
+    private final SipDeviceListener sipDeviceListener = null;
+    private final SipConnectionListener sipConnectionListener = new SipConnectionListener() {
+        @Override
+        public void onSipUAConnecting(SipEvent event) {
+
+        }
+
+        @Override
+        public void onSipUAConnected(SipEvent event) {
+
+        }
+
+        @Override
+        public void onSipUADisconnected(SipEvent event) {
+
+        }
+
+        @Override
+        public void onSipUACancelled(SipEvent event) {
+
+        }
+
+        @Override
+        public void onSipUADeclined(SipEvent event) {
+
+        }
+    };
+
     private ScreenState screenState = ScreenState.LOGIN;
 
     private LoginScreen loginScreen;
@@ -46,7 +67,7 @@ public class Device implements DeviceContext, Serializable {
     private AudioClip audioClip;
 //    private AudioWrapper audioWrapper;
 //    private RtpApp rtpApp;
-    private AudioManager audioManager;
+    private AVConnectionStream AVConnectionStream;
     private DatagramSocket datagramSocket;
 
 
@@ -66,8 +87,8 @@ public class Device implements DeviceContext, Serializable {
         this.sipProfile = sipProfile;
         sipManager = new SipManager(sipProfile);
 
-        audioManager = new AudioManager();
-
+        AVConnectionStream = new AVConnectionStream();
+        AVConnectionStream.init();
 
         sipManager.addSipListener(this);
         sipManager.addScreenListener(this);
@@ -130,7 +151,7 @@ public class Device implements DeviceContext, Serializable {
     @Override
     public void onSipMessage(final SipEvent sipEventObject) {
         System.out.println("Sip Event fired: " + sipEventObject.type);
-        phoneScreen.showStatus();
+//        phoneScreen.showStatus();
         switch (sipEventObject.type) {
             case MESSAGE:
                 if (this.sipDeviceListener != null) {
@@ -138,21 +159,21 @@ public class Device implements DeviceContext, Serializable {
                 }
                 break;
             case BYE:
-                audioManager.stopStreaming();
+                AVConnectionStream.stopStreaming();
 
                 if (this.sipConnectionListener != null) {
                     this.sipConnectionListener.onSipUADisconnected(null);
                 }
                 break;
             case REMOTE_CANCEL:
-                audioManager.stopStreaming();
+                AVConnectionStream.stopStreaming();
 
                 if (this.sipConnectionListener != null) {
                     this.sipConnectionListener.onSipUACancelled(null);
                 }
                 break;
             case DECLINED:
-                audioManager.stopStreaming();
+                AVConnectionStream.stopStreaming();
 
                 if (this.sipConnectionListener != null) {
                     this.sipConnectionListener.onSipUADeclined(null);
@@ -160,13 +181,13 @@ public class Device implements DeviceContext, Serializable {
                 break;
             case BUSY_HERE:
             case SERVICE_UNAVAILABLE:
-                audioManager.stopStreaming();
+                AVConnectionStream.stopStreaming();
 
                 break;
             case CALL_CONNECTED:
                 try {
-                    audioManager.start( sipProfile.getServer(),sipEventObject.rtpPort, datagramSocket);
-                } catch (SocketException | LineUnavailableException e) {
+                    AVConnectionStream.start( sipProfile.getServer(),sipEventObject.rtpPort, datagramSocket);
+                } catch (LineUnavailableException | IOException e) {
                     e.printStackTrace();
                 }
 
@@ -289,8 +310,8 @@ public class Device implements DeviceContext, Serializable {
         return sipManager;
     }
 
-    public AudioManager getAudioManager() {
-        return audioManager;
+    public AVConnectionStream getAVConnectionStream() {
+        return AVConnectionStream;
     }
 
     @Override
