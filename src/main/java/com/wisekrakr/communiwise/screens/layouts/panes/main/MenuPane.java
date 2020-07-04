@@ -1,8 +1,11 @@
 package com.wisekrakr.communiwise.screens.layouts.panes.main;
 
 import com.wisekrakr.communiwise.phone.Device;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.SoundPlayer;
+import com.wisekrakr.communiwise.screens.AudioPlayerScreen;
 import com.wisekrakr.communiwise.screens.layouts.panes.options.OptionsPane;
 
+import javax.media.Player;
 import javax.sound.sampled.LineUnavailableException;
 import javax.swing.*;
 import java.awt.*;
@@ -13,12 +16,16 @@ import java.util.List;
 
 public class MenuPane extends JPanel {
 
-    private JButton okay, cancel, help, advanced, options;
+    private JButton okay, cancel, help, player, options;
 
     private final Device device;
 
+    private SoundPlayer soundPlayer;
+
     public MenuPane(Device device) {
         this.device = device;
+
+        soundPlayer = new SoundPlayer();
 
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -36,13 +43,21 @@ public class MenuPane extends JPanel {
         gbc.gridy++;
         add((help = new JButton("Help")), gbc);
         gbc.gridy++;
-        add((advanced = new JButton("Advanced")), gbc);
+        add((player = new JButton("Player")), gbc);
         gbc.gridy++;
         gbc.weighty = 1;
         gbc.anchor = GridBagConstraints.SOUTH;
         add((options = new JButton("Options >>")), gbc);
 
         clickOptions();
+        clickPlayer();
+
+        help.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                soundPlayer.play("beep");
+            }
+        });
     }
 
     private void clickOptions(){
@@ -51,6 +66,22 @@ public class MenuPane extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 OptionsPane optionsPane = new OptionsPane(device);
                 optionsPane.init();
+            }
+        });
+    }
+
+    private void clickPlayer(){
+        player.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                AudioPlayerScreen audioPlayerScreen = new AudioPlayerScreen();
+                audioPlayerScreen.setVisible(true);
+                audioPlayerScreen.player_gui();
+
+                audioPlayerScreen.setBackground(Color.pink);
+
+                audioPlayerScreen.setLocation(300,300);
+                audioPlayerScreen.setSize(500, 100);
             }
         });
     }

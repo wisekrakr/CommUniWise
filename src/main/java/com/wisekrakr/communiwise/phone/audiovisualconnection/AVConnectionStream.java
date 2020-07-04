@@ -114,7 +114,7 @@ public class AVConnectionStream {
 
                 inputMixer = AudioSystem.getMixer(mixerInfo);
 
-                if (inputMixer.getTargetLines().length > 0) {
+//                if (inputMixer.getTargetLines().length > 0) {
                     System.out.println(String.format("%s : %s source lines: %d  target lines: %d", mixerInfo.getName(), mixerInfo.getDescription(), inputMixer.getSourceLineInfo().length, inputMixer.getTargetLineInfo().length));
                     for (Line.Info info : inputMixer.getTargetLineInfo()) {
                         if (info.getLineClass() == TargetDataLine.class) {
@@ -129,13 +129,17 @@ public class AVConnectionStream {
                                 System.out.println("    control: " + control);
                             }
                         }
-                    }
+//                    }
                 }
             }
 
         }
     }
 
+    /**
+     * Creates a audio format ULAW (Or PCM_SIGNED) 44100, 16, 2, 4, 44100, little endian
+     * @return new AudioFormat
+     */
     public static AudioFormat format(){
             return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2,
                 (16 / 8) * 2, 44100, false);
