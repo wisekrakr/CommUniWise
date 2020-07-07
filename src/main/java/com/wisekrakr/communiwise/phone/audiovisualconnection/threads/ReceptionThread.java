@@ -65,10 +65,6 @@ public class ReceptionThread implements Runnable  {
                          new ByteArrayInputStream(receivedPacket.getData(),0,receivedPacket.getLength()),
                         format(),receivedPacket.getLength());
 
-//                JNIEncoderImpl encoder = new JNIEncoderImpl();
-//                JNIDecoderImpl decoder = new JNIDecoderImpl();
-//                Buffer b = new Buffer();
-
 
 
 //              todo:  [ bytes written ] % [frame size in bytes ] == 0 ==>The number of bytes to write must represent an integral number of sample frames
