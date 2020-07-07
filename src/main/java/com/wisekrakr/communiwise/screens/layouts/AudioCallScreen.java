@@ -1,8 +1,7 @@
 package com.wisekrakr.communiwise.screens.layouts;
 
-import com.wisekrakr.communiwise.phone.Device;
+import com.wisekrakr.communiwise.main.PhoneApplication;
 import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
-import com.wisekrakr.communiwise.screens.ext.FrameContext;
 import com.wisekrakr.communiwise.screens.layouts.objects.Button;
 import org.apache.commons.lang3.time.StopWatch;
 
@@ -10,25 +9,23 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.time.Clock;
 
 
 public class AudioCallScreen extends AbstractScreen {
 
-    private final Device device;
+    private final PhoneApplication application;
     private StopWatch stopWatch;
 
-    public AudioCallScreen(Device device) throws HeadlessException {
-        this.device = device;
+    public AudioCallScreen(PhoneApplication application) throws HeadlessException {
+        this.application = application;
 
         stopWatch = new StopWatch();
 
         initScreen();
     }
 
-    @Override
     public void initScreen() {
-        setTitle("Call with: "+ device.getSipManager().getSipProfile().getSipAddress());
+        setTitle("Call with: "+ application.getSipManager().getSipProfile().getSipAddress());
         getContentPane().setLayout(null);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width-288)/2, (screenSize.height-310)/2, 500, 600);
@@ -54,7 +51,7 @@ public class AudioCallScreen extends AbstractScreen {
         stopBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                device.hangup();
+                application.hangup();
                 stopWatch.stop();
                 System.out.println("Clicked hanging up");
             }
@@ -77,7 +74,7 @@ public class AudioCallScreen extends AbstractScreen {
         JLabel status = new JLabel();
         status.setBounds(200, 520, 150, 30);
         add(status);
-        switch (device.getSipManager().getProcessedResponse().getStatusCode()){
+        switch (application.getSipManager().getProcessedResponse().getStatusCode()){
             case 603:
                 status.setText("Decline");
                 status.setForeground(Color.ORANGE);
@@ -128,7 +125,7 @@ public class AudioCallScreen extends AbstractScreen {
 
                 break;
             default:
-                throw new IllegalStateException("Unexpected value: " + device.getSipManager().getProcessedResponse().getStatusCode());
+                throw new IllegalStateException("Unexpected value: " + application.getSipManager().getProcessedResponse().getStatusCode());
         }
 
     }

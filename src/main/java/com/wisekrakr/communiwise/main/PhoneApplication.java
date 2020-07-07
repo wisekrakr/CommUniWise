@@ -1,9 +1,9 @@
-package com.wisekrakr.communiwise.phone;
+package com.wisekrakr.communiwise.main;
 
 
-
+import com.wisekrakr.communiwise.config.Config;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.impl.AudioClip;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.AVConnectionStream;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.RTPConnectionManager;
 import com.wisekrakr.communiwise.phone.device.DeviceContext;
 import com.wisekrakr.communiwise.phone.device.SipDeviceListener;
 import com.wisekrakr.communiwise.phone.device.events.SipConnectionListener;
@@ -15,18 +15,44 @@ import com.wisekrakr.communiwise.screens.layouts.*;
 import com.wisekrakr.communiwise.screens.ext.ScreenState;
 import com.wisekrakr.communiwise.user.SipProfile;
 
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.*;
 import java.io.*;
-import java.net.DatagramSocket;
-import java.net.SocketException;
+import java.net.InetSocketAddress;
 
-public class Device implements DeviceContext, Serializable {
+public class PhoneApplication implements DeviceContext, Serializable {
+    private Clip ringingClip;
 
-    private static Device device;
+    public static void main(String[] args) {
+        PhoneApplication application = new PhoneApplication();
+
+        try {
+            application.initialize(
+                    new SipProfile(
+                            "",
+                            Config.LOCAL_PORT,
+                            "udp",
+                            -1,
+                            Config.SERVER,
+                            Config.MASTER_PORT,
+                            Config.USERNAME,
+                            Config.PASSWORD,
+                            "sip:" + Config.USERNAME + "@" + Config.SERVER
+                    ));
+        } catch (Exception e) {
+            System.out.println("Unable to initialize: " + e.getMessage());
+
+            return;
+        }
+
+
+        application.run();
+    }
+
+    private void run() {
+    }
+
     private SipManager sipManager;
     private SipProfile sipProfile;
-    private boolean isInitialized;
     private AbstractScreen currentScreen;
 
     private final SipDeviceListener sipDeviceListener = null;
@@ -64,31 +90,16 @@ public class Device implements DeviceContext, Serializable {
     private IncomingCallScreen incomingCallScreen;
     private AudioCallScreen audioCallScreen;
 
-    private AudioClip audioClip;
-//    private AudioWrapper audioWrapper;
-//    private RtpApp rtpApp;
-    private AVConnectionStream AVConnectionStream;
-    private DatagramSocket datagramSocket;
+    private RTPConnectionManager RTPConnectionManager;
 
-
-    private Device(){
-
-    }
-    public static Device GetInstance(){
-        if(device == null){
-            device = new Device();
-            device.Initialize(new SipProfile());
-
-        }
-        return device;
-    }
-
-    public void Initialize(SipProfile sipProfile){
+    public void initialize(SipProfile sipProfile) throws Exception {
         this.sipProfile = sipProfile;
-        sipManager = new SipManager(sipProfile);
 
-        AVConnectionStream = new AVConnectionStream();
-        AVConnectionStream.init();
+        sipManager = new SipManager(sipProfile);
+        sipManager.initialize();
+
+        RTPConnectionManager = new RTPConnectionManager();
+        RTPConnectionManager.init();
 
         sipManager.addSipListener(this);
         sipManager.addScreenListener(this);
@@ -96,45 +107,35 @@ public class Device implements DeviceContext, Serializable {
         // Handles changing of screens
         screenHandler();
 
-//        // Handles rtp connection
-//        try {
-//            rtpApp = new RtpApp(sipProfile.getServer(), Config.LOCAL_RTP_PORT);
-//        } catch (SocketException e) {
-//            e.printStackTrace();
-//        }
-//
-//        // Handles all audio functions
-//        audioWrapper = AudioWrapper.getInstance();
-
-        // Holds our Local Ringing sound
-        audioClip = new AudioClip();
-        audioClip.createClipURL("audio/shake_bake.wav");
-
-        isInitialized = true;
+        AudioInputStream stream = AudioClip.loadClip("shake_bake.wav");
+        AudioFormat format = stream.getFormat();
+        DataLine.Info dataInfo = new DataLine.Info(Clip.class, format);
+        ringingClip = (Clip) AudioSystem.getLine(dataInfo);
+        ringingClip.open(stream);
     }
 
     /**
      * Handles changing of screens.
      * Creates the current screen, so that it can be destroyed when it is no longer used at a later stage.
      */
-    public void screenHandler(){
+    public void screenHandler() {
         System.out.println("Setting up screen: " + screenState);
 
         //TODO: small frame for went we get an invite and we need to accept a call.
-        switch (screenState){
+        switch (screenState) {
             case LOGIN:
-                if(loginScreen == null)loginScreen = new LoginScreen(this);
+                if (loginScreen == null) loginScreen = new LoginScreen(this);
                 currentScreen = loginScreen;
                 break;
             case INCOMING:
-                if(incomingCallScreen == null)incomingCallScreen = new IncomingCallScreen(this);
+                if (incomingCallScreen == null) incomingCallScreen = new IncomingCallScreen(this);
                 currentScreen = incomingCallScreen;
                 break;
             case PHONE:
-                if(phoneScreen == null)phoneScreen = new PhoneScreen(this);
+                if (phoneScreen == null) phoneScreen = new PhoneScreen(this);
                 break;
             case AUDIO_CALL:
-                if(audioCallScreen == null)audioCallScreen = new AudioCallScreen(this);
+                if (audioCallScreen == null) audioCallScreen = new AudioCallScreen(this);
                 currentScreen = audioCallScreen;
                 break;
             case VIDEO_CALL:
@@ -159,21 +160,21 @@ public class Device implements DeviceContext, Serializable {
                 }
                 break;
             case BYE:
-                AVConnectionStream.stopStreaming();
+                RTPConnectionManager.stopStreaming();
 
                 if (this.sipConnectionListener != null) {
                     this.sipConnectionListener.onSipUADisconnected(null);
                 }
                 break;
             case REMOTE_CANCEL:
-                AVConnectionStream.stopStreaming();
+                RTPConnectionManager.stopStreaming();
 
                 if (this.sipConnectionListener != null) {
                     this.sipConnectionListener.onSipUACancelled(null);
                 }
                 break;
             case DECLINED:
-                AVConnectionStream.stopStreaming();
+                RTPConnectionManager.stopStreaming();
 
                 if (this.sipConnectionListener != null) {
                     this.sipConnectionListener.onSipUADeclined(null);
@@ -181,12 +182,13 @@ public class Device implements DeviceContext, Serializable {
                 break;
             case BUSY_HERE:
             case SERVICE_UNAVAILABLE:
-                AVConnectionStream.stopStreaming();
+                RTPConnectionManager.stopStreaming();
 
                 break;
+
             case CALL_CONNECTED:
                 try {
-                    AVConnectionStream.start( sipProfile.getServer(),sipEventObject.rtpPort, datagramSocket);
+                    RTPConnectionManager.start(new InetSocketAddress(sipProfile.getServer(), sipEventObject.rtpPort));
                 } catch (LineUnavailableException | IOException e) {
                     e.printStackTrace();
                 }
@@ -195,6 +197,8 @@ public class Device implements DeviceContext, Serializable {
                     this.sipConnectionListener.onSipUAConnected(null);
                 }
                 break;
+
+
             case REMOTE_RINGING:
                 if (this.sipConnectionListener != null) {
                     this.sipConnectionListener.onSipUAConnecting(null);
@@ -202,7 +206,7 @@ public class Device implements DeviceContext, Serializable {
 
                 break;
             case LOCAL_RINGING:
-                audioClip.getClip().loop(Clip.LOOP_CONTINUOUSLY);
+                ringingClip.loop(Clip.LOOP_CONTINUOUSLY);
 
 
                 if (this.sipDeviceListener != null) {
@@ -216,14 +220,17 @@ public class Device implements DeviceContext, Serializable {
     @Override
     public void onScreenEventMessage(ScreenEvent screenEvent) {
         System.out.println("Screen Event fired: " + screenEvent.type);
-        switch (screenEvent.type){
+        switch (screenEvent.type) {
             case REGISTERED:
-                if(sipProfile.isAuthenticated()){
-                    loginScreen.clearScreen();
+                // TODO
+//                if (sipProfile.isAuthenticated()) {
+                loginScreen.clearScreen();
 
-                    setScreenState(ScreenState.PHONE);
-                }
+                setScreenState(ScreenState.PHONE);
+//                }
                 break;
+
+
             case UNREGISTERED:
                 break;
             case INCOMING:
@@ -245,33 +252,22 @@ public class Device implements DeviceContext, Serializable {
     }
 
     @Override
-    public void call(String to) {
-        try {
-            datagramSocket = new DatagramSocket();
-            sipProfile.setLocalRtpPort(datagramSocket.getLocalPort());
-
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
-        try {
-            this.sipManager.calling(to, sipProfile.getLocalRtpPort());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void initiateCall(String sipAddress, int localRtpPort) {
+        this.sipManager.callRequest(sipAddress, localRtpPort);
     }
 
     @Override
     public void accept() {
 //        this.sipManager.acceptingCall(Config.ANOTHER_RTP_PORT);
-        audioClip.getClip().stop();
+        ringingClip.stop();
 
     }
 
     @Override
     public void reject() {
         this.sipManager.rejectingCall();
-        audioClip.getClip().stop();
 
+        ringingClip.stop();
     }
 
 
@@ -296,12 +292,12 @@ public class Device implements DeviceContext, Serializable {
     }
 
     @Override
-    public void register() {
-        this.sipManager.registering();
+    public void register(String username, String password) {
+        this.sipManager.register(username, password);
     }
 
     @Override
-    public void mute(boolean muted){
+    public void mute(boolean muted) {
         //mute audio
     }
 
@@ -310,8 +306,8 @@ public class Device implements DeviceContext, Serializable {
         return sipManager;
     }
 
-    public AVConnectionStream getAVConnectionStream() {
-        return AVConnectionStream;
+    public RTPConnectionManager getRTPConnectionManager() {
+        return RTPConnectionManager;
     }
 
     @Override

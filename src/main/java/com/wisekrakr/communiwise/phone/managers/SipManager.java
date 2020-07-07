@@ -1,26 +1,21 @@
 package com.wisekrakr.communiwise.phone.managers;
 
 
-
-
 import com.wisekrakr.communiwise.phone.device.events.SipEvent;
 import com.wisekrakr.communiwise.phone.device.events.SipEventListenerContext;
 import com.wisekrakr.communiwise.phone.device.layout.LayoutListenerContext;
 import com.wisekrakr.communiwise.phone.device.layout.ScreenEvent;
-import com.wisekrakr.communiwise.phone.impl.Message;
+import com.wisekrakr.communiwise.phone.impl.SipRequestFactory;
 import com.wisekrakr.communiwise.phone.managers.ext.SipManagerContext;
-import com.wisekrakr.communiwise.phone.managers.ext.SipManagerState;
+import com.wisekrakr.communiwise.phone.managers.ext.SipSessionState;
 import com.wisekrakr.communiwise.user.SipAccountManager;
+import com.wisekrakr.communiwise.user.SipProfile;
 import com.wisekrakr.communiwise.utils.Headers;
-import com.wisekrakr.communiwise.utils.NotInitializedException;
 import gov.nist.javax.sdp.SessionDescriptionImpl;
 import gov.nist.javax.sdp.parser.SDPAnnounceParser;
 import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
 import gov.nist.javax.sip.message.SIPMessage;
-import com.wisekrakr.communiwise.phone.impl.Invite;
-import com.wisekrakr.communiwise.phone.impl.Register;
-import com.wisekrakr.communiwise.user.SipProfile;
 
 import javax.sdp.MediaDescription;
 import javax.sdp.SdpException;
@@ -42,6 +37,7 @@ import java.util.Properties;
 import java.util.TooManyListenersException;
 
 public class SipManager implements SipListener, SipManagerContext {
+    private boolean authenticated = false;
 
     private Dialog dialog;
 
@@ -67,11 +63,9 @@ public class SipManager implements SipListener, SipManagerContext {
     private AddressFactory addressFactory;
     private MessageFactory messageFactory;
 
-    private boolean initialized;
-
     private final SipProfile sipProfile;
 
-    private SipManagerState sipManagerState;
+    private SipSessionState sipSessionState;
 
     private ClientTransaction currentClientTransaction = null;
     private ServerTransaction currentServerTransaction;
@@ -80,69 +74,46 @@ public class SipManager implements SipListener, SipManagerContext {
 
     public SipManager(SipProfile sipProfile) {
         this.sipProfile = sipProfile;
-
-        initialize();
     }
 
-    private void initialize() {
+    public void initialize() throws Exception {
 //        sipProfile.setLocalIp(IpAddress.get(true));
-        sipManagerState = SipManagerState.REGISTERING;
+        sipSessionState = SipSessionState.REGISTERING;
 
         sipFactory = SipFactory.getInstance();
         sipFactory.resetFactory();
         sipFactory.setPathName("gov.nist");
 
         Properties properties = new Properties();
-
-        properties.setProperty("javax.sip.OUTBOUND_PROXY", sipProfile.getRemoteEndpoint() + "/"
-                + sipProfile.getTransport());
+        properties.setProperty("javax.sip.OUTBOUND_PROXY", sipProfile.getRemoteEndpoint() + "/" + sipProfile.getTransport());
         properties.setProperty("javax.sip.STACK_NAME", "CommUniWise");
-        properties
-                .setProperty("gov.nist.javax.sip.MAX_MESSAGE_SIZE", "1048576");
-        properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                "CommUniWise_DEBUG.txt");
-        properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-                "CommUniWise_LOG.txt");
+        properties.setProperty("gov.nist.javax.sip.MAX_MESSAGE_SIZE", "1048576");
+        properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "CommUniWise_DEBUG.txt");
+        properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "CommUniWise_LOG.txt");
         properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "16");
         // Drop the client connection after we are done with the transaction.
-        properties.setProperty("gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS",
-                "false");
+        properties.setProperty("gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS", "false");
 
-        try {
-            if (udp != null) {
-                // Binding again
-                sipStack.deleteListeningPoint(udp);
-                udpSipProvider.removeSipListener(this);
-            }
-            sipStack = sipFactory.createSipStack(properties);
-
-            System.out.println("createSipStack " + sipStack);
-        } catch (PeerUnavailableException | ObjectInUseException e) {
-            e.printStackTrace();
-            return;
+        if (udp != null) {
+            // Binding again
+            sipStack.deleteListeningPoint(udp);
+            udpSipProvider.removeSipListener(this);
         }
-        try {
-            headerFactory = sipFactory.createHeaderFactory();
-            addressFactory = sipFactory.createAddressFactory();
-            messageFactory = sipFactory.createMessageFactory();
 
-//            createProviderAndListeningPoints();
-            udp = sipStack.createListeningPoint(sipProfile.getLocalIp(), sipProfile.getLocalPort(),
-                    sipProfile.getTransport());
-//            tcp = sipStack.createListeningPoint(sipProfile.getLocalIp(), sipProfile.getLocalPort(),
-//                    "tcp");
-            udpSipProvider = sipStack.createSipProvider(udp);
-            udpSipProvider.addSipListener(this);
-//            tcpSipProvider = sipStack.createSipProvider(tcp);
-//            tcpSipProvider.addSipListener(this);
-            initialized = true;
-            sipManagerState = SipManagerState.READY;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sipStack = sipFactory.createSipStack(properties);
+
+        System.out.println("createSipStack " + sipStack);
+
+        headerFactory = sipFactory.createHeaderFactory();
+        addressFactory = sipFactory.createAddressFactory();
+        messageFactory = sipFactory.createMessageFactory();
+
+        udp = sipStack.createListeningPoint(sipProfile.getLocalIp(), sipProfile.getLocalPort(), sipProfile.getTransport());
+        udpSipProvider = sipStack.createSipProvider(udp);
+        udpSipProvider.addSipListener(this);
+
+        sipSessionState = SipSessionState.READY;
     }
-
-    /******                             PROCESSORS                                  *******/
 
     @Override
     public void processRequest(RequestEvent requestEvent) {
@@ -161,17 +132,20 @@ public class SipManager implements SipListener, SipManagerContext {
             case "MESSAGE":
                 sendOk(requestEvent);
 
+                String message = null;
                 try {
-                    String message = sp.getMessageContent();
-                    dispatchSipEvent(new SipEvent(this, SipEvent.SipEventType.MESSAGE,
-                            message, sp.getFrom().getAddress().toString()));
-
+                    message = sp.getMessageContent();
                 } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
+                    System.out.println("ERROR: unsupported encoding receiving message");
+                    break;
                 }
+                dispatchSipEvent(new SipEvent(this, SipEvent.SipEventType.MESSAGE,
+                        message, sp.getFrom().getAddress().toString()));
+
                 break;
+
             case Request.BYE:
-                sipManagerState = SipManagerState.IDLE;
+                sipSessionState = SipSessionState.IDLE;
                 processBye(requestEvent, serverTransactionId);
 
                 dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.EXITING));
@@ -181,12 +155,15 @@ public class SipManager implements SipListener, SipManagerContext {
 
                 direction = CallDirection.NONE;
                 break;
+
             case Request.ACK:
                 processAck(request, serverTransactionId);
                 break;
+
             case Request.REGISTER:
                 sendOk(requestEvent);
                 break;
+
             case "INVITE":
                 direction = CallDirection.INCOMING;
 
@@ -194,8 +171,9 @@ public class SipManager implements SipListener, SipManagerContext {
 
                 dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.INCOMING));
                 break;
+
             case "CANCEL":
-                sipManagerState = SipManagerState.IDLE;
+                sipSessionState = SipSessionState.IDLE;
                 processCancel(requestEvent, serverTransactionId);
 
                 dispatchSipEvent(new SipEvent(this, SipEvent.SipEventType.BYE, "", sp
@@ -203,6 +181,7 @@ public class SipManager implements SipListener, SipManagerContext {
 
                 direction = CallDirection.NONE;
                 break;
+
             default:
                 throw new IllegalStateException("Unexpected value: " + request.getMethod());
         }
@@ -251,10 +230,11 @@ public class SipManager implements SipListener, SipManagerContext {
         if (processedResponse.getStatusCode() == Response.OK) {
             switch (cseq.getMethod()) {
                 case Request.REGISTER:
-                    sipProfile.setAuthenticated(true);
-                    System.out.println("REGISTERED: " + sipProfile.getSipUserName() + " /AUTH: " + sipProfile.isAuthenticated());
+                    System.out.println("REGISTERED");
                     dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.REGISTERED));
+                    authenticated = true;
                     break;
+
                 case Request.INVITE:
                     System.out.println("Dialog after 200 OK  ");
 
@@ -320,7 +300,7 @@ public class SipManager implements SipListener, SipManagerContext {
 
                     break;
                 case Request.BYE:
-                    sipManagerState = SipManagerState.IDLE;
+                    sipSessionState = SipSessionState.IDLE;
                     System.out.println("--- Got 200 OK in UAC outgoing BYE");
 
                     dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.EXITING));
@@ -352,14 +332,14 @@ public class SipManager implements SipListener, SipManagerContext {
     }
 
     private void processInvite(RequestEvent requestEvent, ServerTransaction serverTransaction) {
-        if (sipManagerState != SipManagerState.IDLE
-                && sipManagerState != SipManagerState.READY
-                && sipManagerState != SipManagerState.INCOMING
+        if (sipSessionState != SipSessionState.IDLE
+                && sipSessionState != SipSessionState.READY
+                && sipSessionState != SipSessionState.INCOMING
         ) {
             sendDecline(requestEvent.getRequest());// Already in a call
             return;
         }
-        sipManagerState = SipManagerState.INCOMING;
+        sipSessionState = SipSessionState.INCOMING;
         Request request = requestEvent.getRequest();
         SIPMessage sm = (SIPMessage) request;
 
@@ -512,13 +492,10 @@ public class SipManager implements SipListener, SipManagerContext {
     /************                               ACTIONS                             ************/
 
     @Override
-    public void sendingMessage(String to, String message) throws NotInitializedException {
-        if (!isInitialized())
-            throw new NotInitializedException("Sip Stack not initialized");
-
-        Message inviteRequest = new Message();
+    public void sendingMessage(String to, String message) {
+        SipRequestFactory inviteRequest = new SipRequestFactory();
         try {
-            Request r = inviteRequest.MakeRequest(this, to, message);
+            Request r = inviteRequest.makeMessageRequest(this, to, message);
 
             final ClientTransaction transaction = this.udpSipProvider
                     .getNewClientTransaction(r);
@@ -539,82 +516,52 @@ public class SipManager implements SipListener, SipManagerContext {
     }
 
     @Override
-    public void registering() {
-        if (!isInitialized())
-            return;
+    public void register(String username, String password) {
+        sipSessionState = SipSessionState.REGISTERING;
 
-        Register registerRequest = new Register(this);
         try {
-            Request r = registerRequest.MakeRequest();
-            currentClientTransaction = this.udpSipProvider
-                    .getNewClientTransaction(r);
-            Thread thread = new Thread() {
-                public void run() {
-                    try {
-                        currentClientTransaction.sendRequest();
-
-                        System.out.println("Registering state: " + currentClientTransaction.getState());
-
-
-                    } catch (SipException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            thread.start();
-        } catch (ParseException | TransactionUnavailableException | InvalidArgumentException e) {
-            e.printStackTrace();
+            Request r = SipRequestFactory.createRegisterRequest(this);
+            currentClientTransaction = this.udpSipProvider.getNewClientTransaction(r);
+            currentClientTransaction.sendRequest();
+        } catch (Exception e) {
+            sipSessionState = SipSessionState.IDLE;
+            // TODO: user feedback
         }
     }
 
     @Override
-    public void calling(String to, int localRtpPort) throws NotInitializedException {
-        if (!isInitialized())
-            throw new NotInitializedException("Sip Stack not initialized");
+    public void callRequest(String to, int localRtpPort) {
+        // TODO: test if in an allowable state
+        sipSessionState = SipSessionState.CALLING;
+        direction = CallDirection.OUTGOING;
 
-        sipManagerState = SipManagerState.CALLING;
-
-        Invite inviteRequest = new Invite(this);
-        Request r = inviteRequest.MakeRequest(to, localRtpPort);
+        Request r = SipRequestFactory.makeInviteRequest(this, to, localRtpPort);
         System.out.println(r);
 
+        System.out.println("Calling: " + currentClientTransaction.getDialog());
+
         try {
-            currentClientTransaction = this.udpSipProvider
-                    .getNewClientTransaction(r);
-            Thread thread = new Thread() {
-                public void run() {
-                    try {
-                        currentClientTransaction.sendRequest();
+            currentClientTransaction = this.udpSipProvider.getNewClientTransaction(r);
+            currentClientTransaction.sendRequest();
+        } catch (SipException e) {
+            sipSessionState = SipSessionState.READY;
 
-                        System.out.println("Calling: " + currentClientTransaction.getDialog());
-
-                    } catch (SipException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            thread.start();
-
-        } catch (TransactionUnavailableException e) {
-            e.printStackTrace();
+            // TODO: user feedback
+            System.out.println("Call failed " + e);
         }
-        direction = CallDirection.OUTGOING;
     }
 
     @Override
-    public void hangingUp() throws NotInitializedException {
-        if (!isInitialized())
-            throw new NotInitializedException("Sip Stack not initialized");
-
+    public void hangingUp() {
         if (direction == CallDirection.OUTGOING) {
             if (currentClientTransaction != null) {
                 sendByeClient(currentClientTransaction);
-                sipManagerState = SipManagerState.IDLE; //todo: trying to reset the system to make or get new calls after a call.
+                sipSessionState = SipSessionState.IDLE; //todo: trying to reset the system to make or get new calls after a call.
             }
         } else if (direction == CallDirection.INCOMING) {
             if (currentServerTransaction != null) {
                 sendByeClient(currentServerTransaction);
-                sipManagerState = SipManagerState.IDLE;
+                sipSessionState = SipSessionState.IDLE;
             }
         }
         dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.EXITING));
@@ -678,7 +625,7 @@ public class SipManager implements SipListener, SipManagerContext {
 
                     System.out.println("Call connected on port: " + rtpPort);
 
-                    sipManagerState = SipManagerState.ESTABLISHED;
+                    sipSessionState = SipSessionState.ESTABLISHED;
 
 
                 } catch (ParseException | InvalidArgumentException | SipException e) {
@@ -688,13 +635,13 @@ public class SipManager implements SipListener, SipManagerContext {
         };
         thread.start();
 
-        sipManagerState = SipManagerState.ESTABLISHED;
+        sipSessionState = SipSessionState.ESTABLISHED;
     }
 
     @Override
     public void rejectingCall() {
         sendDecline(currentServerTransaction.getRequest());
-        sipManagerState = SipManagerState.IDLE;
+        sipSessionState = SipSessionState.IDLE;
     }
 
     private void sendDecline(Request request) {
@@ -914,21 +861,21 @@ public class SipManager implements SipListener, SipManagerContext {
                 udpSipProvider = sipProvider;
             }
         }
-            if (tcpSipProvider == null) {
-                try {
-                    tcpSipProvider = sipStack.createSipProvider(tcp);
-                } catch (ObjectInUseException e) {
-                    e.printStackTrace();
-                }
+        if (tcpSipProvider == null) {
+            try {
+                tcpSipProvider = sipStack.createSipProvider(tcp);
+            } catch (ObjectInUseException e) {
+                e.printStackTrace();
             }
+        }
 
-            if (udpSipProvider == null) {
-                try {
-                    udpSipProvider = sipStack.createSipProvider(udp);
-                } catch (ObjectInUseException e) {
-                    e.printStackTrace();
-                }
+        if (udpSipProvider == null) {
+            try {
+                udpSipProvider = sipStack.createSipProvider(udp);
+            } catch (ObjectInUseException e) {
+                e.printStackTrace();
             }
+        }
 
 
         try {
@@ -946,17 +893,16 @@ public class SipManager implements SipListener, SipManagerContext {
     }
 
 
-
     /**
      * Two dispatchers run one after the other
      * screen: EXITING, sipEvent: BYE
      */
-    private void exitThreadHandler(SipEvent.SipEventType eventType, SIPMessage sipMessage){
+    private void exitThreadHandler(SipEvent.SipEventType eventType, SIPMessage sipMessage) {
         dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.EXITING));
 
-        if(sipMessage == null){
+        if (sipMessage == null) {
             dispatchSipEvent(new SipEvent(this, eventType, "", ""));
-        }else{
+        } else {
             dispatchSipEvent(new SipEvent(this, eventType, "", sipMessage
                     .getFrom().getAddress().toString()));
         }
@@ -995,10 +941,6 @@ public class SipManager implements SipListener, SipManagerContext {
 
     public MessageFactory getMessageFactory() {
         return messageFactory;
-    }
-
-    public boolean isInitialized() {
-        return initialized;
     }
 
     public Response getProcessedResponse() {

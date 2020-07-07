@@ -2,8 +2,7 @@ package com.wisekrakr.communiwise.screens.layouts;
 
 
 import com.wisekrakr.communiwise.config.Config;
-import com.wisekrakr.communiwise.phone.Device;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.impl.AudioClip;
+import com.wisekrakr.communiwise.main.PhoneApplication;
 import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
 import com.wisekrakr.communiwise.screens.layouts.objects.Button;
 import com.wisekrakr.communiwise.screens.layouts.panes.PhonePane;
@@ -15,15 +14,14 @@ import java.awt.event.ActionListener;
 
 public class PhoneScreen extends AbstractScreen {
 
-    private final Device device;
+    private final PhoneApplication application;
 
-    public PhoneScreen(Device device)  {
-        this.device = device;
+    public PhoneScreen(PhoneApplication application)  {
+        this.application = application;
 
         initScreen();
     }
 
-    @Override
     public void initScreen() {
 
         try {
@@ -32,7 +30,7 @@ public class PhoneScreen extends AbstractScreen {
             ex.printStackTrace();
         }
         setTitle("CommUniWise Phone");
-        add(new PhonePane(device));
+        add(new PhonePane(application));
         setVisible(true);
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -53,7 +51,7 @@ public class PhoneScreen extends AbstractScreen {
         final JTextField sipTargetPort;
         sipTargetPort = new JTextField(Config.MASTER_PORT.toString());
 
-        Button callBtn = new Button("call",10, 400);
+        Button callButton = new Button("call",10, 400);
         Button acceptBtn = new Button("accept",120, 400 );
         Button stopBtn = new Button("hang up",230, 400);
 
@@ -66,16 +64,13 @@ public class PhoneScreen extends AbstractScreen {
         getContentPane().add(sipTargetPort);
         sipTargetPort.setBounds(240, 360, 70, 30);
 
-        getContentPane().add(callBtn);
+        getContentPane().add(callButton);
 
-        callBtn.addActionListener(new ActionListener() {
+        callButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String newCall = sipTargetName.getText().trim() + "@" + sipTargetAddress.getText().trim();
-
-                device.call("sip:"+ newCall);
-                device.getSipManager().getSipProfile().setSipAddress(newCall);
-                device.getSipManager().getSipProfile().setRemotePort(Integer.parseInt(sipTargetPort.getText()));
+                application.initiateCall("sip:"+ (sipTargetName.getText().trim() + "@" + sipTargetAddress.getText().trim()),
+                        Integer.parseInt(sipTargetPort.getText()));
             }
         });
 
@@ -85,7 +80,7 @@ public class PhoneScreen extends AbstractScreen {
         acceptBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                device.accept();
+                application.accept();
                 System.out.println("Clicked accept");
 
                 acceptBtn.setEnabled(false);
@@ -95,7 +90,7 @@ public class PhoneScreen extends AbstractScreen {
         stopBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                device.hangup();
+                application.hangup();
                 System.out.println("Clicked hanging up");
                 stopBtn.setEnabled(false);
                 acceptBtn.setEnabled(true);
@@ -110,7 +105,6 @@ public class PhoneScreen extends AbstractScreen {
     /**
      * Press a button and play a sound.
      * Todo: add choosing own sounds
-     */
     @Deprecated
     private void handlePlayingSoundClip(){
         JButton playBtn = new JButton("play beep");
@@ -134,6 +128,7 @@ public class PhoneScreen extends AbstractScreen {
     }
 
 
+     */
 
 
 

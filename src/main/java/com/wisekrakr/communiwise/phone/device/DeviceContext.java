@@ -8,9 +8,9 @@ import com.wisekrakr.communiwise.phone.managers.SipManager;
 import com.wisekrakr.communiwise.screens.ext.ScreenState;
 
 public interface DeviceContext extends SipEventListenerContext, LayoutListenerContext {
-    void register();
+    void register(String username, String password);
 
-    void call(String to);
+    void initiateCall(String sipAddressa, int serverPort);
 
     void accept();
 

@@ -1,6 +1,6 @@
 package com.wisekrakr.communiwise.screens.layouts.panes.options;
 
-import com.wisekrakr.communiwise.phone.Device;
+import com.wisekrakr.communiwise.main.PhoneApplication;
 
 import javax.sound.sampled.LineUnavailableException;
 import javax.swing.*;
@@ -10,11 +10,11 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 public class OptionsPane extends JPanel {
-    private final Device device;
+    private final PhoneApplication application;
 
-    public OptionsPane(Device device) {
+    public OptionsPane(PhoneApplication application) {
 //        super(new GridLayout(1, 1));
-        this.device = device;
+        this.application = application;
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -38,7 +38,7 @@ public class OptionsPane extends JPanel {
     public void init() {
         JFrame frame = new JFrame("Please choose a mixer.");
 
-        frame.add(new OptionsPane(this.device), BorderLayout.CENTER);
+        frame.add(new OptionsPane(this.application), BorderLayout.CENTER);
 
         frame.pack();
         frame.setVisible(true);
@@ -53,8 +53,8 @@ public class OptionsPane extends JPanel {
         outputPanel.setBorder(BorderFactory.createTitledBorder("Please choose your output mixer."));
         inputPanel.setBorder(BorderFactory.createTitledBorder("Please choose your input mixer."));
 
-        java.util.List<String> outputNames = device.getAVConnectionStream().getMixerNames();
-        java.util.List<String> inputNames = device.getAVConnectionStream().getMixerNames();
+        java.util.List<String> outputNames = application.getRTPConnectionManager().getMixerNames();
+        java.util.List<String> inputNames = application.getRTPConnectionManager().getMixerNames();
 
         JScrollPane scrollPane1 = new JScrollPane(outputPanel);
         JScrollPane scrollPane2 = new JScrollPane(inputPanel);
@@ -69,7 +69,7 @@ public class OptionsPane extends JPanel {
                     try {
                         System.out.println("    Selected output Mixer: " + jrb.getText().trim());
 
-                        device.getAVConnectionStream().selectAudioOutput(jrb.getText().trim());
+                        application.getRTPConnectionManager().selectAudioOutput(jrb.getText().trim());
 
                     } catch (LineUnavailableException lineUnavailableException) {
                         lineUnavailableException.printStackTrace();
@@ -87,7 +87,7 @@ public class OptionsPane extends JPanel {
                     try {
                         System.out.println("    Selected input Mixer: " + jrb.getText().trim());
 
-                        device.getAVConnectionStream().selectAudioInput(jrb.getText().trim());
+                        application.getRTPConnectionManager().selectAudioInput(jrb.getText().trim());
 
                     } catch (LineUnavailableException lineUnavailableException) {
                         lineUnavailableException.printStackTrace();

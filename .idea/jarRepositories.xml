@@ -12,9 +12,29 @@
       <option name="url" value="https://repo1.maven.org/maven2" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="WolfSnapshots" />
+      <option name="name" value="Wolf snapshot repository" />
+      <option name="url" value="http://artifacts.interzone/artifactory/snapshots" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="WolfParty" />
+      <option name="name" value="Wolf party repository" />
+      <option name="url" value="http://artifacts.interzone/artifactory/everything" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="WolfTest" />
+      <option name="name" value="Wolf Test snapshot repository" />
+      <option name="url" value="http://artifacts.interzone/artifactory/test" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="jboss.community" />
       <option name="name" value="JBoss Community repository" />
       <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="Wolf" />
+      <option name="name" value="Wolf release repository" />
+      <option name="url" value="http://artifacts.interzone/artifactory/releases" />
     </remote-repository>
   </component>
 </project>

@@ -1,11 +1,9 @@
 package com.wisekrakr.communiwise.screens.layouts.panes.main;
 
-import com.wisekrakr.communiwise.phone.Device;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.SoundPlayer;
+import com.wisekrakr.communiwise.main.PhoneApplication;
 import com.wisekrakr.communiwise.screens.AudioPlayerScreen;
 import com.wisekrakr.communiwise.screens.layouts.panes.options.OptionsPane;
 
-import javax.media.Player;
 import javax.sound.sampled.LineUnavailableException;
 import javax.swing.*;
 import java.awt.*;
@@ -18,14 +16,14 @@ public class MenuPane extends JPanel {
 
     private JButton okay, cancel, help, player, options;
 
-    private final Device device;
+    private final PhoneApplication application;
 
-    private SoundPlayer soundPlayer;
+//    private SoundPlayer soundPlayer;
 
-    public MenuPane(Device device) {
-        this.device = device;
+    public MenuPane(PhoneApplication application) {
+        this.application = application;
 
-        soundPlayer = new SoundPlayer();
+  //      soundPlayer = new SoundPlayer();
 
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -55,7 +53,7 @@ public class MenuPane extends JPanel {
         help.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                soundPlayer.play("beep");
+//                soundPlayer.play("beep");
             }
         });
     }
@@ -64,7 +62,7 @@ public class MenuPane extends JPanel {
         options.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                OptionsPane optionsPane = new OptionsPane(device);
+                OptionsPane optionsPane = new OptionsPane(application);
                 optionsPane.init();
             }
         });
@@ -89,7 +87,7 @@ public class MenuPane extends JPanel {
     private void audioOptions(){
         JFrame chooseMixerFrame = new JFrame("Sound Mixer");
 
-        java.util.List<String> names = device.getAVConnectionStream().getMixerNames();
+        java.util.List<String> names = application.getRTPConnectionManager().getMixerNames();
 
         JPanel mainPanel = new JPanel(new GridLayout(2, 0));
         JPanel teamPanel = new JPanel(new GridLayout(0, 1));
@@ -113,7 +111,7 @@ public class MenuPane extends JPanel {
                     if (jrb.isSelected()) {
                         try {
                             System.out.println("    Selected Mixer: " + jrb.getText().trim());
-                            device.getAVConnectionStream().selectAudioOutput(jrb.getText().trim());
+                            application.getRTPConnectionManager().selectAudioOutput(jrb.getText().trim());
                         } catch (LineUnavailableException lineUnavailableException) {
                             lineUnavailableException.printStackTrace();
                         }

@@ -1,30 +1,19 @@
 package com.wisekrakr.communiwise.phone.audiovisualconnection.threads;
 
-import javax.crypto.CipherOutputStream;
-import javax.media.*;
-import javax.media.control.FormatControl;
-import javax.media.control.TrackControl;
-import javax.media.format.AudioFormat;
-import javax.media.format.UnsupportedFormatException;
-import javax.media.protocol.ContentDescriptor;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.PcmuEncoder;
+
 import javax.media.protocol.DataSource;
-import javax.media.protocol.PushBufferDataSource;
-import javax.media.protocol.PushBufferStream;
-import javax.media.rtp.InvalidSessionAddressException;
 import javax.media.rtp.RTPManager;
-import javax.media.rtp.SendStream;
-import javax.media.rtp.SessionAddress;
-import javax.media.rtp.rtcp.SourceDescription;
 import javax.sound.sampled.TargetDataLine;
-import java.io.*;
-import java.net.*;
-import java.util.Vector;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.PcmuEncoder;
-import org.jitsi.impl.neomedia.codec.audio.ulaw.JavaDecoder;
-import org.jitsi.impl.neomedia.codec.audio.ulaw.JavaEncoder;
 
 public class TransmitterThread implements Runnable {
     private final TargetDataLine input;

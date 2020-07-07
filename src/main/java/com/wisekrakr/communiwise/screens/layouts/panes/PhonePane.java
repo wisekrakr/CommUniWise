@@ -1,13 +1,11 @@
 package com.wisekrakr.communiwise.screens.layouts.panes;
 
-import com.wisekrakr.communiwise.config.Config;
-import com.wisekrakr.communiwise.phone.Device;
+import com.wisekrakr.communiwise.main.PhoneApplication;
 import com.wisekrakr.communiwise.screens.layouts.panes.background.GradientPanel;
 import com.wisekrakr.communiwise.screens.layouts.panes.main.MenuPane;
 import com.wisekrakr.communiwise.screens.layouts.panes.main.ControlsPane;
 import com.wisekrakr.communiwise.screens.layouts.panes.main.DestinationPane;
 
-import javax.swing.*;
 import java.awt.*;
 
 public class PhonePane extends GradientPanel {
@@ -16,10 +14,10 @@ public class PhonePane extends GradientPanel {
     private ControlsPane controlsPane;
     private MenuPane menuPane;
 
-    private final Device device;
+    private final PhoneApplication application;
 
-    public PhonePane(Device device) {
-        this.device = device;
+    public PhonePane(PhoneApplication application) {
+        this.application = application;
 
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -31,9 +29,9 @@ public class PhonePane extends GradientPanel {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.insets = new Insets(4, 4, 4, 4);
 
-        add((destinationPane = new DestinationPane(device)), gbc);
+        add((destinationPane = new DestinationPane(application)), gbc);
         gbc.gridy++;
-        add((controlsPane = new ControlsPane(device)), gbc);
+        add((controlsPane = new ControlsPane(application)), gbc);
         gbc.gridy++;
 
         gbc.gridy = 0;
@@ -42,7 +40,7 @@ public class PhonePane extends GradientPanel {
         gbc.fill = GridBagConstraints.VERTICAL;
         gbc.weighty = 1;
         gbc.weightx = 0;
-        add((menuPane = new MenuPane(device)), gbc);
+        add((menuPane = new MenuPane(application)), gbc);
     }
 
 //    @Override

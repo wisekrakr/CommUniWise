@@ -103,7 +103,7 @@ public class PcmuEncoder extends Encoder {
 
     public PcmuEncoder(PipedInputStream rawData, PipedOutputStream encodedData,
                        CountDownLatch latch) {
-        super(rawData, encodedData, mediaDebug,  peersHome, latch);
+        super(rawData, encodedData, false,  "", latch);
     }
 
     /**

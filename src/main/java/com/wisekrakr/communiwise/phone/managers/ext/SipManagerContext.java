@@ -4,10 +4,11 @@ import com.wisekrakr.communiwise.utils.NotInitializedException;
 
 public interface SipManagerContext {
 
-    void sendingMessage(String to, String message) throws NotInitializedException;
-    void registering();
-    void calling(String to, int localRtpPort) throws NotInitializedException;
-    void hangingUp() throws NotInitializedException;
+    void sendingMessage(String to, String message);
+    void register(String username, String password);
+
+    void callRequest(String to, int localRtpPort);
+    void hangingUp();
     void rejectingCall();
     void acceptingCall(final int port);
 }

@@ -4,68 +4,32 @@ import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.ReceptionTh
 import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.TransmitterThread;
 
 import javax.sound.sampled.*;
-import java.io.File;
 import java.io.IOException;
-import java.net.*;
+import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static javax.sound.sampled.AudioSystem.getMixerInfo;
 
-
-public class AVConnectionStream {
-
-    // path of the wav file
-    File wavFile = new File("test/RecordAudio input thread "+ "-" + Math.random() * 1000 + ".wav");
-
-    // format of audio file
-    AudioFileFormat.Type fileType = AudioFileFormat.Type.WAVE;
-
-    // the line from which audio data is captured
+public class RTPConnectionManager {
     private TargetDataLine input;
     private SourceDataLine output;
 
-    private String remoteAddress;
-    private int remotePort;
+    private InetSocketAddress serverAddress;
+
     private DatagramSocket socket;
 
-    private final List<String>mixerNames = new ArrayList<>();
+    private final List<String> mixerNames = new ArrayList<>();
+
     private Mixer outputMixer;
     private Mixer inputMixer;
 
-    private ReceptionThread receptionThread;
+    private Thread receptionThread;
     private TransmitterThread transmitterThread;
 
-
-    public void init(){
-        findMixers();
-    }
-
-    public void start(String remoteAddress, int remotePort, DatagramSocket socket) throws IOException, LineUnavailableException {
-        this.remoteAddress = remoteAddress;
-        this.remotePort = remotePort;
-        this.socket = socket;
-
-        startReceiving();
-        startTransmitting();
-
-    }
-
-//    public static void main(String[] args) {
-//        try {
-//            Line line = selectAudioOutput("Main Compu Speakers (Realtek High Definition Audio)");
-//
-//            System.out.println(line.getLineInfo());
-//
-//            ((SourceDataLine) line).open(FORMAT);
-//
-//        } catch (LineUnavailableException e) {
-//            System.out.println("Error " + e);
-//        }
-//    }
-
-
-    public void findMixers(){
+    public void init() {
         Mixer.Info[] mixers = getMixerInfo();
 
         for (Mixer.Info mixer : mixers) {
@@ -73,7 +37,13 @@ public class AVConnectionStream {
         }
     }
 
+    public void start(InetSocketAddress serverAddress) throws IOException, LineUnavailableException {
+        this.serverAddress = serverAddress;
+        this.socket = new DatagramSocket();
 
+        startReceiving();
+        startTransmitting();
+    }
 
     public void selectAudioOutput(String name) throws LineUnavailableException {
         Mixer.Info[] mixers = getMixerInfo();
@@ -115,20 +85,20 @@ public class AVConnectionStream {
                 inputMixer = AudioSystem.getMixer(mixerInfo);
 
 //                if (inputMixer.getTargetLines().length > 0) {
-                    System.out.println(String.format("%s : %s source lines: %d  target lines: %d", mixerInfo.getName(), mixerInfo.getDescription(), inputMixer.getSourceLineInfo().length, inputMixer.getTargetLineInfo().length));
-                    for (Line.Info info : inputMixer.getTargetLineInfo()) {
-                        if (info.getLineClass() == TargetDataLine.class) {
+                System.out.println(String.format("%s : %s source lines: %d  target lines: %d", mixerInfo.getName(), mixerInfo.getDescription(), inputMixer.getSourceLineInfo().length, inputMixer.getTargetLineInfo().length));
+                for (Line.Info info : inputMixer.getTargetLineInfo()) {
+                    if (info.getLineClass() == TargetDataLine.class) {
 
-                            System.out.println("  Target : " + info.toString() + " " + info.getLineClass());
-                            Line line = inputMixer.getLine(info);
-                            System.out.println("  Line " + line);
+                        System.out.println("  Target : " + info.toString() + " " + info.getLineClass());
+                        Line line = inputMixer.getLine(info);
+                        System.out.println("  Line " + line);
 
-                            ((TargetDataLine) line).open(format());
+                        ((TargetDataLine) line).open(format());
 
-                            for (Control control : line.getControls()) {
-                                System.out.println("    control: " + control);
-                            }
+                        for (Control control : line.getControls()) {
+                            System.out.println("    control: " + control);
                         }
+                    }
 //                    }
                 }
             }
@@ -138,10 +108,11 @@ public class AVConnectionStream {
 
     /**
      * Creates a audio format ULAW (Or PCM_SIGNED) 44100, 16, 2, 4, 44100, little endian
+     *
      * @return new AudioFormat
      */
-    public static AudioFormat format(){
-            return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2,
+    public static AudioFormat format() {
+        return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2,
                 (16 / 8) * 2, 44100, false);
 //        new AudioFormat(44100, 16,
 //                2, true, true);
@@ -169,44 +140,44 @@ public class AVConnectionStream {
 
         System.out.println("Start recording client... connected: " + socket.isConnected());
 
-            // start recording
-//        AudioSystem.write(ais, fileType, wavFile);
-
-
+        // start recording
+        // AudioSystem.write(ais, AudioFileFormat.Type.WAVE, new File("test/RecordAudio input thread "+ "-" + Math.random() * 1000 + ".wav"));
     }
 
     private void startReceiving() throws SocketException, LineUnavailableException {
-
+        // TODO: audio setup should happen outside of this class
         DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class, format());
 
         if (!AudioSystem.isLineSupported(speakerInfo)) {
             throw new IllegalStateException("Line not supported by speaker");
         }
+
         output = (SourceDataLine) outputMixer.getLine(speakerInfo);
         output.open(format());
         output.start();   // start capturing
 
-        System.out.println("Start capturing server...");
-
-        InetSocketAddress serverAddress = new InetSocketAddress(remoteAddress, remotePort);
         socket.connect(serverAddress);
 
-        receptionThread = new ReceptionThread(output, socket);
-
-        System.out.println("Start recording server...");
-
+        receptionThread = new Thread(new ReceptionThread(output, socket));
+        receptionThread.setName("Reception thread");
+        receptionThread.setDaemon(true);
         receptionThread.start();
-
     }
 
-    public void stopStreaming(){
+    public void stopStreaming() {
+        receptionThread.interrupt();
+        try {
+            receptionThread.join(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
         stopInput();
         stopOutput();
 
         socket.disconnect();
         socket.close();
 
-        receptionThread.stop();
         transmitterThread.stop();
     }
 
@@ -223,7 +194,6 @@ public class AVConnectionStream {
 
         System.out.println("Finished Output");
     }
-
 
 
     public List<String> getMixerNames() {

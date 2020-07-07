@@ -1,7 +1,6 @@
 package com.wisekrakr.communiwise.screens.layouts;
 
-import com.wisekrakr.communiwise.config.Config;
-import com.wisekrakr.communiwise.phone.Device;
+import com.wisekrakr.communiwise.main.PhoneApplication;
 import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
 import com.wisekrakr.communiwise.screens.layouts.objects.Button;
 
@@ -9,10 +8,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.rmi.RemoteException;
 
 public class IncomingCallScreen extends AbstractScreen {
 
-    private final Device device;
+    private final PhoneApplication application;
 
     private JPanel panel;
     private JTextField usernameInput;
@@ -20,13 +20,12 @@ public class IncomingCallScreen extends AbstractScreen {
     private boolean loginClick = false;
 
 
-    public IncomingCallScreen(Device device) throws HeadlessException {
-        this.device = device;
+    public IncomingCallScreen(PhoneApplication application) throws HeadlessException {
+        this.application = application;
 
         initScreen();
     }
 
-    @Override
     public void initScreen() {
 //        setLayout(new BorderLayout());
         setTitle("Login to CommUniWise");
@@ -55,7 +54,7 @@ public class IncomingCallScreen extends AbstractScreen {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                device.accept();
+                application.accept();
 
             }
         });
@@ -69,7 +68,7 @@ public class IncomingCallScreen extends AbstractScreen {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                device.reject();
+                application.reject();
 
             }
         });

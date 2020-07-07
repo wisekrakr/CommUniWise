@@ -1,6 +1,6 @@
 package com.wisekrakr.communiwise.phone.managers.ext;
 
-public enum SipManagerState {
+public enum SipSessionState {
     /**
      * This state is used while the SipManager tries to register the SIP account with the provider.
      */

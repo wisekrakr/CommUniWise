@@ -1,6 +1,6 @@
 package com.wisekrakr.communiwise.screens.layouts.panes.main;
 
-import com.wisekrakr.communiwise.phone.Device;
+import com.wisekrakr.communiwise.main.PhoneApplication;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -15,10 +15,10 @@ public class ControlsPane extends JPanel {
     private JButton message, audioCall, videoCall, unregister;
     private JLabel controls;
 
-    final private Device device;
+    final private PhoneApplication application;
 
-    public ControlsPane(Device device) {
-        this.device = device;
+    public ControlsPane(PhoneApplication application) {
+        this.application = application;
         setLayout(new GridBagLayout());
         setBorder(new CompoundBorder(new TitledBorder("Controls"), new EmptyBorder(12, 0, 0, 0)));
         GridBagConstraints gbc = new GridBagConstraints();
@@ -58,15 +58,11 @@ public class ControlsPane extends JPanel {
         makeAudioCall();
     }
 
-    void makeAudioCall(){
+    void makeAudioCall() {
         audioCall.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String newCall = DestinationPane.getSipTargetName().trim() + "@" + DestinationPane.getSipTargetAddress().trim();
-                device.call("sip:"+ newCall);
-
-                device.getSipManager().getSipProfile().setSipAddress(newCall);
-                device.getSipManager().getSipProfile().setRemotePort(Integer.parseInt(DestinationPane.getSipTargetPort()));
+                application.initiateCall("sip:" + (DestinationPane.getSipTargetName().trim() + "@" + DestinationPane.getSipTargetAddress().trim()));
             }
         });
     }

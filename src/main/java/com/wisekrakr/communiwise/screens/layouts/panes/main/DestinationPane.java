@@ -1,7 +1,7 @@
 package com.wisekrakr.communiwise.screens.layouts.panes.main;
 
 import com.wisekrakr.communiwise.config.Config;
-import com.wisekrakr.communiwise.phone.Device;
+import com.wisekrakr.communiwise.main.PhoneApplication;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,10 +11,10 @@ public class DestinationPane extends JPanel {
     private static JTextField sipTargetAddress;
     private static JTextField sipTargetPort;
 
-    private final Device device;
+    private final PhoneApplication application;
 
-    public DestinationPane(Device device) {
-        this.device = device;
+    public DestinationPane(PhoneApplication application) {
+        this.application = application;
 
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
