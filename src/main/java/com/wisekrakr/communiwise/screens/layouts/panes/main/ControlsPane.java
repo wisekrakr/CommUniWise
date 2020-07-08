@@ -12,7 +12,7 @@ import java.awt.event.ActionListener;
 
 public class ControlsPane extends JPanel {
 
-    private JButton message, audioCall, videoCall, unregister;
+    private JButton messageButton, audioCallButton, videoCallButton, unregisterButton;
     private JLabel controls;
 
     final private PhoneApplication application;
@@ -47,22 +47,23 @@ public class ControlsPane extends JPanel {
         gbc.weightx = 0.25;
         gbc.gridy++;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        add((message = new JButton("Message")), gbc);
+        add((messageButton = new JButton("Message")), gbc);
         gbc.gridx++;
-        add((audioCall = new JButton("Audio Call")), gbc);
+        add((audioCallButton = new JButton("Audio Call")), gbc);
         gbc.gridx++;
-        add((videoCall = new JButton("Video Call")), gbc);
+        add((videoCallButton = new JButton("Video Call")), gbc);
         gbc.gridx++;
-        add((unregister = new JButton("Unregister")), gbc);
+        add((unregisterButton = new JButton("Unregister")), gbc);
 
         makeAudioCall();
     }
 
     void makeAudioCall() {
-        audioCall.addActionListener(new ActionListener() {
+        audioCallButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                application.initiateCall("sip:" + (DestinationPane.getSipTargetName().trim() + "@" + DestinationPane.getSipTargetAddress().trim()));
+                application.initiateCall("sip:" + (DestinationPane.getSipTargetName().trim() + "@" + DestinationPane.getSipTargetAddress().trim()),
+                        application.getRTPConnectionManager().getSocket().getLocalPort());
             }
         });
     }

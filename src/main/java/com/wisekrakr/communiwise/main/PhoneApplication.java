@@ -17,7 +17,8 @@ import com.wisekrakr.communiwise.user.SipProfile;
 
 import javax.sound.sampled.*;
 import java.io.*;
-import java.net.InetSocketAddress;
+import java.net.*;
+import java.util.Enumeration;
 
 public class PhoneApplication implements DeviceContext, Serializable {
     private Clip ringingClip;
@@ -25,10 +26,11 @@ public class PhoneApplication implements DeviceContext, Serializable {
     public static void main(String[] args) {
         PhoneApplication application = new PhoneApplication();
 
+
         try {
             application.initialize(
                     new SipProfile(
-                            "",
+                            getHostIpAddress(),
                             Config.LOCAL_PORT,
                             "udp",
                             -1,
@@ -39,7 +41,7 @@ public class PhoneApplication implements DeviceContext, Serializable {
                             "sip:" + Config.USERNAME + "@" + Config.SERVER
                     ));
         } catch (Exception e) {
-            System.out.println("Unable to initialize: " + e.getMessage());
+            System.out.println("Unable to initialize: " + e);
 
             return;
         }
@@ -49,6 +51,36 @@ public class PhoneApplication implements DeviceContext, Serializable {
     }
 
     private void run() {
+    }
+
+    //todo remove this cheat
+    private static String getHostIpAddress() {
+        String address = "";
+
+        Enumeration<NetworkInterface> e = null;
+        try {
+            e = NetworkInterface.getNetworkInterfaces();
+        } catch (SocketException socketException) {
+            socketException.printStackTrace();
+        }
+        while(e.hasMoreElements())
+        {
+            NetworkInterface n =  e.nextElement();
+            Enumeration<InetAddress> ee = n.getInetAddresses();
+            while (ee.hasMoreElements())
+            {
+                InetAddress i = ee.nextElement();
+
+                if(i.getHostAddress().equals("192.168.84.87")){
+                    address = i.getHostAddress();
+
+                }
+
+
+            }
+        }
+
+        return address;
     }
 
     private SipManager sipManager;
@@ -314,18 +346,6 @@ public class PhoneApplication implements DeviceContext, Serializable {
     public ScreenState getScreenState() {
         return screenState;
     }
-
-//    public AudioWrapper getAudioWrapper() {
-//        return audioWrapper;
-//    }
-//
-//    public RtpApp getRtpApp() {
-//        return rtpApp;
-//    }
-//
-//    public void setRtpApp(RtpApp rtpApp) {
-//        this.rtpApp = rtpApp;
-//    }
 
     public void setScreenState(ScreenState screenState) {
         this.screenState = screenState;

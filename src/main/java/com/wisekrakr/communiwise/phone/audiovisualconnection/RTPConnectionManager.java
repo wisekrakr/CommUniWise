@@ -29,7 +29,9 @@ public class RTPConnectionManager {
     private Thread receptionThread;
     private TransmitterThread transmitterThread;
 
-    public void init() {
+    public void init() throws SocketException {
+        this.socket = new DatagramSocket();
+
         Mixer.Info[] mixers = getMixerInfo();
 
         for (Mixer.Info mixer : mixers) {
@@ -39,7 +41,7 @@ public class RTPConnectionManager {
 
     public void start(InetSocketAddress serverAddress) throws IOException, LineUnavailableException {
         this.serverAddress = serverAddress;
-        this.socket = new DatagramSocket();
+
 
         startReceiving();
         startTransmitting();
@@ -198,5 +200,9 @@ public class RTPConnectionManager {
 
     public List<String> getMixerNames() {
         return mixerNames;
+    }
+
+    public DatagramSocket getSocket() {
+        return socket;
     }
 }
