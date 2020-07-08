@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class AudioClip {
     public static AudioInputStream loadClip(String path) throws IOException, UnsupportedAudioFileException {
-        AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(AudioClip.class.getResourceAsStream(path));
+        AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(AudioClip.class.getClassLoader().getResourceAsStream(path));
 
         return audioInputStream;
     }

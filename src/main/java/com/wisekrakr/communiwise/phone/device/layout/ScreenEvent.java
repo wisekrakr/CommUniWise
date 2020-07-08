@@ -1,7 +1,5 @@
 package com.wisekrakr.communiwise.phone.device.layout;
 
-import com.wisekrakr.communiwise.phone.device.events.SipEvent;
-
 import java.util.EventObject;
 
 public class ScreenEvent extends EventObject {

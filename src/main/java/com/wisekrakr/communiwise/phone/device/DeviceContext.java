@@ -1,13 +1,10 @@
 package com.wisekrakr.communiwise.phone.device;
 
 
-
-import com.wisekrakr.communiwise.phone.device.events.SipEventListenerContext;
-import com.wisekrakr.communiwise.phone.device.layout.LayoutListenerContext;
 import com.wisekrakr.communiwise.phone.managers.SipManager;
 import com.wisekrakr.communiwise.screens.ext.ScreenState;
 
-public interface DeviceContext extends SipEventListenerContext, LayoutListenerContext {
+public interface DeviceContext {
     void register(String username, String password);
 
     void initiateCall(String sipAddressa, int serverPort);

@@ -25,15 +25,15 @@ public class AudioCallScreen extends AbstractScreen {
     }
 
     public void initScreen() {
-        setTitle("Call with: "+ application.getSipManager().getSipProfile().getSipAddress());
+        setTitle("Call with someone");
         getContentPane().setLayout(null);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width-288)/2, (screenSize.height-310)/2, 500, 600);
+        setBounds((screenSize.width - 288) / 2, (screenSize.height - 310) / 2, 500, 600);
 
         showStatus();
 
         JLabel image = new JLabel(new ImageIcon("person.png"));
-        image.setBounds(10,10, 480, 480);
+        image.setBounds(10, 10, 480, 480);
         getContentPane().add(image);
 
         stopWatch.start();
@@ -44,8 +44,8 @@ public class AudioCallScreen extends AbstractScreen {
         setVisible(true);
     }
 
-    private void hangUpComponent(){
-        Button stopBtn = new Button("hang up",10, 520, new Color(172, 15, 15));
+    private void hangUpComponent() {
+        Button stopBtn = new Button("hang up", 10, 520, new Color(172, 15, 15));
         getContentPane().add(stopBtn);
 
         stopBtn.addActionListener(new ActionListener() {
@@ -58,7 +58,7 @@ public class AudioCallScreen extends AbstractScreen {
         });
     }
 
-    private void callTime(){
+    private void callTime() {
         JLabel time = new JLabel("Current Call Time: ");
         time.setBounds(300, 520, 150, 30);
         getContentPane().add(time);
@@ -70,10 +70,11 @@ public class AudioCallScreen extends AbstractScreen {
 
     }
 
-    private void showStatus(){
+    private void showStatus() {
         JLabel status = new JLabel();
         status.setBounds(200, 520, 150, 30);
         add(status);
+        /*
         switch (application.getSipManager().getProcessedResponse().getStatusCode()){
             case 603:
                 status.setText("Decline");
@@ -127,6 +128,8 @@ public class AudioCallScreen extends AbstractScreen {
             default:
                 throw new IllegalStateException("Unexpected value: " + application.getSipManager().getProcessedResponse().getStatusCode());
         }
+
+         */
 
     }
 }

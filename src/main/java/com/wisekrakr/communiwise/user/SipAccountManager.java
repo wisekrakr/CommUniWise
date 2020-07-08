@@ -4,20 +4,17 @@ import gov.nist.javax.sip.clientauthutils.AccountManager;
 import gov.nist.javax.sip.clientauthutils.UserCredentials;
 
 import javax.sip.ClientTransaction;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SipAccountManager implements AccountManager {
-    String username;
-    String password;
-    String server;
+    private Map<String, UserCredentials> credentials = new HashMap<>();
 
-    public SipAccountManager(String username, String server, String password) {
-        this.username = username;
-        this.password = password;
-        this.server = server;
-
+    public void addCredentials(String realm, String userName, String password, String domain) {
+        credentials.put(realm, new SipUserCredentials(userName, domain, password));
     }
 
     public UserCredentials getCredentials(ClientTransaction challengedTransaction, String realm) {
-        return new SipUserCredentials(username, server, password);
+        return credentials.get(realm);
     }
 }

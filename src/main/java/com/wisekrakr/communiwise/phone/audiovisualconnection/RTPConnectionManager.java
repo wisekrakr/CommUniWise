@@ -13,11 +13,12 @@ import java.util.List;
 
 import static javax.sound.sampled.AudioSystem.getMixerInfo;
 
+/**
+ *
+ */
 public class RTPConnectionManager {
     private TargetDataLine input;
     private SourceDataLine output;
-
-    private InetSocketAddress serverAddress;
 
     private DatagramSocket socket;
 
@@ -39,12 +40,47 @@ public class RTPConnectionManager {
         }
     }
 
-    public void start(InetSocketAddress serverAddress) throws IOException, LineUnavailableException {
-        this.serverAddress = serverAddress;
+    public void connect(InetSocketAddress remoteAddress) throws IOException, LineUnavailableException {
+        socket.connect(remoteAddress);
+
+        // TODO: audio setup should happen outside of this class
+        DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class, format());
+
+        if (!AudioSystem.isLineSupported(speakerInfo)) {
+            throw new IllegalStateException("Line not supported by speaker");
+        }
+
+        output = (SourceDataLine) outputMixer.getLine(speakerInfo);
+        output.open(format());
+        output.start();   // start capturing
 
 
-        startReceiving();
-        startTransmitting();
+        receptionThread = new Thread(new ReceptionThread(output, socket));
+        receptionThread.setName("Reception thread");
+        receptionThread.setDaemon(true);
+        receptionThread.start();
+
+
+        DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class, format());
+
+        if (!AudioSystem.isLineSupported(micInfo)) {
+            throw new IllegalStateException("Line not supported by mic");
+        }
+        input = (TargetDataLine) AudioSystem.getLine(micInfo);
+        input.open(format());
+        input.start();   // start capturing
+
+        System.out.println("Start capturing client... " + socket.getLocalAddress());
+
+        AudioInputStream ais = new AudioInputStream(input);
+        transmitterThread = new TransmitterThread(input, socket);
+
+        transmitterThread.start();
+
+        System.out.println("Start recording client... connected: " + socket.isConnected());
+
+        // start recording
+        // AudioSystem.write(ais, AudioFileFormat.Type.WAVE, new File("test/RecordAudio input thread "+ "-" + Math.random() * 1000 + ".wav"));
     }
 
     public void selectAudioOutput(String name) throws LineUnavailableException {
@@ -121,50 +157,6 @@ public class RTPConnectionManager {
 
     }
 
-
-    private void startTransmitting() throws LineUnavailableException, IOException {
-
-        DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class, format());
-
-        if (!AudioSystem.isLineSupported(micInfo)) {
-            throw new IllegalStateException("Line not supported by mic");
-        }
-        input = (TargetDataLine) AudioSystem.getLine(micInfo);
-        input.open(format());
-        input.start();   // start capturing
-
-        System.out.println("Start capturing client... " + socket.getLocalAddress());
-
-        AudioInputStream ais = new AudioInputStream(input);
-        transmitterThread = new TransmitterThread(input, socket);
-
-        transmitterThread.start();
-
-        System.out.println("Start recording client... connected: " + socket.isConnected());
-
-        // start recording
-        // AudioSystem.write(ais, AudioFileFormat.Type.WAVE, new File("test/RecordAudio input thread "+ "-" + Math.random() * 1000 + ".wav"));
-    }
-
-    private void startReceiving() throws SocketException, LineUnavailableException {
-        // TODO: audio setup should happen outside of this class
-        DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class, format());
-
-        if (!AudioSystem.isLineSupported(speakerInfo)) {
-            throw new IllegalStateException("Line not supported by speaker");
-        }
-
-        output = (SourceDataLine) outputMixer.getLine(speakerInfo);
-        output.open(format());
-        output.start();   // start capturing
-
-        socket.connect(serverAddress);
-
-        receptionThread = new Thread(new ReceptionThread(output, socket));
-        receptionThread.setName("Reception thread");
-        receptionThread.setDaemon(true);
-        receptionThread.start();
-    }
 
     public void stopStreaming() {
         receptionThread.interrupt();
