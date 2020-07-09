@@ -10,6 +10,7 @@ import gov.nist.javax.sdp.SessionDescriptionImpl;
 import gov.nist.javax.sdp.parser.SDPAnnounceParser;
 import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
+import gov.nist.javax.sip.clientauthutils.UserCredentials;
 import gov.nist.javax.sip.message.SIPMessage;
 
 import javax.sdp.MediaDescription;
@@ -46,7 +47,7 @@ public class SipManager implements SipClient {
 
     private Dialog dialog;
 
-    private SipAccountManager accountManager;
+    private final SipAccountManager accountManager;
 
     private int traceLevel = 0;
     private String serverLogFile;
@@ -67,13 +68,8 @@ public class SipManager implements SipClient {
         return result;
     }
 
-    public enum CallDirection {NONE, INCOMING, OUTGOING}
-
-    private SipFactory sipFactory;
-
     private SipStack sipStack;
 
-    private ListeningPoint udp;
     private SipProvider udpSipProvider;
 
     private HeaderFactory headerFactory;
@@ -125,7 +121,7 @@ public class SipManager implements SipClient {
         sipSessionState = SipSessionState.REGISTERING;
 
 
-        sipFactory = SipFactory.getInstance();
+        SipFactory sipFactory = SipFactory.getInstance();
         sipFactory.resetFactory();
 //        sipFactory.setPathName(STACK_DOMAIN_NAME);
 
@@ -133,7 +129,7 @@ public class SipManager implements SipClient {
         addressFactory = sipFactory.createAddressFactory();
         messageFactory = sipFactory.createMessageFactory();
 
-        fromAddress = addressFactory.createAddress(addressFactory.createSipURI("asdasd", localSipAddress));
+        fromAddress = addressFactory.createAddress(addressFactory.createSipURI("damian2", proxyHost));
 
 
         Properties properties = new Properties();
@@ -160,7 +156,7 @@ public class SipManager implements SipClient {
                 .getAuthenticationHelper(accountManager, headerFactory);
 
 
-        udp = sipStack.createListeningPoint(localSipAddress, localSipPort, sipTransport);
+        ListeningPoint udp = sipStack.createListeningPoint(localSipAddress, localSipPort, sipTransport);
         udpSipProvider = sipStack.createSipProvider(udp);
 
 
@@ -631,9 +627,6 @@ public class SipManager implements SipClient {
     }*/
 
 
-    /**********                 DEBUG/LOG PROCESSORS                    *********/
-
-
     public Request createRegisterRequest() throws ParseException, InvalidArgumentException {
         /*
         // Create addresses and via header for the request
@@ -647,8 +640,8 @@ public class SipManager implements SipClient {
 
 
 */
-
-        return createRequest(null, fromAddress, fromAddress, Request.REGISTER, null);
+        return createRequest(addressFactory.createAddress("sip:" + proxyHost + ":" + proxyPort).getURI(),
+                fromAddress, fromAddress, Request.REGISTER, null);
 
     }
 
@@ -721,7 +714,9 @@ public class SipManager implements SipClient {
     }
 
     public Request createRequest(URI requestURI, Address from, Address to, String method, Object content) throws ParseException, InvalidArgumentException {
-        FromHeader fromHeader = headerFactory.createFromHeader(from, "me tag");
+        UserCredentials credentials = accountManager.getCredentials(null, "asterisk");
+
+        FromHeader fromHeader = headerFactory.createFromHeader(from, "metag");
         ToHeader toHeader = headerFactory.createToHeader(to, null);
 
         MaxForwardsHeader maxForwards = headerFactory.createMaxForwardsHeader(70);
@@ -730,10 +725,10 @@ public class SipManager implements SipClient {
                 requestURI,
                 method,
                 udpSipProvider.getNewCallId(),
-                nextRequestSequenceNumber(Request.MESSAGE),
+                nextRequestSequenceNumber(method),
                 fromHeader,
                 toHeader,
-                Arrays.asList(createViaHeader(headerFactory, proxyHost, proxyPort, sipTransport)),
+                Arrays.asList(createViaHeader(headerFactory, localSipAddress, udpSipProvider.getListeningPoint(sipTransport).getPort(), sipTransport)),
                 maxForwards);
 
         SupportedHeader supportedHeader = headerFactory.createSupportedHeader("replaces, outbound");
@@ -744,7 +739,10 @@ public class SipManager implements SipClient {
         routeUri.setLrParam();
         routeUri.setPort(proxyPort);
 
-        Address routeAddress = addressFactory.createAddress(routeUri);
+        Address routeAddress = addressFactory.createAddress("sip:"
+                + "damian2" + "@"
+                +  localSipAddress + ":" + localSipPort + ";transport=" + sipTransport
+                + ";registering_acc=" + proxyHost);
         RouteHeader route = headerFactory.createRouteHeader(routeAddress);
         request.addHeader(route);
 

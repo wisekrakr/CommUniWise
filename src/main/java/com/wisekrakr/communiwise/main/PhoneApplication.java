@@ -241,7 +241,7 @@ public class PhoneApplication implements DeviceContext, Serializable {
 
                 });
 
-        sipManager.addUser("asdasd", sipUserName, sipPassword, sipAddress, "asdasdas");
+        sipManager.addUser("asterisk", sipUserName, sipPassword, proxyHost, sipAddress);
 
         sipManager.initialize();
 
