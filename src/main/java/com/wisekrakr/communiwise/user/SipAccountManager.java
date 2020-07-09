@@ -8,7 +8,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SipAccountManager implements AccountManager {
-    private Map<String, UserCredentials> credentials = new HashMap<>();
+    private final Map<String, UserCredentials> credentials = new HashMap<>();
+
+    public void clear() {
+        credentials.clear();
+    }
 
     public void addCredentials(String realm, String userName, String password, String domain) {
         credentials.put(realm, new SipUserCredentials(userName, domain, password));

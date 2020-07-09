@@ -3,7 +3,7 @@ package com.wisekrakr.communiwise.main;
 
 import com.wisekrakr.communiwise.phone.audiovisualconnection.RTPConnectionManager;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.impl.AudioClip;
-import com.wisekrakr.communiwise.phone.device.DeviceContext;
+import com.wisekrakr.communiwise.phone.device.PhoneAPI;
 import com.wisekrakr.communiwise.phone.device.layout.ScreenEvent;
 import com.wisekrakr.communiwise.phone.managers.SipManagerListener;
 import com.wisekrakr.communiwise.phone.managers.SipManager;
@@ -15,13 +15,11 @@ import com.wisekrakr.communiwise.screens.layouts.LoginScreen;
 import com.wisekrakr.communiwise.screens.layouts.PhoneScreen;
 
 import javax.sound.sampled.*;
+import javax.swing.*;
 import java.io.Serializable;
 
-public class PhoneApplication implements DeviceContext, Serializable {
+public class PhoneApplication implements Serializable {
     private Clip ringingClip;
-    private String sipUserName;
-    private String sipPassword;
-    private String sipAddress;
 
     public static void main(String[] args) {
         if (args.length != 1) {
@@ -38,10 +36,7 @@ public class PhoneApplication implements DeviceContext, Serializable {
                     5080,
                     "udp",
                     "asterisk.interzone",
-                    5060,
-                    "damian2",
-                    "45jf83f",
-                    "sip:" + "damian2" + "@" + "asterisk.interzone"
+                    5060
             );
 
 
@@ -74,11 +69,7 @@ public class PhoneApplication implements DeviceContext, Serializable {
 
     private RTPConnectionManager RTPConnectionManager;
 
-    private void initialize(String localAddress, int localPort, String transport, String proxyHost, int proxyPort, String sipUserName, String sipPassword, String sipAddress) throws Exception {
-        this.sipUserName = sipUserName;
-        this.sipPassword = sipPassword;
-        this.sipAddress = sipAddress;
-
+    private void initialize(String localAddress, int localPort, String transport, String proxyHost, int proxyPort) throws Exception {
 
         sipManager = new SipManager(proxyHost, proxyPort, localAddress, localPort, transport).
                 logging("server.log", "debug.log", 16).
@@ -130,7 +121,11 @@ public class PhoneApplication implements DeviceContext, Serializable {
 
                     @Override
                     public void onRegistered() {
-
+                        SwingUtilities.invokeLater(() -> {
+                            if (active instanceof LoginState) {
+                                enterState(new LoggedInState(((LoginState) active).phone));
+                            }
+                        });
                     }
 
                     @Override
@@ -138,7 +133,23 @@ public class PhoneApplication implements DeviceContext, Serializable {
 
                     }
 
-/*
+                    @Override
+                    public void onTrying() {
+
+                    }
+
+                    @Override
+                    public void authenticationFailed() {
+                        System.out.println("Authentication failed :-(");
+                        SwingUtilities.invokeLater(() -> {
+                            if (!(active instanceof LoginState)) {
+                                // TODO: WRONG
+                                enterState(new LoginState(null));
+                            }
+                        });
+                    }
+
+                    /*
                     public void onSipMessage(final SipEvent sipEventObject) {
                         System.out.println("Sip Event fired: " + sipEventObject.type);
 //        phoneScreen.showStatus();
@@ -207,64 +218,165 @@ public class PhoneApplication implements DeviceContext, Serializable {
 
                     }    */
 
-                    public void onScreenEventMessage(ScreenEvent screenEvent) {
-                        System.out.println("Screen Event fired: " + screenEvent.type);
-                        switch (screenEvent.type) {
-                            case REGISTERED:
-                                // TODO
-//                if (sipProfile.isAuthenticated()) {
-                                loginScreen.clearScreen();
-
-                                setScreenState(ScreenState.PHONE);
-//                }
-                                break;
-
-
-                            case UNREGISTERED:
-                                break;
-                            case INCOMING:
-                                setScreenState(ScreenState.INCOMING);
-                                break;
-                            case AUDIO_CALLING:
-                                setScreenState(ScreenState.AUDIO_CALL);
-                                break;
-                            case VIDEO_CALLING:
-                                break;
-                            case MESSAGING:
-                                break;
-                            case EXITING:
-                                currentScreen.clearScreen();
-                                break;
-                        }
-                        screenHandler();
-                    }
-
                 });
 
-        sipManager.addUser("asterisk", sipUserName, sipPassword, proxyHost, sipAddress);
+        // Handles changing of screens
+        initGUI();
 
-        sipManager.initialize();
 
         RTPConnectionManager = new RTPConnectionManager();
         RTPConnectionManager.init();
 
-
-        // Handles changing of screens
-        screenHandler();
 
         AudioInputStream stream = AudioClip.loadClip("shake_bake.wav");
         AudioFormat format = stream.getFormat();
         DataLine.Info dataInfo = new DataLine.Info(Clip.class, format);
         ringingClip = (Clip) AudioSystem.getLine(dataInfo);
         ringingClip.open(stream);
+
+//        sipManager.addUser("asterisk", sipUserName, sipPassword, proxyHost, sipAddress);
+        sipManager.initialize();
+
     }
+
+    public interface ApplicationState {
+        void enter();
+
+        void leave();
+    }
+
+    public class LoggedInState implements ApplicationState {
+        private PhoneScreen screen;
+        private PhoneAPI phone;
+
+        public LoggedInState(PhoneAPI phone) {
+            this.phone = phone;
+        }
+
+        public PhoneAPI getPhone() {
+            return phone;
+        }
+
+        @Override
+        public void enter() {
+            screen = new PhoneScreen(phone);
+            screen.showWindow();
+        }
+
+        @Override
+        public void leave() {
+            screen.hideWindow();
+        }
+    }
+
+    public class LoginState implements ApplicationState {
+        private LoginScreen screen;
+        private PhoneAPI phone;
+
+        public LoginState(PhoneAPI phone) {
+            this.phone = phone;
+        }
+
+        @Override
+        public void enter() {
+            screen = new LoginScreen(phone);
+
+            screen.showWindow();
+        }
+
+        @Override
+        public void leave() {
+            screen.hideWindow();
+        }
+    }
+
+
+    public void onScreenEventMessage(ScreenEvent screenEvent) {
+        System.out.println("Screen Event fired: " + screenEvent.type);
+        switch (screenEvent.type) {
+            case REGISTERED:
+                // TODO
+//                if (sipProfile.isAuthenticated()) {
+                loginScreen.hideWindow();
+
+                setScreenState(ScreenState.PHONE);
+//                }
+                break;
+
+
+            case UNREGISTERED:
+                break;
+            case INCOMING:
+                setScreenState(ScreenState.INCOMING);
+                break;
+            case AUDIO_CALLING:
+                setScreenState(ScreenState.AUDIO_CALL);
+                break;
+            case VIDEO_CALLING:
+                break;
+            case MESSAGING:
+                break;
+            case EXITING:
+                currentScreen.hideWindow();
+                break;
+        }
+        initGUI();
+    }
+
 
     /**
      * Handles changing of screens.
      * Creates the current screen, so that it can be destroyed when it is no longer used at a later stage.
      */
-    public void screenHandler() {
-        System.out.println("Setting up screen: " + screenState);
+    public void initGUI() {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Throwable e) {
+                System.out.println("WARNING: unable to set look and feel, will continue");
+            }
+
+            enterState(new LoginState(new PhoneAPI() {
+                @Override
+                public void initiateCall(String sipAddress, int localRtpPort) {
+                    sipManager.initiateCall(sipAddress, localRtpPort);
+                }
+
+                @Override
+                public void accept() {
+//        this.sipManager.acceptingCall(Config.ANOTHER_RTP_PORT);
+                    ringingClip.stop();
+
+                }
+
+                @Override
+                public void reject() {
+                    sipManager.reject();
+
+                    ringingClip.stop();
+                }
+
+
+                @Override
+                public void hangup() {
+                    try {
+                        sipManager.hangup();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    //audio call screen clear
+
+                }
+
+                @Override
+                public void register(String realm, String domain, String username, String password, String fromAddress) {
+                    sipManager.login(realm, username, password, domain, fromAddress);
+                }
+            }));
+        });
+
+
+/*        System.out.println("Setting up screen: " + screenState);
 
         //TODO: small frame for went we get an invite and we need to accept a call.
         switch (screenState) {
@@ -290,8 +402,33 @@ public class PhoneApplication implements DeviceContext, Serializable {
             case BYE_BYE:
                 break;
         }
-
+*/
     }
+
+    private ApplicationState active;
+
+    private void enterState(ApplicationState loginState) {
+        if (active != null) {
+            active.leave();
+            active = null;
+        }
+
+        active = loginState;
+
+        if (active != null) {
+            active.enter();
+        }
+    }
+
+    public RTPConnectionManager getRTPConnectionManager() {
+        return RTPConnectionManager;
+    }
+
+    public void setScreenState(ScreenState screenState) {
+        this.screenState = screenState;
+    }
+}
+/*
 
 
     @Override
@@ -332,31 +469,7 @@ public class PhoneApplication implements DeviceContext, Serializable {
 
     @Override
     public void register(String username, String password) {
-        this.sipManager.register(username, password);
+        this.sipManager.login(username, password, domain);
     }
 
-    @Override
-    public void mute(boolean muted) {
-        //mute audio
-    }
-
-    @Override
-    public SipManager getSipManager() {
-        return sipManager;
-    }
-
-    public RTPConnectionManager getRTPConnectionManager() {
-        return RTPConnectionManager;
-    }
-
-    @Override
-    public ScreenState getScreenState() {
-        return screenState;
-    }
-
-    public void setScreenState(ScreenState screenState) {
-        this.screenState = screenState;
-    }
-
-
-}
+ */

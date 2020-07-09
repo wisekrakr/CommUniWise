@@ -1,6 +1,6 @@
 package com.wisekrakr.communiwise.screens.layouts;
 
-import com.wisekrakr.communiwise.main.PhoneApplication;
+import com.wisekrakr.communiwise.phone.device.PhoneAPI;
 import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
 import com.wisekrakr.communiwise.screens.layouts.objects.Button;
 import org.apache.commons.lang3.time.StopWatch;
@@ -12,19 +12,18 @@ import java.awt.event.ActionListener;
 
 
 public class AudioCallScreen extends AbstractScreen {
-
-    private final PhoneApplication application;
+    private final PhoneAPI phone;
     private StopWatch stopWatch;
 
-    public AudioCallScreen(PhoneApplication application) throws HeadlessException {
-        this.application = application;
+    public AudioCallScreen(PhoneAPI phone) throws HeadlessException {
+        this.phone = phone;
 
         stopWatch = new StopWatch();
 
-        initScreen();
+        showWindow();
     }
 
-    public void initScreen() {
+    public void showWindow() {
         setTitle("Call with someone");
         getContentPane().setLayout(null);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -51,7 +50,7 @@ public class AudioCallScreen extends AbstractScreen {
         stopBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                application.hangup();
+                phone.hangup();
                 stopWatch.stop();
                 System.out.println("Clicked hanging up");
             }

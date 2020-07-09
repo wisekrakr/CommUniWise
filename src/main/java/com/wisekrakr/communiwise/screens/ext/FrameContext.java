@@ -1,5 +1,7 @@
 package com.wisekrakr.communiwise.screens.ext;
 
 public interface FrameContext {
-    void clearScreen();
+    void hideWindow();
+
+    void showWindow();
 }

@@ -2,10 +2,14 @@ package com.wisekrakr.communiwise.screens.ext;
 
 import javax.swing.*;
 
-public class AbstractScreen extends JFrame implements FrameContext {
+public abstract class AbstractScreen extends JFrame implements FrameContext {
     @Override
-    public void clearScreen() {
+    public void hideWindow() {
         this.setVisible(false);
         this.dispose();
+    }
+
+    @Override
+    public void showWindow() {
     }
 }

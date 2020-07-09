@@ -22,4 +22,8 @@ public interface SipManagerListener {
     void onRegistered();
 
     void onHangup();
+
+    void onTrying();
+
+    void authenticationFailed();
 }

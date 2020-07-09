@@ -1,6 +1,6 @@
 package com.wisekrakr.communiwise.screens.layouts;
 
-import com.wisekrakr.communiwise.main.PhoneApplication;
+import com.wisekrakr.communiwise.phone.device.PhoneAPI;
 import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
 import com.wisekrakr.communiwise.screens.layouts.objects.Button;
 
@@ -8,33 +8,27 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.rmi.RemoteException;
 
 public class IncomingCallScreen extends AbstractScreen {
 
-    private final PhoneApplication application;
+    private final PhoneAPI phone;
 
     private JPanel panel;
-    private JTextField usernameInput;
-    private JPasswordField passwordInput;
-    private boolean loginClick = false;
 
 
-    public IncomingCallScreen(PhoneApplication application) throws HeadlessException {
-        this.application = application;
-
-        initScreen();
+    public IncomingCallScreen(PhoneAPI phone) throws HeadlessException {
+        this.phone = phone;
     }
 
-    public void initScreen() {
+    public void showWindow() {
 //        setLayout(new BorderLayout());
         setTitle("Login to CommUniWise");
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width-288)/2, (screenSize.height-310)/2, 400, 150);
+        setBounds((screenSize.width - 288) / 2, (screenSize.height - 310) / 2, 400, 150);
 
         panel = new JPanel();
-        panel.setBackground(new Color(176,228,234));
+        panel.setBackground(new Color(176, 228, 234));
         panel.setForeground(Color.WHITE);
 
         add(panel);
@@ -46,7 +40,7 @@ public class IncomingCallScreen extends AbstractScreen {
         setVisible(true);
     }
 
-    private void handleAccepting(){
+    private void handleAccepting() {
         Button acceptBtn = new Button("Accept", 10, 80);
         panel.add(acceptBtn);
 
@@ -54,13 +48,13 @@ public class IncomingCallScreen extends AbstractScreen {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                application.accept();
+                phone.accept();
 
             }
         });
     }
 
-    private void handleDeclining(){
+    private void handleDeclining() {
         Button declineBtn = new Button("Decline", 120, 80);
         panel.add(declineBtn);
 
@@ -68,7 +62,7 @@ public class IncomingCallScreen extends AbstractScreen {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                application.reject();
+                phone.reject();
 
             }
         });

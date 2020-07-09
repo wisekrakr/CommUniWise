@@ -1,7 +1,7 @@
 package com.wisekrakr.communiwise.screens.layouts;
 
 import com.wisekrakr.communiwise.config.Config;
-import com.wisekrakr.communiwise.main.PhoneApplication;
+import com.wisekrakr.communiwise.phone.device.PhoneAPI;
 import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
 import com.wisekrakr.communiwise.screens.layouts.objects.Button;
 
@@ -11,24 +11,29 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class LoginScreen extends AbstractScreen {
-    private final PhoneApplication application;
+    private final PhoneAPI phoneAPI;
     private JPanel panel;
+    private JTextField domainInput;
     private JTextField usernameInput;
     private JPasswordField passwordInput;
+    private JTextField fromInput;
+    private JTextField realmInput;
 
-    public LoginScreen(PhoneApplication application) throws HeadlessException {
-        this.application = application;
-
-        initScreen();
+    public LoginScreen(PhoneAPI phoneAPI) throws HeadlessException {
+        this.phoneAPI = phoneAPI;
     }
 
-    public void initScreen() {
+    private static final int DESIRED_HEIGHT = 250;
+    private static final int DESIRED_WIDTH = 500;
+
+    @Override
+    public void showWindow() {
 //        setLayout(new BorderLayout());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("Login to CommUniWise");
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width - 288) / 2, (screenSize.height - 310) / 2, 400, 150);
+        setBounds((screenSize.width - DESIRED_WIDTH) / 2, (screenSize.height - DESIRED_HEIGHT) / 2, DESIRED_WIDTH, DESIRED_HEIGHT);
 
         panel = new JPanel();
         panel.setBackground(Config.LIGHT_CYAN);
@@ -45,29 +50,47 @@ public class LoginScreen extends AbstractScreen {
     }
 
     private void authentication() {
+        JLabel fromAddress = new JLabel("address");
+        JLabel domain = new JLabel("domain");
+        JLabel realm = new JLabel("realm");
         JLabel username = new JLabel("username");
         JLabel password = new JLabel("password");
-        usernameInput = new JTextField();
-        passwordInput = new JPasswordField(Config.PASSWORD);
+        fromInput = new JTextField("sip:damian2@asterisk.interzone <Damian 2>");
+        domainInput = new JTextField("asterisk.interzone");
+        realmInput = new JTextField("asterisk");
+        usernameInput = new JTextField("damian2");
+        passwordInput = new JPasswordField("45jf83f");
 
-        username.setBounds(10, 10, 80, 25);
+        fromAddress.setBounds(10, 10, 80, 25);
+        panel.add(fromAddress);
+        domain.setBounds(10, 40, 80, 25);
+        panel.add(domain);
+        realm.setBounds(10, 70, 80, 25);
+        panel.add(realm);
+        username.setBounds(10, 100, 80, 25);
         panel.add(username);
-        password.setBounds(10, 40, 80, 25);
+        password.setBounds(10, 130, 80, 25);
         panel.add(password);
-        usernameInput.setBounds(100, 10, 160, 25);
+        fromInput.setBounds(100, 10, 160, 25);
+        panel.add(fromInput);
+        domainInput.setBounds(100, 40, 160, 25);
+        panel.add(domainInput);
+        realmInput.setBounds(100, 70, 160, 25);
+        panel.add(realmInput);
+        usernameInput.setBounds(100, 100, 160, 25);
         panel.add(usernameInput);
-        passwordInput.setBounds(100, 40, 160, 25);
+        passwordInput.setBounds(100, 130, 160, 25);
         panel.add(passwordInput);
     }
 
     private void handleRegister() {
-        com.wisekrakr.communiwise.screens.layouts.objects.Button loginBtn = new Button("Login", 10, 80);
+        com.wisekrakr.communiwise.screens.layouts.objects.Button loginBtn = new Button("Login", 10, 140);
         panel.add(loginBtn);
 
         loginBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                application.register(usernameInput.getText(), new String(passwordInput.getPassword()));
+                phoneAPI.register(realmInput.getText(), domainInput.getText(), usernameInput.getText(), new String(passwordInput.getPassword()), fromInput.getText());
             }
         });
     }
