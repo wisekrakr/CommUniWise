@@ -9,7 +9,7 @@ public interface SipManagerListener {
 
     void onRemoteDeclined();
 
-    void onConnected(int rtpPort);
+    void callConfirmed(String rtpHost, int rtpPort);
 
     void onUnavailable();
 

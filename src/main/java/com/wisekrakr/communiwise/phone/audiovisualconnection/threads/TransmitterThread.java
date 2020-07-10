@@ -52,6 +52,7 @@ public class TransmitterThread implements Runnable {
 
         DatagramPacket transmitPacket = new DatagramPacket(buffer, buffer.length, 0, socket.getRemoteSocketAddress());
 
+        input.start();
         while (running.get()) {
 
             try {

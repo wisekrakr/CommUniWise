@@ -21,6 +21,7 @@ public class ReceptionThread implements Runnable {
 
         System.out.println("output socket info: " + socket.getLocalPort() + " " + socket.getPort() + " " + socket.getLocalSocketAddress() + " " + socket.getRemoteSocketAddress());
 
+        output.start();
         while (true) {
             try {
                 socket.receive(receivedPacket);
@@ -56,6 +57,8 @@ public class ReceptionThread implements Runnable {
 //                    }
 
         }
+
+        output.stop();
 
         // TODO: deal with a stopping reception thread
 //        output.close();

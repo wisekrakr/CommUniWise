@@ -2,6 +2,7 @@ package com.wisekrakr.communiwise.phone.audiovisualconnection;
 
 import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.ReceptionThread;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.TransmitterThread;
+import jdk.nashorn.internal.runtime.Source;
 
 import javax.sound.sampled.*;
 import java.io.IOException;
@@ -10,8 +11,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static javax.sound.sampled.AudioSystem.getMixerInfo;
 
 /**
  *
@@ -30,51 +29,69 @@ public class RTPConnectionManager {
     private Thread receptionThread;
     private TransmitterThread transmitterThread;
 
+    private AudioFormat FORMAT = new AudioFormat(8000, 16, 1, true, false);
+
     public void init() throws SocketException {
         this.socket = new DatagramSocket();
 
-        Mixer.Info[] mixers = getMixerInfo();
+        Mixer.Info[] mixers = AudioSystem.getMixerInfo();
 
         for (Mixer.Info mixer : mixers) {
             mixerNames.add(mixer.getName());
         }
+
+
     }
 
+    /*
+    public static AudioFormat format() {
+        return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, (16 / 8) * 2, 44100, false);
+    //        new AudioFormat(44100, 16,
+    //                2, true, true);
+
+    }
+     */
     public void connect(InetSocketAddress remoteAddress) throws IOException, LineUnavailableException {
         socket.connect(remoteAddress);
 
         // TODO: audio setup should happen outside of this class
-        DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class, format());
+        DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class,FORMAT);
+        output = (SourceDataLine) AudioSystem.getLine(speakerInfo);
 
-        if (!AudioSystem.isLineSupported(speakerInfo)) {
-            throw new IllegalStateException("Line not supported by speaker");
-        }
-
-        output = (SourceDataLine) outputMixer.getLine(speakerInfo);
-        output.open(format());
-        output.start();   // start capturing
+        DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class,FORMAT);
+        input = (TargetDataLine) AudioSystem.getLine(micInfo);
 
 
+//        if (!AudioSystem.isLineSupported(speakerInfo)) {
+//            throw new IllegalStateException("Line not supported by speaker");
+//        }
+
+//        output = (SourceDataLine) outputMixer.getLine(speakerInfo);
+//        output.open(format());
+//        output.start();   // start capturing
+
+
+        output.open(FORMAT);
         receptionThread = new Thread(new ReceptionThread(output, socket));
         receptionThread.setName("Reception thread");
         receptionThread.setDaemon(true);
         receptionThread.start();
 
 
-        DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class, format());
+//        DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class, format());
 
-        if (!AudioSystem.isLineSupported(micInfo)) {
-            throw new IllegalStateException("Line not supported by mic");
-        }
-        input = (TargetDataLine) AudioSystem.getLine(micInfo);
-        input.open(format());
-        input.start();   // start capturing
+//        if (!AudioSystem.isLineSupported(micInfo)) {
+//            throw new IllegalStateException("Line not supported by mic");
+//        }
+//        input = (TargetDataLine) AudioSystem.getLine(micInfo);
+//        input.open(format());
+//        input.start();   // start capturing
 
-        System.out.println("Start capturing client... " + socket.getLocalAddress());
+//        System.out.println("Start capturing client... " + socket.getLocalAddress());
 
-        AudioInputStream ais = new AudioInputStream(input);
+//        AudioInputStream ais = new AudioInputStream(input);
+        input.open(FORMAT);
         transmitterThread = new TransmitterThread(input, socket);
-
         transmitterThread.start();
 
         System.out.println("Start recording client... connected: " + socket.isConnected());
@@ -84,7 +101,7 @@ public class RTPConnectionManager {
     }
 
     public void selectAudioOutput(String name) throws LineUnavailableException {
-        Mixer.Info[] mixers = getMixerInfo();
+        Mixer.Info[] mixers = AudioSystem.getMixerInfo();
 
         for (Mixer.Info mixerInfo : mixers) {
             if (name.equals(mixerInfo.getName())) {
@@ -101,7 +118,7 @@ public class RTPConnectionManager {
                             Line line = outputMixer.getLine(info);
                             System.out.println("  Line " + line);
 
-                            ((SourceDataLine) line).open(format());
+                            ((SourceDataLine) line).open(FORMAT);
 
                             for (Control control : line.getControls()) {
                                 System.out.println("    control: " + control);
@@ -115,7 +132,7 @@ public class RTPConnectionManager {
     }
 
     public void selectAudioInput(String name) throws LineUnavailableException {
-        Mixer.Info[] mixers = getMixerInfo();
+        Mixer.Info[] mixers = AudioSystem.getMixerInfo();
 
         for (Mixer.Info mixerInfo : mixers) {
             if (name.equals(mixerInfo.getName())) {
@@ -131,7 +148,7 @@ public class RTPConnectionManager {
                         Line line = inputMixer.getLine(info);
                         System.out.println("  Line " + line);
 
-                        ((TargetDataLine) line).open(format());
+                        ((TargetDataLine) line).open(FORMAT);
 
                         for (Control control : line.getControls()) {
                             System.out.println("    control: " + control);
@@ -142,19 +159,6 @@ public class RTPConnectionManager {
             }
 
         }
-    }
-
-    /**
-     * Creates a audio format ULAW (Or PCM_SIGNED) 44100, 16, 2, 4, 44100, little endian
-     *
-     * @return new AudioFormat
-     */
-    public static AudioFormat format() {
-        return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2,
-                (16 / 8) * 2, 44100, false);
-//        new AudioFormat(44100, 16,
-//                2, true, true);
-
     }
 
 

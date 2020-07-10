@@ -1,7 +1,6 @@
 package com.wisekrakr.communiwise.phone.managers;
 
 
-import com.sun.deploy.util.SessionState;
 import com.wisekrakr.communiwise.phone.managers.ext.SipClient;
 import com.wisekrakr.communiwise.phone.managers.ext.SipSessionState;
 import com.wisekrakr.communiwise.user.SipAccountManager;
@@ -51,18 +50,6 @@ public class SipManager implements SipClient {
     private Address clientAddress;
     private AuthenticationHelper authenticationHelper;
     private CallIdHeader callId;
-
-    public ViaHeader createViaHeader(HeaderFactory headerFactory, String host, int port, String transport) throws ParseException, InvalidArgumentException {
-        ViaHeader result = headerFactory.createViaHeader(
-                host,
-                port,
-                transport,
-                null);
-
-        result.setRPort();
-
-        return result;
-    }
 
     private SipStack sipStack;
 
@@ -341,19 +328,16 @@ public class SipManager implements SipClient {
                                         SDPAnnounceParser parser = new SDPAnnounceParser(sdpContent);
                                         SessionDescriptionImpl sessionDescription = parser.parse();
 
+                                        if (sessionDescription.getMediaDescriptions(true).size() != 1) {
+                                            System.out.println("number of media descriptions != 1, will take the first anyway");
+                                        }
+
                                         // TODO: why always pick the first? In PhoneApplication we make a local rtp port from a datagram socket
                                         MediaDescription incomingMediaDescriptor = (MediaDescription) sessionDescription.getMediaDescriptions(false).get(0);
 
-                                        for(Object media: sessionDescription.getMediaDescriptions(false)){
-                                            System.out.println(media);
-                                        }
-
-                                        int rtpPort = incomingMediaDescriptor.getMedia().getMediaPort();
-
-                                        System.out.println("Process Response INVITE rtpPort: " + rtpPort);
-
-                                        // TODO: what is the host?
-                                        listener.onConnected(rtpPort);
+                                        listener.callConfirmed(
+                                                sessionDescription.getConnection().getAddress(),
+                                                incomingMediaDescriptor.getMedia().getMediaPort());
 
                                         break;
 
@@ -494,6 +478,8 @@ public class SipManager implements SipClient {
 
             throw new IllegalStateException("Unable to register", e);
         }
+
+
     }
 
     private void assureState(SipSessionState expectedState) {
@@ -519,7 +505,7 @@ public class SipManager implements SipClient {
         // TODO: if sessionState ...
         // TODO: sendByeClient(currentClientTransaction);  sendByeClient(currentServerTransaction);
 
-        if(sipSessionState == SipSessionState.CALLING){
+        if (sipSessionState == SipSessionState.CALLING) {
             sipSessionState = SipSessionState.IDLE; //todo: trying to reset the system to make or get new calls after a call.
             sendByeClient(waitingCall); //todo fix: no servertransaction and therefor an exception
             listener.onHangup();
@@ -534,11 +520,8 @@ public class SipManager implements SipClient {
         }
 
         try {
-
-            SIPMessage sm = (SIPMessage) waitingCall.getRequest();
             Response responseOK = messageFactory.createResponse(Response.OK, waitingCall.getRequest());
-            ContactHeader contactHeader = headerFactory.createContactHeader(clientAddress);
-            responseOK.addHeader(contactHeader);
+            responseOK.addHeader(headerFactory.createContactHeader(clientAddress));
 
             ToHeader toHeader = (ToHeader) responseOK.getHeader(ToHeader.NAME);
 //        toHeader.setTag("4321"); // Application is supposed to set.
@@ -547,17 +530,17 @@ public class SipManager implements SipClient {
             // TODO: this line should be generated (e.g. it announces codecs now
             // TODO: cf https://tools.ietf.org/html/rfc3555  https://andrewjprokop.wordpress.com/2013/09/30/understanding-session-description-protocol-sdp/
             //
-            String sdpData = "v=0\r\n"
-                    + "o=4855 13760799956958020 13760799956958020 IN IP4 " + localSipAddress + "\r\n"
-                    + "s=mysession session\r\n"
-                    + "p=+46 8 52018010\r\n"
+            String sdpData =
+                      "v=0\r\n"
+                    + "o=yomama 1234 1234 IN IP4 " + localSipAddress + "\r\n"
+                    + "s=Communwise 0.9.0 beta\r\n"
                     + "c=IN IP4 " + localSipAddress + "\r\n"
                     + "t=0 0\r\n"
-                    + "m=audio " + String.valueOf(port) + " RTP/AVP 0 4 18\r\n"
-                    + "a=rtpmap:0 PCMU/8000\r\n"
+                    + "m=audio " + port + " RTP/AVP 0\r\n"
+                    + "a=rtpmap:0 PCMU/8000\r\n";
 //                    + "a=rtpmap:4 G723/8000\r\n"
 //                    + "a=rtpmap:18 G729A/8000\r\n"
-                    + "a=ptime:20\r\n";
+ //                   + "a=ptime:20\r\n";
 
 
             ContentTypeHeader contentTypeHeader = headerFactory.createContentTypeHeader("application", "sdp");
@@ -725,12 +708,15 @@ public class SipManager implements SipClient {
 //        RouteHeader route = headerFactory.createRouteHeader(routeAddress);
 //        request.addHeader(route);
         //todo: this information below is needed if someone wants to call us (A Contact Header)
+        /*
         Address routeAddress = addressFactory.createAddress("sip:"
                 + "damian2" + "@"
                 + localSipAddress + ":" + localSipPort + ";transport=" + sipTransport
                 + ";registering_acc=" + proxyHost);
+
         ContactHeader route = headerFactory.createContactHeader(routeAddress);
         request.addHeader(route);
+         */
 
         if (content != null) {
             ContentTypeHeader contentTypeHeader = headerFactory.createContentTypeHeader("text", "plain");
@@ -743,6 +729,4 @@ public class SipManager implements SipClient {
 
         return request;
     }
-
-
 }

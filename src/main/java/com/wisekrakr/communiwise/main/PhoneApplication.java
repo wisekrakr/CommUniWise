@@ -15,7 +15,9 @@ import com.wisekrakr.communiwise.screens.layouts.PhoneScreen;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
+import java.io.IOException;
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 
 public class PhoneApplication implements Serializable {
     private Clip ringingClip;
@@ -89,8 +91,16 @@ public class PhoneApplication implements Serializable {
                     }
 
                     @Override
-                    public void onConnected(int rtpPort) {
-                        incomingCallScreen.hideWindow();
+                    public void callConfirmed(String rtpHost, int rtpPort) {
+                        try {
+                            rtpConnectionManager.connect(new InetSocketAddress(rtpHost, rtpPort));
+                        } catch (Exception e) {
+                            System.out.println("Unable to connect: " + e);
+
+                            e.printStackTrace();
+                        }
+
+//                        incomingCallScreen.hideWindow();
                     }
 
                     @Override
@@ -101,7 +111,6 @@ public class PhoneApplication implements Serializable {
                     @Override
                     public void onRinging(String from) {
                         SwingUtilities.invokeLater(() -> {
-
                             incomingCallScreen = new IncomingCallScreen(((LoginState) active).phone);
                             incomingCallScreen.showWindow();
                         });
