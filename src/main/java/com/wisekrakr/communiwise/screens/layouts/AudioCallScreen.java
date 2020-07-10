@@ -35,7 +35,7 @@ public class AudioCallScreen extends AbstractScreen {
         image.setBounds(10, 10, 480, 480);
         getContentPane().add(image);
 
-        stopWatch.start();
+//        stopWatch.start();
 
         hangUpComponent();
         callTime();
@@ -44,14 +44,14 @@ public class AudioCallScreen extends AbstractScreen {
     }
 
     private void hangUpComponent() {
-        Button stopBtn = new Button("hang up", 10, 520, new Color(172, 15, 15));
-        getContentPane().add(stopBtn);
+        Button hangUpButton = new Button("hang up", 10, 520, new Color(172, 15, 15));
+        getContentPane().add(hangUpButton);
 
-        stopBtn.addActionListener(new ActionListener() {
+        hangUpButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 phone.hangup();
-                stopWatch.stop();
+//                stopWatch.stop();
                 System.out.println("Clicked hanging up");
             }
         });

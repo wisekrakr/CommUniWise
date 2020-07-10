@@ -84,7 +84,7 @@ public class LoginScreen extends AbstractScreen {
     }
 
     private void handleRegister() {
-        com.wisekrakr.communiwise.screens.layouts.objects.Button loginBtn = new Button("Login", 10, 140);
+        com.wisekrakr.communiwise.screens.layouts.objects.Button loginBtn = new Button("Login", 10, 160);
         panel.add(loginBtn);
 
         loginBtn.addActionListener(new ActionListener() {

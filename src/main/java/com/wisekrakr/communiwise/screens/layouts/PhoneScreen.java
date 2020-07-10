@@ -2,14 +2,12 @@ package com.wisekrakr.communiwise.screens.layouts;
 
 
 import com.wisekrakr.communiwise.config.Config;
-import com.wisekrakr.communiwise.main.PhoneApplication;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
 import com.wisekrakr.communiwise.screens.AudioPlayerScreen;
 import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
 import com.wisekrakr.communiwise.screens.layouts.objects.Button;
 import com.wisekrakr.communiwise.screens.layouts.panes.background.GradientPanel;
 
-import javax.sound.sampled.LineUnavailableException;
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -18,7 +16,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.List;
 
 public class PhoneScreen extends AbstractScreen {
     private final PhoneAPI phone;
@@ -67,8 +64,8 @@ public class PhoneScreen extends AbstractScreen {
         callButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                phone.initiateCall("sip:" + (sipTargetName.getText().trim() + "@" + sipTargetAddress.getText().trim()),
-                        Integer.parseInt(sipTargetPort.getText()));
+                phone.initiateCall("sip:" + (sipTargetName.getText().trim() + "@" + sipTargetAddress.getText().trim())
+                );
             }
         });
 
@@ -222,7 +219,7 @@ public class PhoneScreen extends AbstractScreen {
                 audioCallButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        phone.initiateCall("sip:" + (destinationPane.getSipTargetName().trim() + "@" + destinationPane.getSipTargetAddress().trim()), -1);
+                        phone.initiateCall("sip:" + (destinationPane.getSipTargetName().trim() + "@" + destinationPane.getSipTargetAddress().trim()));
 
                         //                                application.getRTPConnectionManager().getSocket().getLocalPort() // TODO
                     }
@@ -312,10 +309,10 @@ public class PhoneScreen extends AbstractScreen {
                 clickOptions();
                 clickPlayer();
 
-                help.addActionListener(new ActionListener() {
+                cancel.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        //                soundPlayer.play("beep");
+                        phone.hangup();
                     }
                 });
             }

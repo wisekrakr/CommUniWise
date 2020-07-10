@@ -4,7 +4,6 @@ package com.wisekrakr.communiwise.main;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.RTPConnectionManager;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.impl.AudioClip;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
-import com.wisekrakr.communiwise.phone.device.layout.ScreenEvent;
 import com.wisekrakr.communiwise.phone.managers.SipManagerListener;
 import com.wisekrakr.communiwise.phone.managers.SipManager;
 import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
@@ -20,6 +19,15 @@ import java.io.Serializable;
 
 public class PhoneApplication implements Serializable {
     private Clip ringingClip;
+
+    private SipManager sipManager;
+
+    private LoginScreen loginScreen;
+    private PhoneScreen phoneScreen;
+    private IncomingCallScreen incomingCallScreen;
+    private AudioCallScreen audioCallScreen;
+
+    private RTPConnectionManager rtpConnectionManager;
 
     public static void main(String[] args) {
         if (args.length != 1) {
@@ -49,25 +57,11 @@ public class PhoneApplication implements Serializable {
             return;
         }
 
-
         application.run();
     }
 
     private void run() {
     }
-
-
-    private SipManager sipManager;
-    private AbstractScreen currentScreen;
-
-    private ScreenState screenState = ScreenState.LOGIN;
-
-    private LoginScreen loginScreen;
-    private PhoneScreen phoneScreen;
-    private IncomingCallScreen incomingCallScreen;
-    private AudioCallScreen audioCallScreen;
-
-    private RTPConnectionManager RTPConnectionManager;
 
     private void initialize(String localAddress, int localPort, String transport, String proxyHost, int proxyPort) throws Exception {
 
@@ -96,7 +90,7 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void onConnected(int rtpPort) {
-
+                        incomingCallScreen.hideWindow();
                     }
 
                     @Override
@@ -106,7 +100,11 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void onRinging(String from) {
+                        SwingUtilities.invokeLater(() -> {
 
+                            incomingCallScreen = new IncomingCallScreen(((LoginState) active).phone);
+                            incomingCallScreen.showWindow();
+                        });
                     }
 
                     @Override
@@ -224,8 +222,8 @@ public class PhoneApplication implements Serializable {
         initGUI();
 
 
-        RTPConnectionManager = new RTPConnectionManager();
-        RTPConnectionManager.init();
+        rtpConnectionManager = new RTPConnectionManager();
+        rtpConnectionManager.init();
 
 
         AudioInputStream stream = AudioClip.loadClip("shake_bake.wav");
@@ -291,37 +289,39 @@ public class PhoneApplication implements Serializable {
     }
 
 
-    public void onScreenEventMessage(ScreenEvent screenEvent) {
-        System.out.println("Screen Event fired: " + screenEvent.type);
-        switch (screenEvent.type) {
-            case REGISTERED:
-                // TODO
-//                if (sipProfile.isAuthenticated()) {
-                loginScreen.hideWindow();
+//    public void onScreenEventMessage(ScreenEvent screenEvent) {
+//        System.out.println("Screen Event fired: " + screenEvent.type);
+//        switch (screenEvent.type) {
+//            case REGISTERED:
+//                // TODO
+////                if (sipProfile.isAuthenticated()) {
+//                loginScreen.hideWindow();
+//
+//                setScreenState(ScreenState.PHONE);
+////                }
+//                break;
+//
+//
+//            case UNREGISTERED:
+//                break;
+//            case INCOMING:
+//                setScreenState(ScreenState.INCOMING);
+//                break;
+//            case AUDIO_CALLING:
+//                setScreenState(ScreenState.AUDIO_CALL);
+//                break;
+//            case VIDEO_CALLING:
+//                break;
+//            case MESSAGING:
+//                break;
+//            case EXITING:
+//                currentScreen.hideWindow();
+//                break;
+//        }
+//        initGUI();
+//    }
 
-                setScreenState(ScreenState.PHONE);
-//                }
-                break;
 
-
-            case UNREGISTERED:
-                break;
-            case INCOMING:
-                setScreenState(ScreenState.INCOMING);
-                break;
-            case AUDIO_CALLING:
-                setScreenState(ScreenState.AUDIO_CALL);
-                break;
-            case VIDEO_CALLING:
-                break;
-            case MESSAGING:
-                break;
-            case EXITING:
-                currentScreen.hideWindow();
-                break;
-        }
-        initGUI();
-    }
 
 
     /**
@@ -338,13 +338,16 @@ public class PhoneApplication implements Serializable {
 
             enterState(new LoginState(new PhoneAPI() {
                 @Override
-                public void initiateCall(String sipAddress, int localRtpPort) {
-                    sipManager.initiateCall(sipAddress, localRtpPort);
+                public void initiateCall(String sipAddress) {
+                    sipManager.initiateCall(sipAddress, rtpConnectionManager.getSocket().getLocalPort());//todo get local rtp port here
+
+                    audioCallScreen = new AudioCallScreen(this);
+                    audioCallScreen.showWindow();
                 }
 
                 @Override
                 public void accept() {
-//        this.sipManager.acceptingCall(Config.ANOTHER_RTP_PORT);
+                    sipManager.acceptCall(rtpConnectionManager.getSocket().getLocalPort()); //todo get local rtp port here
                     ringingClip.stop();
 
                 }
@@ -365,7 +368,7 @@ public class PhoneApplication implements Serializable {
                         e.printStackTrace();
                     }
                     //audio call screen clear
-
+                    audioCallScreen.hideWindow();
                 }
 
                 @Override
@@ -419,57 +422,4 @@ public class PhoneApplication implements Serializable {
             active.enter();
         }
     }
-
-    public RTPConnectionManager getRTPConnectionManager() {
-        return RTPConnectionManager;
-    }
-
-    public void setScreenState(ScreenState screenState) {
-        this.screenState = screenState;
-    }
 }
-/*
-
-
-    @Override
-    public void initiateCall(String sipAddress, int localRtpPort) {
-        this.sipManager.initiateCall(sipAddress, localRtpPort);
-    }
-
-    @Override
-    public void accept() {
-//        this.sipManager.acceptingCall(Config.ANOTHER_RTP_PORT);
-        ringingClip.stop();
-
-    }
-
-    @Override
-    public void reject() {
-        this.sipManager.reject();
-
-        ringingClip.stop();
-    }
-
-
-    @Override
-    public void hangup() {
-        try {
-            this.sipManager.hangup();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        //audio call screen clear
-
-    }
-
-    @Override
-    public void sendMessage(String to, String message) {
-        this.sipManager.sendTextMessage(to, message);
-    }
-
-    @Override
-    public void register(String username, String password) {
-        this.sipManager.login(username, password, domain);
-    }
-
- */
