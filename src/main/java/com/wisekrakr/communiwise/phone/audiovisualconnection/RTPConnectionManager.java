@@ -57,9 +57,9 @@ public class RTPConnectionManager {
         // TODO: audio setup should happen outside of this class
         DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class,FORMAT);
 
-        Mixer mixer = AudioSystem.getMixer(AudioSystem.getMixerInfo()[1]); // todo add mixer
+//        Mixer mixer = AudioSystem.getMixer(AudioSystem.getMixerInfo()[1]); // todo add mixer
 
-        output = (SourceDataLine) mixer.getLine(speakerInfo);
+        output = (SourceDataLine) AudioSystem.getLine(speakerInfo);
 
         DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class,FORMAT);
         input = (TargetDataLine) AudioSystem.getLine(micInfo);

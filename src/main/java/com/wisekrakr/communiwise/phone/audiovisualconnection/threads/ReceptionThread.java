@@ -7,14 +7,10 @@ import com.wisekrakr.communiwise.phone.rtp.RTPParser;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.SourceDataLine;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class ReceptionThread implements Runnable {
     private final SourceDataLine output;
@@ -50,7 +46,7 @@ public class ReceptionThread implements Runnable {
                 break;
             }
 
-            try{
+            try {
                 byte[] data = receivedPacket.getData();
                 int offset = receivedPacket.getOffset();
                 int length = receivedPacket.getLength();
@@ -61,7 +57,7 @@ public class ReceptionThread implements Runnable {
                 RTPPacket rtpPacket = rtpParser.decode(trimmedData);
 
                 receivedRtpPacket(rtpPacket);
-            }catch (Exception e){
+            } catch (Exception e) {
                 System.out.println("Error while receiving rtp packet: " + e.getMessage());
 
             }
@@ -82,53 +78,14 @@ public class ReceptionThread implements Runnable {
 
 //        System.out.println("Output Thread finished");
     }
+
     private void receivedRtpPacket(RTPPacket rtpPacket) {
         Decoder decoder = new PcmuDecoder();
         byte[] rawBuf = decoder.process(rtpPacket.getData());
+        output.write(rawBuf, 0, rawBuf.length);
 
-        writeData(rawBuf, 0, rawBuf.length);
-//        output.write(rawBuf, 0, rawBuf.length);
-
-        System.out.println("    Raw buff:  " + rawBuf);
-    }
-    public void writeData(byte[] buffer, int offset, int length) {
-        int numberOfBytesWritten;
-        synchronized (sourceDataLineMutex) {
-            if (output == null) {
-                return;
-            }
-            numberOfBytesWritten = output.write(buffer, offset, length);
-
-            System.out.println("    Number of bytes written:  " + numberOfBytesWritten);
-
-        }
-
-        SimpleDateFormat simpleDateFormat =
-            new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-        String date = simpleDateFormat.format(new Date());
-        StringBuffer buf = new StringBuffer();
-        buf.append("192.168.84.87").append(File.separator);
-        buf.append("media").append(File.separator);
-        buf.append(date).append("_");
-        buf.append(audioFormat.getEncoding()).append("_");
-        buf.append(audioFormat.getSampleRate()).append("_");
-        buf.append(audioFormat.getSampleSizeInBits()).append("_");
-        buf.append(audioFormat.getChannels()).append("_");
-        buf.append(audioFormat.isBigEndian() ? "be" : "le");
-
-        try {
-            speakerInput = new FileOutputStream(buf.toString()
-                    + "_speaker.input");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            speakerInput.write(buffer, offset, numberOfBytesWritten);
-        } catch (IOException e) {
-            System.out.println("cannot write to file " + e);
-        }
 
     }
+
 }
 

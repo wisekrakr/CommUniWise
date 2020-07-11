@@ -537,7 +537,7 @@ public class SipManager implements SipClient {
                     + "c=IN IP4 " + localSipAddress + "\r\n"
                     + "t=0 0\r\n"
                     + "m=audio " + port + " RTP/AVP 0\r\n"
-                    + "a=rtpmap:0 PCMU/8000\r\n";
+                    + "a=rtpmap:8 PCMA/8000\r\n";
 //                    + "a=rtpmap:4 G723/8000\r\n"
 //                    + "a=rtpmap:18 G729A/8000\r\n"
  //                   + "a=ptime:20\r\n";
