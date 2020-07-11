@@ -2,7 +2,6 @@ package com.wisekrakr.communiwise.phone.audiovisualconnection;
 
 import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.ReceptionThread;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.TransmitterThread;
-import jdk.nashorn.internal.runtime.Source;
 
 import javax.sound.sampled.*;
 import java.io.IOException;
@@ -43,20 +42,24 @@ public class RTPConnectionManager {
 
     }
 
-    /*
+/*
     public static AudioFormat format() {
         return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, (16 / 8) * 2, 44100, false);
     //        new AudioFormat(44100, 16,
     //                2, true, true);
 
     }
-     */
+*/
+
     public void connect(InetSocketAddress remoteAddress) throws IOException, LineUnavailableException {
         socket.connect(remoteAddress);
 
         // TODO: audio setup should happen outside of this class
         DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class,FORMAT);
-        output = (SourceDataLine) AudioSystem.getLine(speakerInfo);
+
+        Mixer mixer = AudioSystem.getMixer(AudioSystem.getMixerInfo()[1]); // todo add mixer
+
+        output = (SourceDataLine) mixer.getLine(speakerInfo);
 
         DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class,FORMAT);
         input = (TargetDataLine) AudioSystem.getLine(micInfo);
@@ -72,7 +75,7 @@ public class RTPConnectionManager {
 
 
         output.open(FORMAT);
-        receptionThread = new Thread(new ReceptionThread(output, socket));
+        receptionThread = new Thread(new ReceptionThread(output, socket, FORMAT));
         receptionThread.setName("Reception thread");
         receptionThread.setDaemon(true);
         receptionThread.start();
@@ -90,9 +93,9 @@ public class RTPConnectionManager {
 //        System.out.println("Start capturing client... " + socket.getLocalAddress());
 
 //        AudioInputStream ais = new AudioInputStream(input);
-        input.open(FORMAT);
-        transmitterThread = new TransmitterThread(input, socket);
-        transmitterThread.start();
+//        input.open(FORMAT);
+//        transmitterThread = new TransmitterThread(input, socket);
+//        transmitterThread.start();
 
         System.out.println("Start recording client... connected: " + socket.isConnected());
 

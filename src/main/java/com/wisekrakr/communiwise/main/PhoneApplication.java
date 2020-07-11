@@ -110,10 +110,10 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void onRinging(String from) {
-                        SwingUtilities.invokeLater(() -> {
-                            incomingCallScreen = new IncomingCallScreen(((LoginState) active).phone);
-                            incomingCallScreen.showWindow();
-                        });
+//                        SwingUtilities.invokeLater(() -> {
+//                            incomingCallScreen = new IncomingCallScreen(((LoginState) active).phone);
+//                            incomingCallScreen.showWindow();
+//                        });
                     }
 
                     @Override
