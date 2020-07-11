@@ -15,15 +15,13 @@ import java.net.DatagramSocket;
 public class ReceptionThread implements Runnable {
     private final SourceDataLine output;
     private final DatagramSocket socket;
-    private AudioFormat audioFormat;
     private RTPParser rtpParser;
     private Object sourceDataLineMutex;
     private FileOutputStream speakerInput;
 
-    public ReceptionThread(SourceDataLine output, DatagramSocket socket, AudioFormat audioFormat) {
+    public ReceptionThread(SourceDataLine output, DatagramSocket socket) {
         this.output = output;
         this.socket = socket;
-        this.audioFormat = audioFormat;
 
         rtpParser = new RTPParser(null);
         sourceDataLineMutex = new Object();
@@ -62,10 +60,7 @@ public class ReceptionThread implements Runnable {
 
             }
 
-//              todo:  [ bytes written ] % [frame size in bytes ] == 0 ==>The number of bytes to write must represent an integral number of sample frames
-//            output.write(receivedPacket.getData(), 0, receivedPacket.getLength());
-
-            System.out.println("Speaker is receiving data: " + receivedPacket.getLength());
+//            System.out.println("Speaker is receiving data: " + receivedPacket.getLength());
 
 
         }

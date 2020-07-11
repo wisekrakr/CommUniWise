@@ -26,7 +26,7 @@ public class RTPConnectionManager {
     private Mixer inputMixer;
 
     private Thread receptionThread;
-    private TransmitterThread transmitterThread;
+    private Thread transmitterThread;
 
     private AudioFormat FORMAT = new AudioFormat(8000, 16, 1, true, false);
 
@@ -38,7 +38,6 @@ public class RTPConnectionManager {
         for (Mixer.Info mixer : mixers) {
             mixerNames.add(mixer.getName());
         }
-
 
     }
 
@@ -57,12 +56,14 @@ public class RTPConnectionManager {
         // TODO: audio setup should happen outside of this class
         DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class,FORMAT);
 
-//        Mixer mixer = AudioSystem.getMixer(AudioSystem.getMixerInfo()[1]); // todo add mixer
+        Mixer mixer = AudioSystem.getMixer(AudioSystem.getMixerInfo()[1]); // todo add mixer
 
-        output = (SourceDataLine) AudioSystem.getLine(speakerInfo);
+        output = (SourceDataLine) mixer.getLine(speakerInfo);
 
         DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class,FORMAT);
-        input = (TargetDataLine) AudioSystem.getLine(micInfo);
+
+        Mixer mixer2 = AudioSystem.getMixer(AudioSystem.getMixerInfo()[8]); // todo add mixer
+        input = (TargetDataLine) mixer2.getLine(micInfo);
 
 
 //        if (!AudioSystem.isLineSupported(speakerInfo)) {
@@ -75,7 +76,7 @@ public class RTPConnectionManager {
 
 
         output.open(FORMAT);
-        receptionThread = new Thread(new ReceptionThread(output, socket, FORMAT));
+        receptionThread = new Thread(new ReceptionThread(output, socket));
         receptionThread.setName("Reception thread");
         receptionThread.setDaemon(true);
         receptionThread.start();
@@ -93,9 +94,11 @@ public class RTPConnectionManager {
 //        System.out.println("Start capturing client... " + socket.getLocalAddress());
 
 //        AudioInputStream ais = new AudioInputStream(input);
-//        input.open(FORMAT);
-//        transmitterThread = new TransmitterThread(input, socket);
-//        transmitterThread.start();
+        input.open(FORMAT);
+        transmitterThread = new Thread(new TransmitterThread(input, socket, FORMAT));
+        transmitterThread.setName("Transmitter thread");
+        transmitterThread.setDaemon(true);
+        transmitterThread.start();
 
         System.out.println("Start recording client... connected: " + socket.isConnected());
 

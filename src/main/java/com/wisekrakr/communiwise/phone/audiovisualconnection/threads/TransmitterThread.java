@@ -1,118 +1,141 @@
 package com.wisekrakr.communiwise.phone.audiovisualconnection.threads;
 
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.Encoder;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.PcmuEncoder;
+import com.wisekrakr.communiwise.phone.rtp.RTPPacket;
+import com.wisekrakr.communiwise.phone.rtp.RTPParser;
 
-import javax.media.protocol.DataSource;
-import javax.media.rtp.RTPManager;
+import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.TargetDataLine;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Socket;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TransmitterThread implements Runnable {
     private final TargetDataLine input;
     private final DatagramSocket socket;
+    private AudioFormat audioFormat;
+    private final RTPParser rtpParser;
 
-    private final AtomicBoolean running = new AtomicBoolean(false);
-    private Socket s;
-    private DataSource dataOutput;
-    private RTPManager[] rtpMgrs;
-    private PcmuEncoder encoder;
-    private FileOutputStream rtpSenderInput;
 
-    public TransmitterThread(TargetDataLine input, DatagramSocket socket) {
+    private PipedInputStream rawDataInput;
+    private PipedInputStream encodedDataInput;
+
+
+    public TransmitterThread(TargetDataLine input, DatagramSocket socket, AudioFormat audioFormat) {
         this.input = input;
         this.socket = socket;
+        this.audioFormat = audioFormat;
+
+        rtpParser = new RTPParser(null);
     }
 
-    public void start() {
-        Thread thread = new Thread(this);
-
-        running.set(true);
-
-        thread.start();
-    }
-
-    public void stop() {
-        running.set(false);
-    }
 
     @Override
     public void run() {
 
         System.out.println("input socket info: " + socket.getLocalPort() + " " + socket.getPort() + " " + socket.getLocalSocketAddress() + " " + socket.getRemoteSocketAddress());
 
-        byte[] buffer = new byte[512];
-
-        DatagramPacket transmitPacket = new DatagramPacket(buffer, buffer.length, 0, socket.getRemoteSocketAddress());
+        byte[] buffer = rtpParser.encode(createdRTPPacket());
+        DatagramPacket transmitPacket = new DatagramPacket(buffer,buffer.length, socket.getInetAddress(), socket.getPort());
 
         input.start();
-        while (running.get()) {
-
+        while (true) {
             try {
                 input.read(buffer, 0, buffer.length);
 
-                PipedOutputStream rawDataOutput = new PipedOutputStream();
-                PipedInputStream rawDataInput;
-                try {
-                    rawDataInput = new PipedInputStream(rawDataOutput, buffer.length);
-                } catch (IOException e) {
-                    return;
-                }
-                PipedOutputStream encodedDataOutput = new PipedOutputStream();
-                PipedInputStream encodedDataInput;
-                try {
-                    encodedDataInput = new PipedInputStream(encodedDataOutput,
-                            buffer.length);
-                } catch (IOException e) {
-                    rawDataInput.close();
-                    return;
-                }
-
-                encoder = new PcmuEncoder(rawDataInput, encodedDataOutput, new CountDownLatch(3));
-
-                int numBytesRead = 0;
-                try {
-                    while (numBytesRead < buffer.length) {
-                        // expect that the buffer is full
-                        int tempBytesRead = encodedDataInput.read(buffer, numBytesRead,
-                                buffer.length - numBytesRead);
-                        numBytesRead += tempBytesRead;
-                    }
-                } catch (IOException e) {
-                    return;
-                }
-                byte[] trimmedBuffer;
-                if (numBytesRead < buffer.length) {
-                    trimmedBuffer = new byte[numBytesRead];
-                    System.arraycopy(buffer, 0, trimmedBuffer, 0, numBytesRead);
-                } else {
-                    trimmedBuffer = buffer;
-                }
-                if (true) {
-                    try {
-                        rtpSenderInput.write(trimmedBuffer);
-                    } catch (IOException e) {
-                        break;
-                    }
-                }
-
-
-//                System.out.println("mic check: "  + Arrays.toString(data.getData()));
-
-//                socket.send(transmitPacket);
-
             } catch (Exception e) {
+                System.out.println("Error while reading input: " + e.getMessage());
+                break;
+            }
+
+
+//            System.out.println("Mic is receiving data: "  + transmitPacket.getLength());
+
+            try {
+                socket.send(transmitPacket);
+            } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            System.out.println("Mic is sending data: "  + transmitPacket.getLength());
+
         }
+        input.stop();
     }
 
+    private RTPPacket createdRTPPacket() {
+        RTPPacket rtpPacket = new RTPPacket();
+        rtpPacket.setVersion(2);
+        rtpPacket.setPadding(false);
+        rtpPacket.setExtension(false);
+        rtpPacket.setCsrcCount(0);
+        rtpPacket.setMarker(false);
+        rtpPacket.setPayloadType(0);
+        Random random = new Random();
+        int sequenceNumber = random.nextInt();
+        rtpPacket.setSequenceNumber(sequenceNumber);
+        rtpPacket.setSsrc(random.nextInt());
+        byte[] buffer = new byte[512];
+        int timestamp = 0;
+        int numBytesRead;
+        int tempBytesRead;
+        long sleepTime = 0;
+        long offset = 0;
+        long lastSentTime = System.nanoTime();
+        // indicate if its the first time that we send a packet (dont wait)
+        boolean firstTime = true;
+
+
+        numBytesRead = 0;
+        try {
+
+            CountDownLatch latch = new CountDownLatch(3);
+            PipedOutputStream rawDataOutput = new PipedOutputStream();
+
+            try {
+                rawDataInput = new PipedInputStream(rawDataOutput, buffer.length);
+            } catch (IOException e) {
+                System.out.println("input/output error " + e.getMessage());
+
+            }
+
+            PipedOutputStream encodedDataOutput = new PipedOutputStream();
+
+            try {
+                encodedDataInput = new PipedInputStream(encodedDataOutput, buffer.length);
+            } catch (IOException e) {
+                System.out.println("input/output error " + e.getMessage());
+                rawDataInput.close();
+
+            }
+            Encoder encoder = new PcmuEncoder(rawDataInput, encodedDataOutput,  latch);
+            Thread encoderThread = new Thread(encoder,
+                    Encoder.class.getSimpleName());
+            encoderThread.start();
+
+            //todo train stops here
+            tempBytesRead = encodedDataInput.read(buffer, numBytesRead,
+                    buffer.length - numBytesRead);
+            numBytesRead += tempBytesRead;
+
+        } catch (IOException e) {
+            System.out.println("input/output error" + e.getMessage());
+        }
+        byte[] trimmedBuffer;
+        if (numBytesRead < buffer.length) {
+            trimmedBuffer = new byte[numBytesRead];
+            System.arraycopy(buffer, 0, trimmedBuffer, 0, numBytesRead);
+        } else {
+            trimmedBuffer = buffer;
+        }
+        rtpPacket.setData(trimmedBuffer);
+
+        return rtpPacket;
+    }
 }
 
