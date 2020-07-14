@@ -22,6 +22,7 @@ import java.net.InetSocketAddress;
 public class PhoneApplication implements Serializable {
     private Clip ringingClip;
 
+    private static final AudioFormat FORMAT = new AudioFormat(8000, 16, 1, true, false);
     private SipManager sipManager;
 
     private LoginScreen loginScreen;
@@ -31,17 +32,77 @@ public class PhoneApplication implements Serializable {
 
     private RTPConnectionManager rtpConnectionManager;
 
+    private static void printHelp(String message) {
+        System.out.println(message);
+        System.out.println("Arguments: <local address> <audio input> <audio output>");
+
+        Mixer.Info[] mixers = AudioSystem.getMixerInfo();
+
+        System.out.println("Available: ");
+        for (int i = 0; i < mixers.length; i++) {
+            System.out.println(String.format("%-50s %50s %30s %30s", mixers[i].getName(), mixers[i].getDescription(), mixers[i].getVersion(), mixers[i].getVendor()));
+        }
+    }
+
     public static void main(String[] args) {
-        if (args.length != 1) {
-            System.out.println("Arguments: <local address>");
+        if (args.length == 1 && "help".equalsIgnoreCase(args[0]) || args.length != 3) {
+            printHelp((args.length == 1 && "help".equalsIgnoreCase(args[0])) ? "Help" : "Invalid arguments");
+
             System.exit(1);
         }
 
-        String localAddress = args[0];
+
+/*
+        // TODO: audio setup should happen outside of this class
+        DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class,FORMAT);
+
+        Mixer mixer = AudioSystem.getMixer(AudioSystem.getMixerInfo()[1]); // todo add mixer
+
+        output = (SourceDataLine) AudioSystem.getLine(speakerInfo);
+
+        DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class,FORMAT);
+
+        Mixer mixer2 = AudioSystem.getMixer(AudioSystem.getMixerInfo()[8]); // todo add mixer
+        input = (TargetDataLine) mixer2.getLine(micInfo);
+
+ */
+
 
         PhoneApplication application = new PhoneApplication();
         try {
+            Mixer.Info[] mixers = AudioSystem.getMixerInfo();
+
+
+            TargetDataLine inputLine = null;
+            SourceDataLine outputLine = null;
+
+            for (int i = 0; i < mixers.length; i++) {
+                if (args[1].equals(mixers[i].getName())) {
+                    inputLine = (TargetDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(TargetDataLine.class, FORMAT));
+                }
+                if (args[2].equals(mixers[i].getName())) {
+                    outputLine = (SourceDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(SourceDataLine.class, FORMAT));
+                }
+            }
+
+            if (inputLine == null) {
+                printHelp("Input line not found " + args[1]);
+                System.exit(1);
+            }
+            if (outputLine == null) {
+                printHelp("Output line not found " + args[2]);
+                System.exit(1);
+            }
+
+            inputLine.open(FORMAT);
+            outputLine.open(FORMAT);
+
+            String localAddress = args[0];
+
+
             application.initialize(
+                    inputLine,
+                    outputLine,
                     localAddress,
                     5080,
                     "udp",
@@ -65,7 +126,7 @@ public class PhoneApplication implements Serializable {
     private void run() {
     }
 
-    private void initialize(String localAddress, int localPort, String transport, String proxyHost, int proxyPort) throws Exception {
+    private void initialize(TargetDataLine inputLine, SourceDataLine outputLine, String localAddress, int localPort, String transport, String proxyHost, int proxyPort) throws Exception {
 
         sipManager = new SipManager(proxyHost, proxyPort, localAddress, localPort, transport).
                 logging("server.log", "debug.log", 16).
@@ -231,9 +292,8 @@ public class PhoneApplication implements Serializable {
         initGUI();
 
 
-        rtpConnectionManager = new RTPConnectionManager();
+        rtpConnectionManager = new RTPConnectionManager(inputLine, outputLine);
         rtpConnectionManager.init();
-
 
         AudioInputStream stream = AudioClip.loadClip("shake_bake.wav");
         AudioFormat format = stream.getFormat();
@@ -329,8 +389,6 @@ public class PhoneApplication implements Serializable {
 //        }
 //        initGUI();
 //    }
-
-
 
 
     /**

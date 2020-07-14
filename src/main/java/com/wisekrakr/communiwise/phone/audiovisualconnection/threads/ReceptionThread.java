@@ -14,7 +14,6 @@ import java.net.DatagramSocket;
 public class ReceptionThread implements Runnable {
     private final SourceDataLine output;
     private final DatagramSocket socket;
-    private RTPParser rtpParser;
     private Object sourceDataLineMutex;
     private FileOutputStream speakerInput;
 
@@ -22,7 +21,6 @@ public class ReceptionThread implements Runnable {
         this.output = output;
         this.socket = socket;
 
-        rtpParser = new RTPParser();
         sourceDataLineMutex = new Object();
     }
 
@@ -51,7 +49,7 @@ public class ReceptionThread implements Runnable {
 
                 System.arraycopy(data, offset, trimmedData, 0, length);
 
-                RTPPacket rtpPacket = rtpParser.decode(trimmedData);
+                RTPPacket rtpPacket = RTPParser.decode(trimmedData);
 
                 receivedRtpPacket(rtpPacket);
             } catch (Exception e) {

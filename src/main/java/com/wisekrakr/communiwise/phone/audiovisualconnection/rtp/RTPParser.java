@@ -2,10 +2,10 @@ package com.wisekrakr.communiwise.phone.audiovisualconnection.rtp;
 
 public class RTPParser {
 
-    public RTPParser() {
+    private RTPParser() {
     }
 
-    public RTPPacket decode(byte[] packet) {
+    public static RTPPacket decode(byte[] packet) {
         if (packet.length < 12) {
             System.out.println("RTP packet too short");
             return null;
@@ -46,7 +46,7 @@ public class RTPParser {
         return rtpPacket;
     }
 
-    public byte[] encode(RTPPacket rtpPacket) {
+    public static byte[] encode(RTPPacket rtpPacket) {
         byte[] data = rtpPacket.getData();
         int packetLength = 12 + rtpPacket.getCsrcCount() * 4 + data.length;
         byte[] packet = new byte[packetLength];

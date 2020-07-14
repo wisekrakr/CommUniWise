@@ -20,15 +20,11 @@
 package com.wisekrakr.communiwise.phone.audiovisualconnection.processing;
 
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.concurrent.CountDownLatch;
-
-public class PcmuEncoder extends Encoder {
+public class PcmuEncoder {
 
     private final static int cBias = 0x84;
     private final static short seg_end[] = new short[]{0xFF, 0x1FF, 0x3FF, 0x7FF,
-        0xFFF, 0x1FFF, 0x3FFF, 0x7FFF
+            0xFFF, 0x1FFF, 0x3FFF, 0x7FFF
     };
 
     /*
@@ -82,10 +78,10 @@ public class PcmuEncoder extends Encoder {
          * and complement the code word.
          */
         if (seg >= 8) /* out of range, return maximum value. */ {
-            return (byte)(0x7F ^ mask);
+            return (byte) (0x7F ^ mask);
         } else {
-            uval = (byte)((seg << 4) | ((pcm_val >> (seg + 3)) & 0xF));
-            return  (byte)(uval ^ mask);
+            uval = (byte) ((seg << 4) | ((pcm_val >> (seg + 3)) & 0xF));
+            return (byte) (uval ^ mask);
         }
 
     }
@@ -101,32 +97,25 @@ public class PcmuEncoder extends Encoder {
         return (size);
     }
 
-    public PcmuEncoder() {
-    }
-
-    public PcmuEncoder(PipedInputStream rawData, PipedOutputStream encodedData,
-                       boolean mediaDebug, String peersHome,
-                       CountDownLatch latch) {
-        super(rawData, encodedData, mediaDebug, peersHome, latch);
-    }
-
     /**
      * Perform compression using U-law. Retrieved from Mobicents media server
      * code.
-     * 
+     *
      * @param media the input uncompressed media
      * @return the output compressed media.
      */
-    public byte[] process(byte[] media) {
-        byte[] compressed = new byte[media.length / 2];
+    public static int process(byte[] media, byte[] compressed, int from, int size) {
+        int needed = size / 2;
+
+        if (compressed.length < needed) {
+            throw new IllegalStateException("Buffer not large enough");
+        }
 
         int j = 0;
-        for (int i = 0; i < compressed.length; i++) {
-            short sample = (short) ((media[j++] & 0xff) | ((media[j++]) << 8));
+        for (int i = 0; i < needed; i++) {
+            short sample = (short) ((media[from + j++] & 0xff) | ((media[from + j++]) << 8));
             compressed[i] = linear2ulaw(sample);
         }
-        return compressed;
+        return needed;
     }
-
-    
 }
