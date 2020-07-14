@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone.rtp;
+package com.wisekrakr.communiwise.phone.audiovisualconnection.rtp;
 
 public class RTPPacket {
     private int version;

@@ -1,10 +1,11 @@
-package com.wisekrakr.communiwise.phone.rtp;
+package com.wisekrakr.communiwise.phone.audiovisualconnection.rtp;
 
 import javax.sdp.*;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Vector;
 
+@Deprecated
 public class SdpOffer implements Serializable {
 
     private final SdpFactory sdpFactory;

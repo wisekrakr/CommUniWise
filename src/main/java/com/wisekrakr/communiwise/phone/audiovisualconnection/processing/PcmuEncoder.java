@@ -101,9 +101,13 @@ public class PcmuEncoder extends Encoder {
         return (size);
     }
 
+    public PcmuEncoder() {
+    }
+
     public PcmuEncoder(PipedInputStream rawData, PipedOutputStream encodedData,
+                       boolean mediaDebug, String peersHome,
                        CountDownLatch latch) {
-        super(rawData, encodedData, false,  "", latch);
+        super(rawData, encodedData, mediaDebug, peersHome, latch);
     }
 
     /**

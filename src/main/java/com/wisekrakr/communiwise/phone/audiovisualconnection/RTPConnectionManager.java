@@ -1,7 +1,7 @@
 package com.wisekrakr.communiwise.phone.audiovisualconnection;
 
 import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.ReceptionThread;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.TransmitterThread;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.TransmittingThread;
 
 import javax.sound.sampled.*;
 import java.io.IOException;
@@ -27,6 +27,7 @@ public class RTPConnectionManager {
 
     private Thread receptionThread;
     private Thread transmitterThread;
+    private TransmittingThread transmittingThread;
 
     private AudioFormat FORMAT = new AudioFormat(8000, 16, 1, true, false);
 
@@ -58,7 +59,7 @@ public class RTPConnectionManager {
 
         Mixer mixer = AudioSystem.getMixer(AudioSystem.getMixerInfo()[1]); // todo add mixer
 
-        output = (SourceDataLine) mixer.getLine(speakerInfo);
+        output = (SourceDataLine) AudioSystem.getLine(speakerInfo);
 
         DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class,FORMAT);
 
@@ -95,10 +96,13 @@ public class RTPConnectionManager {
 
 //        AudioInputStream ais = new AudioInputStream(input);
         input.open(FORMAT);
-        transmitterThread = new Thread(new TransmitterThread(input, socket, FORMAT));
-        transmitterThread.setName("Transmitter thread");
-        transmitterThread.setDaemon(true);
-        transmitterThread.start();
+//        transmitterThread = new Thread(new TransmitterThread(input, socket));
+//        transmitterThread.setName("Transmitter thread");
+//        transmitterThread.setDaemon(true);
+//        transmitterThread.start();
+
+        transmittingThread = new TransmittingThread(socket, input);
+        transmittingThread.start();
 
         System.out.println("Start recording client... connected: " + socket.isConnected());
 
@@ -182,7 +186,7 @@ public class RTPConnectionManager {
         socket.disconnect();
         socket.close();
 
-        transmitterThread.stop();
+        transmittingThread.stop();
     }
 
     private void stopInput() {

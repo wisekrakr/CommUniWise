@@ -47,7 +47,10 @@ public abstract class Encoder implements Runnable {
         this.latch = latch;
         isStopped = false;
     }
-    
+
+    public Encoder() {
+    }
+
     public void run() {
         byte[] buffer;
         if (mediaDebug) {
@@ -74,6 +77,7 @@ public abstract class Encoder implements Runnable {
                         Thread.sleep(2);
                         ready = rawData.available();
                     } catch (InterruptedException e) {
+                        System.out.println(" Encoder error: " + e.getMessage());
                     }
                 }
                 if (isStopped) {
@@ -85,12 +89,14 @@ public abstract class Encoder implements Runnable {
                     try {
                         encoderInput.write(buffer);
                     } catch (IOException e) {
+                        System.out.println(" Encoder error: " + e.getMessage());
+
                     }
                 }
             } catch (IOException e) {
                 return;
             }
-            
+
             byte[] ulawData = process(buffer);
             if (mediaDebug) {
                 try {
@@ -119,6 +125,8 @@ public abstract class Encoder implements Runnable {
             try {
                 latch.await();
             } catch (InterruptedException e) {
+                System.out.println(" Encoder latch error: " + e.getMessage());
+
             }
         }
     }

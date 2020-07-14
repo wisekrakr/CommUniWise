@@ -1,18 +1,13 @@
-package com.wisekrakr.communiwise.phone.rtp;
-
-import com.wisekrakr.communiwise.config.Logger;
+package com.wisekrakr.communiwise.phone.audiovisualconnection.rtp;
 
 public class RTPParser {
 
-    private Logger logger;
-
-    public RTPParser(Logger logger) {
-        this.logger = logger;
+    public RTPParser() {
     }
 
     public RTPPacket decode(byte[] packet) {
         if (packet.length < 12) {
-            logger.error("RTP packet too short");
+            System.out.println("RTP packet too short");
             return null;
         }
         RTPPacket rtpPacket = new RTPPacket();

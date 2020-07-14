@@ -78,7 +78,7 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void onBye() {
-
+                        rtpConnectionManager.stopStreaming();
                     }
 
                     @Override
@@ -137,7 +137,7 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void onHangup() {
-
+                        rtpConnectionManager.stopStreaming();
                     }
 
                     @Override

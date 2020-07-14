@@ -2,10 +2,9 @@ package com.wisekrakr.communiwise.phone.audiovisualconnection.threads;
 
 import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.Decoder;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.PcmuDecoder;
-import com.wisekrakr.communiwise.phone.rtp.RTPPacket;
-import com.wisekrakr.communiwise.phone.rtp.RTPParser;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPPacket;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPParser;
 
-import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.SourceDataLine;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -23,7 +22,7 @@ public class ReceptionThread implements Runnable {
         this.output = output;
         this.socket = socket;
 
-        rtpParser = new RTPParser(null);
+        rtpParser = new RTPParser();
         sourceDataLineMutex = new Object();
     }
 
