@@ -1,8 +1,8 @@
-package com.wisekrakr.communiwise.screens.layouts;
+package com.wisekrakr.communiwise.frames.layouts;
 
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
-import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
-import com.wisekrakr.communiwise.screens.layouts.objects.Button;
+import com.wisekrakr.communiwise.frames.ext.AbstractScreen;
+import com.wisekrakr.communiwise.frames.layouts.objects.Button;
 
 import javax.swing.*;
 import java.awt.*;

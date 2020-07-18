@@ -1,12 +1,10 @@
-package com.wisekrakr.communiwise.screens.layouts;
+package com.wisekrakr.communiwise.frames.layouts;
 
 
-import com.wisekrakr.communiwise.config.Config;
+import com.wisekrakr.communiwise.frames.AudioPlayerFrame;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
-import com.wisekrakr.communiwise.screens.AudioPlayerScreen;
-import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
-import com.wisekrakr.communiwise.screens.layouts.objects.Button;
-import com.wisekrakr.communiwise.screens.layouts.panes.background.GradientPanel;
+import com.wisekrakr.communiwise.frames.ext.AbstractScreen;
+import com.wisekrakr.communiwise.frames.layouts.panes.background.GradientPanel;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -34,93 +32,6 @@ public class PhoneScreen extends AbstractScreen {
 
         setVisible(true);
     }
-
-    @Deprecated
-    private void handleCallingAndAccepting() {
-        JLabel destinationLabel = new JLabel("destination: ");
-
-        final JTextField sipTargetName;
-        sipTargetName = new JTextField("253");
-        final JTextField sipTargetAddress;
-        sipTargetAddress = new JTextField(Config.SERVER);
-        final JTextField sipTargetPort;
-        sipTargetPort = new JTextField(Config.MASTER_PORT.toString());
-
-        Button callButton = new Button("call", 10, 400);
-        Button acceptBtn = new Button("accept", 120, 400);
-        Button stopBtn = new Button("hang up", 230, 400);
-
-        getContentPane().add(destinationLabel);
-        destinationLabel.setBounds(10, 360, 70, 30);
-        getContentPane().add(sipTargetName);
-        sipTargetName.setBounds(80, 360, 70, 30);
-        getContentPane().add(sipTargetAddress);
-        sipTargetAddress.setBounds(160, 360, 70, 30);
-        getContentPane().add(sipTargetPort);
-        sipTargetPort.setBounds(240, 360, 70, 30);
-
-        getContentPane().add(callButton);
-
-        callButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                phone.initiateCall("sip:" + (sipTargetName.getText().trim() + "@" + sipTargetAddress.getText().trim())
-                );
-            }
-        });
-
-        getContentPane().add(acceptBtn);
-        getContentPane().add(stopBtn);
-
-        acceptBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                phone.accept();
-                System.out.println("Clicked accept");
-
-                acceptBtn.setEnabled(false);
-                stopBtn.setEnabled(true);
-            }
-        });
-        stopBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                phone.hangup();
-                System.out.println("Clicked hanging up");
-                stopBtn.setEnabled(false);
-                acceptBtn.setEnabled(true);
-
-
-            }
-        });
-    }
-
-
-    /**
-     * Press a button and play a sound.
-     * Todo: add choosing own sounds
-     *
-     * @Deprecated private void handlePlayingSoundClip(){
-     * JButton playBtn = new JButton("play beep");
-     * playBtn.setBounds(120, 300, 100, 30);
-     * getContentPane().add(playBtn);
-     * <p>
-     * AudioClip audioClip = new AudioClip();
-     * audioClip.createClipURL("audio/beep.wav");
-     * <p>
-     * playBtn.addActionListener(new ActionListener() {
-     * @Override public void actionPerformed(ActionEvent e) {
-     * if(!audioClip.getClip().isRunning()){
-     * audioClip.getClip().start();
-     * }else{
-     * audioClip.getClip().stop();
-     * }
-     * <p>
-     * }
-     * });
-     * }
-     */
-
 
     public class PhonePane extends GradientPanel {
         private DestinationPane destinationPane;
@@ -151,24 +62,6 @@ public class PhoneScreen extends AbstractScreen {
             gbc.weightx = 0;
             add((menuPane = new MenuPane()), gbc);
         }
-
-        //    @Override
-        //    public void paint(Graphics g) {
-        //        super.paint(g);
-        //
-        //        Graphics2D g2 = (Graphics2D) g.create();
-        //
-        //        int w = this.getWidth();
-        //        int h = this.getHeight();
-        //
-        //        g2.setComposite(AlphaComposite.getInstance(
-        //                AlphaComposite.SRC_OVER, .2f));
-        //        g2.setPaint(new GradientPaint(0, 0, Config.LIGHT_CYAN, 0, h, Config.DARK_CYAN));
-        //
-        //        g2.fillRect(0, 0, w, h);
-        //
-        //        g2.dispose();
-        //    }
 
         public class ControlsPane extends JPanel {
 
@@ -220,8 +113,6 @@ public class PhoneScreen extends AbstractScreen {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         phone.initiateCall("sip:" + (destinationPane.getSipTargetName().trim() + "@" + destinationPane.getSipTargetAddress().trim()));
-
-                        //                                application.getRTPConnectionManager().getSocket().getLocalPort() // TODO
                     }
                 });
             }
@@ -240,7 +131,6 @@ public class PhoneScreen extends AbstractScreen {
                 gbc.gridx = 0;
                 gbc.gridy = 0;
                 gbc.anchor = GridBagConstraints.WEST;
-
 
                 add(new JLabel("Contact Name (or Number): "), gbc);
                 gbc.gridy++;
@@ -278,11 +168,7 @@ public class PhoneScreen extends AbstractScreen {
 
             private JButton okay, cancel, help, player, options;
 
-            //    private SoundPlayer soundPlayer;
-
             public MenuPane() {
-
-                //      soundPlayer = new SoundPlayer();
 
                 setLayout(new GridBagLayout());
                 GridBagConstraints gbc = new GridBagConstraints();
@@ -309,12 +195,6 @@ public class PhoneScreen extends AbstractScreen {
                 clickOptions();
                 clickPlayer();
 
-                cancel.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        phone.hangup();
-                    }
-                });
             }
 
             private void clickOptions() {
@@ -331,14 +211,13 @@ public class PhoneScreen extends AbstractScreen {
                 player.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        AudioPlayerScreen audioPlayerScreen = new AudioPlayerScreen();
-                        audioPlayerScreen.setVisible(true);
-                        audioPlayerScreen.player_gui();
+                        SwingUtilities.invokeLater(new Runnable() {
 
-                        audioPlayerScreen.setBackground(Color.pink);
-
-                        audioPlayerScreen.setLocation(300, 300);
-                        audioPlayerScreen.setSize(500, 100);
+                            @Override
+                            public void run() {
+                                new AudioPlayerFrame().setVisible(true);
+                            }
+                        });
                     }
                 });
             }

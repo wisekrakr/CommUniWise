@@ -1,8 +1,9 @@
-package com.wisekrakr.communiwise.screens.layouts;
+package com.wisekrakr.communiwise.frames.layouts;
 
+import com.wisekrakr.communiwise.phone.audiovisualconnection.SoundAPI;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
-import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
-import com.wisekrakr.communiwise.screens.layouts.objects.Button;
+import com.wisekrakr.communiwise.frames.ext.AbstractScreen;
+import com.wisekrakr.communiwise.frames.layouts.objects.Button;
 import org.apache.commons.lang3.time.StopWatch;
 
 import javax.swing.*;
@@ -13,10 +14,12 @@ import java.awt.event.ActionListener;
 
 public class AudioCallScreen extends AbstractScreen {
     private final PhoneAPI phone;
+    private SoundAPI audioSound;
     private StopWatch stopWatch;
 
-    public AudioCallScreen(PhoneAPI phone) throws HeadlessException {
+    public AudioCallScreen(PhoneAPI phone, SoundAPI audioSound) throws HeadlessException {
         this.phone = phone;
+        this.audioSound = audioSound;
 
         stopWatch = new StopWatch();
 
@@ -27,7 +30,7 @@ public class AudioCallScreen extends AbstractScreen {
         setTitle("Call with someone");
         getContentPane().setLayout(null);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width - 288) / 2, (screenSize.height - 310) / 2, 500, 600);
+        setBounds((screenSize.width - 288) / 2, (screenSize.height - 310) / 2, 500, 700);
 
         showStatus();
 
@@ -38,6 +41,8 @@ public class AudioCallScreen extends AbstractScreen {
 //        stopWatch.start();
 
         hangUpComponent();
+        sendBeepSoundComponent();
+        recordComponent();
         callTime();
 
         setVisible(true);
@@ -52,7 +57,53 @@ public class AudioCallScreen extends AbstractScreen {
             public void actionPerformed(ActionEvent e) {
                 phone.hangup();
 //                stopWatch.stop();
-                System.out.println("Clicked hanging up");
+            }
+        });
+    }
+
+    private void recordComponent() {
+        Button recordButton = new Button("record", 300, 620, new Color(170, 159, 198));
+        getContentPane().add(recordButton);
+
+        Button stopButton = new Button("stop", 400, 620, new Color(163, 155, 180));
+        getContentPane().add(stopButton);
+        stopButton.setEnabled(false);
+
+        recordButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                audioSound.startRecording();
+
+                recordButton.setEnabled(false);
+                stopButton.setEnabled(true);
+            }
+        });
+
+        if(stopButton.isEnabled()){
+            stopButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    audioSound.stopRecording();
+
+                    recordButton.setEnabled(true);
+                    stopButton.setEnabled(false);
+                }
+            });
+        }
+    }
+
+    private void sendBeepSoundComponent(){
+        Button beepButton = new Button("play sound", 210, 520, new Color(15, 135, 172));
+        getContentPane().add(beepButton);
+
+        JTextField soundFileName = new JTextField("shake_bake",3);
+        soundFileName.setBounds(100,520,100,20);
+        getContentPane().add(soundFileName);
+
+        beepButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                audioSound.playRemoteSound("src/main/resources/" + soundFileName.getText().trim() + ".wav");
             }
         });
     }

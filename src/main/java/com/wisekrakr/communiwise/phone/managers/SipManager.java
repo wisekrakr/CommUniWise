@@ -284,17 +284,10 @@ public class SipManager implements SipClient {
                             ClientTransaction clientTransaction = responseEvent.getClientTransaction();
 
 
-                            //todo Invite Dialog States: Null --> Early --> Confirmed --> Terminated
-                            //todo incoming invite: dialog is null
-
 //                            Dialog dialog = null;
 //                            if(clientTransaction.getDialog() != null){
 //                                dialog = clientTransaction.getDialog();
 //                            }
-
-
-//                            System.out.println("transaction state is " + clientTransaction.getState());
-//                            System.out.println("Dialog = " + clientTransaction.getDialog());
 
 
                             if (processedResponse.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED
@@ -313,9 +306,7 @@ public class SipManager implements SipClient {
                                     case Request.REGISTER:
                                         System.out.println("REGISTERED");
 
-
                                         listener.onRegistered();
-                                        //authenticated = true;
                                         break;
 
                                     case Request.INVITE:
@@ -332,7 +323,7 @@ public class SipManager implements SipClient {
                                             System.out.println("number of media descriptions != 1, will take the first anyway");
                                         }
 
-                                        // TODO: why always pick the first? In PhoneApplication we make a local rtp port from a datagram socket
+                                        // TODO: why always pick the first?
                                         MediaDescription incomingMediaDescriptor = (MediaDescription) sessionDescription.getMediaDescriptions(false).get(0);
 
                                         listener.callConfirmed(
@@ -349,8 +340,6 @@ public class SipManager implements SipClient {
                                             ClientTransaction ct = udpSipProvider.getNewClientTransaction(byeRequest);
                                             clientTransaction.getDialog().sendRequest(ct);
                                         }
-
-//                                        dispatchScreenEvent(new ScreenEvent(this, ScreenEvent.ScreenEventType.EXITING));
 
                                         break;
 
@@ -501,13 +490,18 @@ public class SipManager implements SipClient {
     }
 
     @Override
-    public void hangup() {
+    public void hangup(String recipient) {
         // TODO: if sessionState ...
         // TODO: sendByeClient(currentClientTransaction);  sendByeClient(currentServerTransaction);
 
         if (sipSessionState == SipSessionState.CALLING) {
             sipSessionState = SipSessionState.IDLE; //todo: trying to reset the system to make or get new calls after a call.
-            sendByeClient(waitingCall); //todo fix: no servertransaction and therefor an exception
+            try {
+                this.udpSipProvider.getNewClientTransaction(makeByeRequest(recipient)).sendRequest();
+            } catch (SipException e) {
+                e.printStackTrace();
+            }
+
             listener.onHangup();
         }
 
@@ -578,38 +572,21 @@ public class SipManager implements SipClient {
         requestEvt.getServerTransaction().sendResponse(messageFactory.createResponse(Response.OK, requestEvt.getRequest()));
     }
 
-    private void sendByeClient(Transaction transaction) {
-
+    private Request makeByeRequest(String to) {
+        Request byeRequest;
         try {
-            Request byeRequest = transaction.getDialog().createRequest(Request.BYE);
+            byeRequest = createRequest(addressFactory.createURI(to), clientAddress, addressFactory.createAddress(to), Request.BYE, null);
 
-            ClientTransaction newTransaction = udpSipProvider.getNewClientTransaction(byeRequest);
-
-            transaction.getDialog().sendRequest(newTransaction);
-
-            System.out.println("Send Bye Client: Adios!");
         } catch (Throwable e) {
             throw new IllegalStateException("Unable to send bye", e);
         }
 
+        return byeRequest;
     }
 
 
     public Request createRegisterRequest() throws ParseException, InvalidArgumentException {
-        /*
-        // Create addresses and via header for the request
-        Address fromAddress = addressFactory.createAddress("sip:" + getSipProfile().getSipUserName() + "@" + getSipProfile().getServer());
-        fromAddress.setDisplayName(getSipProfile().getSipUserName());
-
-        Address toAddress = addressFactory.createAddress("sip:" + getSipProfile().getSipUserName() + "@" + getSipProfile().getServer());
-        toAddress.setDisplayName(getSipProfile().getSipUserName());
-
-        Address contactAddress = createContactAddress(addressFactory, getSipProfile());
-
-
-*/
         return createRequest(addressFactory.createAddress("sip:" + proxyHost + ":" + proxyPort).getURI(), clientAddress, clientAddress, Request.REGISTER, null);
-
     }
 
     public Request makeInviteRequest(String to, int localRtpPort) throws ParseException, InvalidArgumentException {

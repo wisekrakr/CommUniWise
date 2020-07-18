@@ -1,26 +1,25 @@
 package com.wisekrakr.communiwise.main;
 
 
+import com.wisekrakr.communiwise.phone.audiovisualconnection.AudioManager;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.RTPConnectionManager;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.impl.AudioClip;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.SoundAPI;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
 import com.wisekrakr.communiwise.phone.managers.SipManagerListener;
 import com.wisekrakr.communiwise.phone.managers.SipManager;
-import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
-import com.wisekrakr.communiwise.screens.ext.ScreenState;
-import com.wisekrakr.communiwise.screens.layouts.AudioCallScreen;
-import com.wisekrakr.communiwise.screens.layouts.IncomingCallScreen;
-import com.wisekrakr.communiwise.screens.layouts.LoginScreen;
-import com.wisekrakr.communiwise.screens.layouts.PhoneScreen;
+import com.wisekrakr.communiwise.frames.layouts.AudioCallScreen;
+import com.wisekrakr.communiwise.frames.layouts.IncomingCallScreen;
+import com.wisekrakr.communiwise.frames.layouts.LoginScreen;
+import com.wisekrakr.communiwise.frames.layouts.PhoneScreen;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 
 public class PhoneApplication implements Serializable {
-    private Clip ringingClip;
 
     private static final AudioFormat FORMAT = new AudioFormat(8000, 16, 1, true, false);
     private SipManager sipManager;
@@ -31,6 +30,7 @@ public class PhoneApplication implements Serializable {
     private AudioCallScreen audioCallScreen;
 
     private RTPConnectionManager rtpConnectionManager;
+    private AudioManager audioManager;
 
     private static void printHelp(String message) {
         System.out.println(message);
@@ -71,7 +71,6 @@ public class PhoneApplication implements Serializable {
         PhoneApplication application = new PhoneApplication();
         try {
             Mixer.Info[] mixers = AudioSystem.getMixerInfo();
-
 
             TargetDataLine inputLine = null;
             SourceDataLine outputLine = null;
@@ -216,92 +215,16 @@ public class PhoneApplication implements Serializable {
                             }
                         });
                     }
-
-                    /*
-                    public void onSipMessage(final SipEvent sipEventObject) {
-                        System.out.println("Sip Event fired: " + sipEventObject.type);
-//        phoneScreen.showStatus();
-                        switch (sipEventObject.type) {
-                            case MESSAGE:
-                                if (this.sipDeviceListener != null) {
-                                    this.sipDeviceListener.onSipUAMessageArrived(new SipEvent(this, SipEvent.SipEventType.MESSAGE, sipEventObject.content, sipEventObject.from));
-                                }
-                                break;
-                            case BYE:
-                                RTPConnectionManager.stopStreaming();
-
-                                if (this.sipConnectionListener != null) {
-                                    this.sipConnectionListener.onSipUADisconnected(null);
-                                }
-                                break;
-                            case REMOTE_CANCEL:
-                                RTPConnectionManager.stopStreaming();
-
-                                if (this.sipConnectionListener != null) {
-                                    this.sipConnectionListener.onSipUACancelled(null);
-                                }
-                                break;
-                            case DECLINED:
-                                RTPConnectionManager.stopStreaming();
-
-                                if (this.sipConnectionListener != null) {
-                                    this.sipConnectionListener.onSipUADeclined(null);
-                                }
-                                break;
-                            case BUSY_HERE:
-                            case SERVICE_UNAVAILABLE:
-                                RTPConnectionManager.stopStreaming();
-
-                                break;
-
-                            case CALL_CONNECTED:
-                                try {
-                                    RTPConnectionManager.connect(new InetSocketAddress(sipEventObject.rtpPort.getServer(), sipEventObject.rtpPort));
-                                } catch (LineUnavailableException | IOException e) {
-                                    e.printStackTrace();
-                                }
-
-                                if (this.sipConnectionListener != null) {
-                                    this.sipConnectionListener.onSipUAConnected(null);
-                                }
-                                break;
-
-
-                            case REMOTE_RINGING:
-                                if (this.sipConnectionListener != null) {
-                                    this.sipConnectionListener.onSipUAConnecting(null);
-                                }
-
-                                break;
-                            case LOCAL_RINGING:
-                                ringingClip.loop(Clip.LOOP_CONTINUOUSLY);
-
-
-                                if (this.sipDeviceListener != null) {
-                                    this.sipDeviceListener.onSipUAConnectionArrived(null);
-                                }
-                                break;
-
-                        }
-
-                    }    */
-
                 });
 
         // Handles changing of screens
-        initGUI();
-
+        initGUI(inputLine);
 
         rtpConnectionManager = new RTPConnectionManager(inputLine, outputLine);
         rtpConnectionManager.init();
 
-        AudioInputStream stream = AudioClip.loadClip("shake_bake.wav");
-        AudioFormat format = stream.getFormat();
-        DataLine.Info dataInfo = new DataLine.Info(Clip.class, format);
-        ringingClip = (Clip) AudioSystem.getLine(dataInfo);
-        ringingClip.open(stream);
+        audioManager = new AudioManager();
 
-//        sipManager.addUser("asterisk", sipUserName, sipPassword, proxyHost, sipAddress);
         sipManager.initialize();
 
     }
@@ -357,45 +280,49 @@ public class PhoneApplication implements Serializable {
         }
     }
 
+    private SoundAPI getSoundApi(){
+        return new SoundAPI() {
 
-//    public void onScreenEventMessage(ScreenEvent screenEvent) {
-//        System.out.println("Screen Event fired: " + screenEvent.type);
-//        switch (screenEvent.type) {
-//            case REGISTERED:
-//                // TODO
-////                if (sipProfile.isAuthenticated()) {
-//                loginScreen.hideWindow();
-//
-//                setScreenState(ScreenState.PHONE);
-////                }
-//                break;
-//
-//
-//            case UNREGISTERED:
-//                break;
-//            case INCOMING:
-//                setScreenState(ScreenState.INCOMING);
-//                break;
-//            case AUDIO_CALLING:
-//                setScreenState(ScreenState.AUDIO_CALL);
-//                break;
-//            case VIDEO_CALLING:
-//                break;
-//            case MESSAGING:
-//                break;
-//            case EXITING:
-//                currentScreen.hideWindow();
-//                break;
-//        }
-//        initGUI();
-//    }
+            @Override
+            public void startRecording() {
+                audioManager.startRecordingWavFile();
+            }
 
+            @Override
+            public void playRemoteSound(String file) {
+                File audioFile = new File(file);
+                try {
 
-    /**
-     * Handles changing of screens.
-     * Creates the current screen, so that it can be destroyed when it is no longer used at a later stage.
-     */
-    public void initGUI() {
+                    AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+                    AudioInputStream lowResAudioStream = AudioSystem.getAudioInputStream(FORMAT, audioStream);
+
+                    rtpConnectionManager.send(lowResAudioStream);
+                } catch (IOException | UnsupportedAudioFileException e) {
+                    System.out.println(" error while sending audio file " + e);
+                }
+            }
+
+            @Override
+            public void stopRecording() {
+                audioManager.stopRecording();
+            }
+
+            @Override
+            public void stopRemoteSound() {
+                rtpConnectionManager.stopSend();
+            }
+
+            @Override
+            public void mute(boolean muted) {
+//                BooleanControl bc = (BooleanControl) inputLine.getControl(BooleanControl.Type.MUTE);
+//                if (bc != null) {
+//                    bc.setValue(true);
+//                }
+            }
+        };
+    }
+
+    public void initGUI(TargetDataLine inputLine) {
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -404,33 +331,33 @@ public class PhoneApplication implements Serializable {
             }
 
             enterState(new LoginState(new PhoneAPI() {
+                String proxyAddress;
+
                 @Override
                 public void initiateCall(String sipAddress) {
                     sipManager.initiateCall(sipAddress, rtpConnectionManager.getSocket().getLocalPort());//todo get local rtp port here
 
-                    audioCallScreen = new AudioCallScreen(this);
+                    audioCallScreen = new AudioCallScreen(this, getSoundApi());
                     audioCallScreen.showWindow();
+
+                    proxyAddress = sipAddress;
                 }
 
                 @Override
                 public void accept() {
                     sipManager.acceptCall(rtpConnectionManager.getSocket().getLocalPort()); //todo get local rtp port here
-                    ringingClip.stop();
-
                 }
 
                 @Override
                 public void reject() {
                     sipManager.reject();
-
-                    ringingClip.stop();
                 }
 
 
                 @Override
                 public void hangup() {
                     try {
-                        sipManager.hangup();
+                        sipManager.hangup(proxyAddress);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -444,35 +371,6 @@ public class PhoneApplication implements Serializable {
                 }
             }));
         });
-
-
-/*        System.out.println("Setting up screen: " + screenState);
-
-        //TODO: small frame for went we get an invite and we need to accept a call.
-        switch (screenState) {
-            case LOGIN:
-                if (loginScreen == null) loginScreen = new LoginScreen(this);
-                currentScreen = loginScreen;
-                break;
-            case INCOMING:
-                if (incomingCallScreen == null) incomingCallScreen = new IncomingCallScreen(this);
-                currentScreen = incomingCallScreen;
-                break;
-            case PHONE:
-                if (phoneScreen == null) phoneScreen = new PhoneScreen(this);
-                break;
-            case AUDIO_CALL:
-                if (audioCallScreen == null) audioCallScreen = new AudioCallScreen(this);
-                currentScreen = audioCallScreen;
-                break;
-            case VIDEO_CALL:
-                break;
-            case MESSENGER:
-                break;
-            case BYE_BYE:
-                break;
-        }
-*/
     }
 
     private ApplicationState active;

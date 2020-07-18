@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.screens.layouts.panes.background;
+package com.wisekrakr.communiwise.frames.layouts.panes.background;
 
 import javax.swing.*;
 import java.awt.*;

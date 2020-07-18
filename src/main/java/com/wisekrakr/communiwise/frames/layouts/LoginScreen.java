@@ -1,9 +1,9 @@
-package com.wisekrakr.communiwise.screens.layouts;
+package com.wisekrakr.communiwise.frames.layouts;
 
 import com.wisekrakr.communiwise.config.Config;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
-import com.wisekrakr.communiwise.screens.ext.AbstractScreen;
-import com.wisekrakr.communiwise.screens.layouts.objects.Button;
+import com.wisekrakr.communiwise.frames.ext.AbstractScreen;
+import com.wisekrakr.communiwise.frames.layouts.objects.Button;
 
 import javax.swing.*;
 import java.awt.*;
@@ -84,7 +84,7 @@ public class LoginScreen extends AbstractScreen {
     }
 
     private void handleRegister() {
-        com.wisekrakr.communiwise.screens.layouts.objects.Button loginBtn = new Button("Login", 10, 160);
+        com.wisekrakr.communiwise.frames.layouts.objects.Button loginBtn = new Button("Login", 10, 160);
         panel.add(loginBtn);
 
         loginBtn.addActionListener(new ActionListener() {

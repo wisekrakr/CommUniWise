@@ -6,7 +6,6 @@ import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPPacket;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPParser;
 
 import javax.sound.sampled.SourceDataLine;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -14,14 +13,10 @@ import java.net.DatagramSocket;
 public class ReceptionThread implements Runnable {
     private final SourceDataLine output;
     private final DatagramSocket socket;
-    private Object sourceDataLineMutex;
-    private FileOutputStream speakerInput;
 
     public ReceptionThread(SourceDataLine output, DatagramSocket socket) {
         this.output = output;
         this.socket = socket;
-
-        sourceDataLineMutex = new Object();
     }
 
     @Override
@@ -54,30 +49,16 @@ public class ReceptionThread implements Runnable {
                 receivedRtpPacket(rtpPacket);
             } catch (Exception e) {
                 System.out.println("Error while receiving rtp packet: " + e.getMessage());
-
             }
-
-//            System.out.println("Speaker is receiving data: " + receivedPacket.getLength());
-
-
         }
 
         output.stop();
-
-        // TODO: deal with a stopping reception thread
-//        output.close();
-//        output.drain();
-
-//        System.out.println("Output Thread finished");
     }
 
     private void receivedRtpPacket(RTPPacket rtpPacket) {
         Decoder decoder = new PcmuDecoder();
         byte[] rawBuf = decoder.process(rtpPacket.getData());
         output.write(rawBuf, 0, rawBuf.length);
-
-
     }
-
 }
 
