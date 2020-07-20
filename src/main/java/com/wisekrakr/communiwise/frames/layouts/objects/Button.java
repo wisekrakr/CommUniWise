@@ -27,7 +27,7 @@ public class Button extends JButton{
         setText(text);
         setBackground(color);
         setForeground(color.brighter());
-        setBounds(posX, posY, 80, 25);
+        setBounds(posX, posY, 80, 40);
 
         setBorder(new RoundedBorder(7));
 

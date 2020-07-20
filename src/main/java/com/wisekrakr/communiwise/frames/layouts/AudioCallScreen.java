@@ -14,14 +14,12 @@ import java.awt.event.ActionListener;
 
 public class AudioCallScreen extends AbstractScreen {
     private final PhoneAPI phone;
-    private SoundAPI audioSound;
-    private StopWatch stopWatch;
+    private final SoundAPI audioSound;
 
     public AudioCallScreen(PhoneAPI phone, SoundAPI audioSound) throws HeadlessException {
         this.phone = phone;
         this.audioSound = audioSound;
 
-        stopWatch = new StopWatch();
 
         showWindow();
     }
@@ -32,18 +30,15 @@ public class AudioCallScreen extends AbstractScreen {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width - 288) / 2, (screenSize.height - 310) / 2, 500, 700);
 
-        showStatus();
+//        showStatus();
 
-        JLabel image = new JLabel(new ImageIcon("person.png"));
+        JLabel image = new JLabel(new ImageIcon("src/main/resources/person.png"));
         image.setBounds(10, 10, 480, 480);
         getContentPane().add(image);
-
-//        stopWatch.start();
 
         hangUpComponent();
         sendBeepSoundComponent();
         recordComponent();
-        callTime();
 
         setVisible(true);
     }
@@ -56,7 +51,6 @@ public class AudioCallScreen extends AbstractScreen {
             @Override
             public void actionPerformed(ActionEvent e) {
                 phone.hangup();
-//                stopWatch.stop();
             }
         });
     }
@@ -96,36 +90,25 @@ public class AudioCallScreen extends AbstractScreen {
         Button beepButton = new Button("play sound", 210, 520, new Color(15, 135, 172));
         getContentPane().add(beepButton);
 
-        JTextField soundFileName = new JTextField("shake_bake",3);
+        JTextField soundFileName = new JTextField("shake_bake.wav",3);
         soundFileName.setBounds(100,520,100,20);
         getContentPane().add(soundFileName);
 
         beepButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                audioSound.playRemoteSound("src/main/resources/" + soundFileName.getText().trim() + ".wav");
+                audioSound.playRemoteSound("src/main/resources/" + soundFileName.getText());
             }
         });
     }
 
-    private void callTime() {
-        JLabel time = new JLabel("Current Call Time: ");
-        time.setBounds(300, 520, 150, 30);
-        getContentPane().add(time);
 
-
-        JLabel callTime = new JLabel(String.valueOf(stopWatch.getTime()));
-        callTime.setBounds(450, 520, 50, 30);
-        getContentPane().add(callTime);
-
-    }
-
-    private void showStatus() {
+    public void showStatus() {
         JLabel status = new JLabel();
-        status.setBounds(200, 520, 150, 30);
+        status.setBounds(20, 620, 150, 30);
         add(status);
-        /*
-        switch (application.getSipManager().getProcessedResponse().getStatusCode()){
+
+        switch (phone.callStatus()){
             case 603:
                 status.setText("Decline");
                 status.setForeground(Color.ORANGE);
@@ -176,10 +159,10 @@ public class AudioCallScreen extends AbstractScreen {
 
                 break;
             default:
-                throw new IllegalStateException("Unexpected value: " + application.getSipManager().getProcessedResponse().getStatusCode());
+                throw new IllegalStateException("Unexpected value: " + phone.callStatus());
         }
 
-         */
+
 
     }
 }

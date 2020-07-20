@@ -51,23 +51,6 @@ public class PhoneApplication implements Serializable {
             System.exit(1);
         }
 
-
-/*
-        // TODO: audio setup should happen outside of this class
-        DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class,FORMAT);
-
-        Mixer mixer = AudioSystem.getMixer(AudioSystem.getMixerInfo()[1]); // todo add mixer
-
-        output = (SourceDataLine) AudioSystem.getLine(speakerInfo);
-
-        DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class,FORMAT);
-
-        Mixer mixer2 = AudioSystem.getMixer(AudioSystem.getMixerInfo()[8]); // todo add mixer
-        input = (TargetDataLine) mixer2.getLine(micInfo);
-
- */
-
-
         PhoneApplication application = new PhoneApplication();
         try {
             Mixer.Info[] mixers = AudioSystem.getMixerInfo();
@@ -218,7 +201,7 @@ public class PhoneApplication implements Serializable {
                 });
 
         // Handles changing of screens
-        initGUI(inputLine);
+        initGUI();
 
         rtpConnectionManager = new RTPConnectionManager(inputLine, outputLine);
         rtpConnectionManager.init();
@@ -322,7 +305,7 @@ public class PhoneApplication implements Serializable {
         };
     }
 
-    public void initGUI(TargetDataLine inputLine) {
+    public void initGUI() {
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -361,13 +344,17 @@ public class PhoneApplication implements Serializable {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    //audio call screen clear
                     audioCallScreen.hideWindow();
                 }
 
                 @Override
                 public void register(String realm, String domain, String username, String password, String fromAddress) {
                     sipManager.login(realm, username, password, domain, fromAddress);
+                }
+
+                @Override
+                public int callStatus() {
+                    return sipManager.getStatus();
                 }
             }));
         });

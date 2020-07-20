@@ -17,7 +17,7 @@
     Copyright 2010, 2011 Oleg Kulikov, Yohann Martineau 
 */
 
-package com.wisekrakr.communiwise.phone.audiovisualconnection.processing;
+package com.wisekrakr.communiwise.phone.audiovisualconnection.processing.pcmu;
 
 
 public class PcmuEncoder {

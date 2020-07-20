@@ -62,6 +62,7 @@ public class SipManager implements SipClient {
     private SipSessionState sipSessionState;
 
     private ServerTransaction waitingCall;
+    private int status;
 
     public SipManager(String proxyHost, int proxyPort, String localSipAddress, int localSipPort, String sipTransport) {
         //sipProfile.getRemoteEndpoint() + "/" + sipProfile.getTransport()
@@ -288,7 +289,7 @@ public class SipManager implements SipClient {
 //                            if(clientTransaction.getDialog() != null){
 //                                dialog = clientTransaction.getDialog();
 //                            }
-
+                            status = processedResponse.getStatusCode();
 
                             if (processedResponse.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED
                                     || processedResponse.getStatusCode() == Response.UNAUTHORIZED) {
@@ -435,7 +436,14 @@ public class SipManager implements SipClient {
     }
 
 
+
+
     /************                               ACTIONS                             ************/
+
+    @Override
+    public int getStatus() {
+        return status;
+    }
 
     @Override
     public void sendTextMessage(String recipient, String message) {

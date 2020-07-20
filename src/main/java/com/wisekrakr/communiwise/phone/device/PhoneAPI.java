@@ -11,4 +11,6 @@ public interface PhoneAPI {
     void reject();
 
     void hangup();
+
+    int callStatus();
 }

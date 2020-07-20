@@ -1,6 +1,6 @@
 package com.wisekrakr.communiwise.phone.audiovisualconnection.threads;
 
-import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.PcmuEncoder;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.pcmu.PcmuEncoder;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPPacket;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPParser;
 
@@ -160,7 +160,7 @@ public class TransmittingThread {
 
         audioFileThread = new Thread(()->{
             try {
-                byte[] buffer = new byte[BUFFER_SIZE * 3];
+                byte[] buffer = new byte[BUFFER_SIZE];
 
                 int actuallyRead;
 
@@ -229,7 +229,7 @@ public class TransmittingThread {
                 //     of contributing sources.
                 rtpPacket.setCsrcList(new long[rtpPacket.getCsrcCount()]); //todo is this needed?
 
-                byte[] buffer = new byte[BUFFER_SIZE * 3];
+                byte[] buffer = new byte[BUFFER_SIZE * 2];
 
                 int targetSize = 1;
 

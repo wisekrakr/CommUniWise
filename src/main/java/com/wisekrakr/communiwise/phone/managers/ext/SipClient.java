@@ -11,4 +11,6 @@ public interface SipClient {
     void reject();
 
     void acceptCall(final int port);
+
+    int getStatus();
 }

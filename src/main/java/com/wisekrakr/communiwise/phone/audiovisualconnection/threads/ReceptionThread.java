@@ -1,7 +1,7 @@
 package com.wisekrakr.communiwise.phone.audiovisualconnection.threads;
 
 import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.Decoder;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.PcmuDecoder;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.pcmu.PcmuDecoder;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPPacket;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPParser;
 

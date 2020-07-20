@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone.audiovisualconnection.processing;
+package com.wisekrakr.communiwise.phone.audiovisualconnection.processing.pcmu;
 
 /*
     This file is part of Peers, a java SIP softphone.
@@ -19,6 +19,8 @@ package com.wisekrakr.communiwise.phone.audiovisualconnection.processing;
     Copyright 2010 Oleg Kulikov, Yohann Martineau
 */
 
+
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.Decoder;
 
 public class PcmuDecoder extends Decoder {
 
