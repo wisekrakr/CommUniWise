@@ -1,7 +1,9 @@
 package com.wisekrakr.communiwise.phone.audiovisualconnection.threads;
 
-import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.Decoder;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.pcmu.PcmuDecoder;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.Codec;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.G722Codec;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.G722CodecOld;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.utils.CodecUtil;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPPacket;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPParser;
 
@@ -9,14 +11,23 @@ import javax.sound.sampled.SourceDataLine;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Arrays;
 
 public class ReceptionThread implements Runnable {
     private final SourceDataLine output;
     private final DatagramSocket socket;
+    private String codec;
+    private short[] rawBuf;
 
-    public ReceptionThread(SourceDataLine output, DatagramSocket socket) {
+
+    public ReceptionThread(SourceDataLine output, DatagramSocket socket, String codec) {
         this.output = output;
         this.socket = socket;
+        this.codec = codec;
+
+        rawBuf = new short[160];
     }
 
     @Override
@@ -46,19 +57,42 @@ public class ReceptionThread implements Runnable {
 
                 RTPPacket rtpPacket = RTPParser.decode(trimmedData);
 
-                receivedRtpPacket(rtpPacket);
+                receivedRtpPacket(rtpPacket, offset);
             } catch (Exception e) {
-                System.out.println("Error while receiving rtp packet: " + e.getMessage());
+                System.out.println("Error while receiving rtp packet: " + e);
             }
         }
 
         output.stop();
     }
 
-    private void receivedRtpPacket(RTPPacket rtpPacket) {
-        Decoder decoder = new PcmuDecoder();
-        byte[] rawBuf = decoder.process(rtpPacket.getData());
-        output.write(rawBuf, 0, rawBuf.length);
+    private void receivedRtpPacket(RTPPacket rtpPacket, int offset) {
+
+
+//        if(codec.contains("PCMU")) {
+//            PcmuDecoder pcmuDecoder = new PcmuDecoder();
+//            rawBuf = pcmuDecoder.process(rtpPacket.getData());
+//
+//        }else if(codec.contains("G722")){
+//            G722Codec g722Codec = new G722Codec();
+//            rawBuf = g722Codec.process(rtpPacket.getData());
+//        }
+
+        G722Codec g722Codec = new G722Codec();
+        rawBuf = g722Codec.decode(rtpPacket.getData());
+
+        byte[] rawBytes = CodecUtil.shortsToBytes(rawBuf);
+
+//        G722CodecOld g722Codec = new G722CodecOld();
+//        rawBuf = g722Codec.decode(rtpPacket.getData(),offset);
+//
+//        byte[] rawBytes = CodecUtil.shortsToBytes(rawBuf);
+//
+
+
+        System.out.println("    raw    " + rawBytes.length);
+
+        output.write(rawBytes, 0, rawBytes.length);
     }
 }
 

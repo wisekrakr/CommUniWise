@@ -21,7 +21,7 @@ import java.net.InetSocketAddress;
 
 public class PhoneApplication implements Serializable {
 
-    private static final AudioFormat FORMAT = new AudioFormat(8000, 16, 1, true, false);
+    private static final AudioFormat FORMAT = new AudioFormat(8000, 16, 2, true, false); //G722 has 16000 samplerate
     private SipManager sipManager;
 
     private LoginScreen loginScreen;
@@ -75,6 +75,8 @@ public class PhoneApplication implements Serializable {
                 printHelp("Output line not found " + args[2]);
                 System.exit(1);
             }
+
+            int playBuffer = 100 * Math.max(10, 12);
 
             inputLine.open(FORMAT);
             outputLine.open(FORMAT);
@@ -134,9 +136,11 @@ public class PhoneApplication implements Serializable {
                     }
 
                     @Override
-                    public void callConfirmed(String rtpHost, int rtpPort) {
+                    public void callConfirmed(String rtpHost, int rtpPort, String codec) {
+                        //todo codec?
+
                         try {
-                            rtpConnectionManager.connect(new InetSocketAddress(rtpHost, rtpPort));
+                            rtpConnectionManager.connect(new InetSocketAddress(rtpHost, rtpPort), codec);
                         } catch (Exception e) {
                             System.out.println("Unable to connect: " + e);
 
@@ -318,6 +322,7 @@ public class PhoneApplication implements Serializable {
 
                 @Override
                 public void initiateCall(String sipAddress) {
+                    //todo codec
                     sipManager.initiateCall(sipAddress, rtpConnectionManager.getSocket().getLocalPort());//todo get local rtp port here
 
                     audioCallScreen = new AudioCallScreen(this, getSoundApi());

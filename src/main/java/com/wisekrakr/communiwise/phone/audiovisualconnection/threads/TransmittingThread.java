@@ -1,6 +1,9 @@
 package com.wisekrakr.communiwise.phone.audiovisualconnection.threads;
 
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.G722Codec;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.G722CodecOld;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.pcmu.PcmuEncoder;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.utils.CodecUtil;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPPacket;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPParser;
 
@@ -17,6 +20,7 @@ public class TransmittingThread {
     private static final int PIPE_SIZE = 4096; // todo what size should it be? same as buffer size for the datagram packet?
     private final DatagramSocket socket;
     private final TargetDataLine targetDataLine;
+    private String codec;
 
     private Thread captureThread;
     private Thread encoderThread;
@@ -24,10 +28,24 @@ public class TransmittingThread {
     private Thread audioFileThread;
     private Thread encodeFileThread;
     private Thread rtpFileSenderThread;
+    protected double inEnergy;
 
-    public TransmittingThread(DatagramSocket socket, TargetDataLine targetDataLine) {
+
+    public TransmittingThread(DatagramSocket socket, TargetDataLine targetDataLine, String codec) {
         this.socket = socket;
         this.targetDataLine = targetDataLine;
+        this.codec = codec;
+    }
+
+    // data from mic
+    public short[] effectIn(short[] in) {
+        double energy = 0;
+        for (int i = 0; i < in.length; i++) {
+            energy = energy + (Math.abs(in[i]));
+        }
+        inEnergy = energy / in.length;
+
+        return in;
     }
 
     public void start() throws IOException {
@@ -66,12 +84,38 @@ public class TransmittingThread {
                 try {
                     byte[] rawBuffer = new byte[10000];
                     byte[] encodingBuffer = new byte[10000];
+                    int encoded = 0;
 
                     while (!Thread.currentThread().isInterrupted()) {
                         int read = rawDataInput.read(rawBuffer);
+//                        if(codec.contains("PCMU")) {
+//                            encoded = PcmuEncoder.process(rawBuffer, encodingBuffer, 0, read);
+//
+//                        }else if(codec.contains("G722")){
+//                            G722Codec g722Codec = new G722Codec();
+//                            encoded = g722Codec.encode(rawBuffer);
+//                        }
 
-                        int encoded = PcmuEncoder.process(rawBuffer, encodingBuffer, 0, read);
-                        encodedDataOutput.write(encodingBuffer, 0, encoded);
+
+
+
+
+
+                        if(read != -1){
+//                            G722Codec g722Codec = new G722Codec();
+//
+//                            short[] sframe = CodecUtil.bytesToShorts(new byte[100]);
+//                            short[] seframe = effectIn(sframe);
+//                            byte[] ret = new byte[161];
+//                            byte[] tbuff = g722Codec.encode(seframe);
+//
+//                            System.out.println(" Encoded: " + tbuff.length);
+////                            encoded = g722Codec.encode(ret, CodecUtil.bytesToShorts(rawBuffer));
+//                            encodedDataOutput.write(tbuff, 0, tbuff.length);
+//                            G722CodecOld g722CodecOld = new G722CodecOld();
+//                            encodingBuffer = g722CodecOld.encode(CodecUtil.bytesToShorts(rawBuffer));
+//                            encodedDataOutput.write(encodingBuffer, 0, encodingBuffer.length);
+                        }
                     }
 
                     System.out.println("Encoding thread has stopped");

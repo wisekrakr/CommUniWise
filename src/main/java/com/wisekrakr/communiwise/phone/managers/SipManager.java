@@ -5,12 +5,15 @@ import com.wisekrakr.communiwise.phone.managers.ext.SipClient;
 import com.wisekrakr.communiwise.phone.managers.ext.SipSessionState;
 import com.wisekrakr.communiwise.user.SipAccountManager;
 import gov.nist.javax.sdp.SessionDescriptionImpl;
+import gov.nist.javax.sdp.fields.AttributeField;
+import gov.nist.javax.sdp.parser.AttributeFieldParser;
 import gov.nist.javax.sdp.parser.SDPAnnounceParser;
 import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
 import gov.nist.javax.sip.message.SIPMessage;
 
 import javax.sdp.MediaDescription;
+import javax.sdp.SdpConstants;
 import javax.sip.*;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
@@ -327,9 +330,12 @@ public class SipManager implements SipClient {
                                         // TODO: why always pick the first?
                                         MediaDescription incomingMediaDescriptor = (MediaDescription) sessionDescription.getMediaDescriptions(false).get(0);
 
+                                        String codec = parseAttribute((AttributeField) incomingMediaDescriptor.getAttributes(false).get(0));
+
                                         listener.callConfirmed(
                                                 sessionDescription.getConnection().getAddress(),
-                                                incomingMediaDescriptor.getMedia().getMediaPort());
+                                                incomingMediaDescriptor.getMedia().getMediaPort(),
+                                                codec);
 
                                         break;
 
@@ -435,7 +441,22 @@ public class SipManager implements SipClient {
         callId = udpSipProvider.getNewCallId();
     }
 
+    private String parseAttribute(AttributeField attribute) {
+        try {
+            AttributeFieldParser attributeFieldParser = new AttributeFieldParser(attribute.toString());
+            AttributeField attributeField = attributeFieldParser.attributeField();
 
+
+            if(!attributeField.encode().isEmpty()){
+                System.out.println("encoded: " + attributeField.encode());
+
+                return attributeField.encode();
+            }
+        }catch (ParseException e){
+            System.out.println(" Unable to parse the attributes " + e);
+        }
+        return null;
+    }
 
 
     /************                               ACTIONS                             ************/
@@ -531,16 +552,17 @@ public class SipManager implements SipClient {
 
             // TODO: this line should be generated (e.g. it announces codecs now
             // TODO: cf https://tools.ietf.org/html/rfc3555  https://andrewjprokop.wordpress.com/2013/09/30/understanding-session-description-protocol-sdp/
-            //
+
+
             String sdpData =
                       "v=0\r\n"
                     + "o=yomama 1234 1234 IN IP4 " + localSipAddress + "\r\n"
                     + "s=Communwise 0.9.0 beta\r\n"
                     + "c=IN IP4 " + localSipAddress + "\r\n"
                     + "t=0 0\r\n"
-                    + "m=audio " + port + " RTP/AVP 0\r\n"
-                    + "a=rtpmap:8 PCMA/8000\r\n";
-//                    + "a=rtpmap:4 G723/8000\r\n"
+                    + "m=audio " + port + " RTP/AVP 9\r\n"
+//                    + "a=rtpmap:8 PCMA/8000\r\n";
+                    + "a=rtpmap:9 G722/8000\r\n";
 //                    + "a=rtpmap:18 G729A/8000\r\n"
  //                   + "a=ptime:20\r\n";
 
@@ -630,15 +652,16 @@ public class SipManager implements SipClient {
                 "s=mysession session\r\n" +
                 "c=IN IP4 " + localRtpHost + "\r\n" +
                 "t=0 0\r\n" +
-                "m=audio " + localRtpPort + " RTP/AVP 0\r\n" +
+                "m=audio " + localRtpPort + " RTP/AVP 9\r\n" +
 //                "m=audio " + localRtpPort + " RTP/AVP 0 4 18 101\r\n" +
-                "a=rtpmap:0 PCMU/8000\r\n" +
-//                "a=rtpmap:4 G723/8000\r\n" +
+//                "a=rtpmap:0 PCMU/8000\r\n" +
+                "a=rtpmap:9 G722/8000\r\n" +
 //                "a=rtpmap:18 G729A/8000\r\n" +
 //                "a=rtpmap:101 telephone-event/8000\r\n" +
                 "a=maxptime:150\r\n" +
-                "a=sendrecv\r\n" +
-                "a=ptime:20\r\n").getBytes(), contentTypeHeader);
+                "a=sendrecv\r\n"
+//                "a=ptime:20\r\n"
+        ).getBytes(), contentTypeHeader);
 
         callRequest.addHeader(headerFactory.createHeader("sipphone.Call-Info", "<http://www.antd.nist.gov>"));
 
@@ -693,15 +716,15 @@ public class SipManager implements SipClient {
 //        RouteHeader route = headerFactory.createRouteHeader(routeAddress);
 //        request.addHeader(route);
         //todo: this information below is needed if someone wants to call us (A Contact Header)
-        /*
-        Address routeAddress = addressFactory.createAddress("sip:"
-                + "damian2" + "@"
-                + localSipAddress + ":" + localSipPort + ";transport=" + sipTransport
-                + ";registering_acc=" + proxyHost);
 
-        ContactHeader route = headerFactory.createContactHeader(routeAddress);
-        request.addHeader(route);
-         */
+//        Address routeAddress = addressFactory.createAddress("sip:"
+//                + "damian2" + "@"
+//                + localSipAddress + ":" + localSipPort + ";transport=" + sipTransport
+//                + ";registering_acc=" + proxyHost);
+//
+//        ContactHeader route = headerFactory.createContactHeader(routeAddress);
+//        request.addHeader(route);
+
 
         if (content != null) {
             ContentTypeHeader contentTypeHeader = headerFactory.createContentTypeHeader("text", "plain");

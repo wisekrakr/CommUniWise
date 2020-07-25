@@ -27,15 +27,15 @@ public class RTPConnectionManager {
         this.socket = new DatagramSocket();
     }
 
-    public void connect(InetSocketAddress remoteAddress) throws IOException{
+    public void connect(InetSocketAddress remoteAddress, String codec) throws IOException{
         socket.connect(remoteAddress);
 
-        receptionThread = new Thread(new ReceptionThread(outputLine, socket));
+        receptionThread = new Thread(new ReceptionThread(outputLine, socket, codec));
         receptionThread.setName("Reception thread");
         receptionThread.setDaemon(true);
         receptionThread.start();
 
-        transmittingThread = new TransmittingThread(socket, inputLine);
+        transmittingThread = new TransmittingThread(socket, inputLine, codec);
         transmittingThread.start();
 
         System.out.println(" RTP Connection Client: " + socket.isConnected());
