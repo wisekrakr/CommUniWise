@@ -28,7 +28,6 @@ public class TransmittingThread {
     private Thread audioFileThread;
     private Thread encodeFileThread;
     private Thread rtpFileSenderThread;
-    protected double inEnergy;
 
 
     public TransmittingThread(DatagramSocket socket, TargetDataLine targetDataLine, String codec) {
@@ -37,18 +36,9 @@ public class TransmittingThread {
         this.codec = codec;
     }
 
-    // data from mic
-    public short[] effectIn(short[] in) {
-        double energy = 0;
-        for (int i = 0; i < in.length; i++) {
-            energy = energy + (Math.abs(in[i]));
-        }
-        inEnergy = energy / in.length;
-
-        return in;
-    }
 
     public void start() throws IOException {
+        //todo AudioInputStream
         PipedOutputStream rawDataOutput = new PipedOutputStream();
         PipedInputStream rawDataInput = new PipedInputStream(rawDataOutput, PIPE_SIZE);
 
@@ -82,12 +72,12 @@ public class TransmittingThread {
         encoderThread = new Thread(new Runnable() {
             public void run() {
                 try {
-                    byte[] rawBuffer = new byte[10000];
-                    byte[] encodingBuffer = new byte[10000];
+                    short[] rawBuffer = new short[160];
+                    byte[] encodingBuffer = new byte[320];
                     int encoded = 0;
 
                     while (!Thread.currentThread().isInterrupted()) {
-                        int read = rawDataInput.read(rawBuffer);
+                        int read = rawDataInput.read(CodecUtil.shortsToBytes(rawBuffer));
 //                        if(codec.contains("PCMU")) {
 //                            encoded = PcmuEncoder.process(rawBuffer, encodingBuffer, 0, read);
 //
@@ -102,19 +92,10 @@ public class TransmittingThread {
 
 
                         if(read != -1){
-//                            G722Codec g722Codec = new G722Codec();
-//
-//                            short[] sframe = CodecUtil.bytesToShorts(new byte[100]);
-//                            short[] seframe = effectIn(sframe);
-//                            byte[] ret = new byte[161];
-//                            byte[] tbuff = g722Codec.encode(seframe);
-//
-//                            System.out.println(" Encoded: " + tbuff.length);
-////                            encoded = g722Codec.encode(ret, CodecUtil.bytesToShorts(rawBuffer));
-//                            encodedDataOutput.write(tbuff, 0, tbuff.length);
-//                            G722CodecOld g722CodecOld = new G722CodecOld();
-//                            encodingBuffer = g722CodecOld.encode(CodecUtil.bytesToShorts(rawBuffer));
-//                            encodedDataOutput.write(encodingBuffer, 0, encodingBuffer.length);
+                            G722Codec g722Codec = new G722Codec();
+
+                            encodingBuffer = g722Codec.encode(rawBuffer);
+                            encodedDataOutput.write(encodingBuffer, 0, encodingBuffer.length);
                         }
                     }
 

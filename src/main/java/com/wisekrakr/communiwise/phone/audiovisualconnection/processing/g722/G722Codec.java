@@ -116,12 +116,10 @@ public class G722Codec {
         int outlen;
         int i;
         int j;
-        int len;
 
-        len = rtpPacketData.length;
         outlen = 0;
         rhigh = 0;
-        for (j = 0; j < len;) {
+        for (j = 0; j < rtpPacketData.length;) {
             if (packed) {
                 /* Unpack the code bits */
                 if (inBits < bitsPerSample) {

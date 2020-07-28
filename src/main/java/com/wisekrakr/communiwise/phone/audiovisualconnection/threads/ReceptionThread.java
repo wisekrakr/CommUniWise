@@ -79,7 +79,7 @@ public class ReceptionThread implements Runnable {
 //        }
 
         G722Codec g722Codec = new G722Codec();
-        rawBuf = g722Codec.decode(rtpPacket.getData());
+        short[] rawBuf = g722Codec.decode(rtpPacket.getData());
 
         byte[] rawBytes = CodecUtil.shortsToBytes(rawBuf);
 

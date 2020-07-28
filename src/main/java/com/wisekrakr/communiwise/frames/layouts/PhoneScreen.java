@@ -5,6 +5,7 @@ import com.wisekrakr.communiwise.frames.AudioPlayerFrame;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
 import com.wisekrakr.communiwise.frames.ext.AbstractScreen;
 import com.wisekrakr.communiwise.frames.layouts.panes.background.GradientPanel;
+import com.wisekrakr.communiwise.phone.messaging.ChatClient;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -106,6 +107,7 @@ public class PhoneScreen extends AbstractScreen {
                 add((unregisterButton = new JButton("Unregister")), gbc);
 
                 makeAudioCall();
+                startChatMessaging();
             }
 
             void makeAudioCall() {
@@ -115,6 +117,17 @@ public class PhoneScreen extends AbstractScreen {
                         phone.initiateCall("sip:" + (destinationPane.getSipTargetName().trim() + "@" + destinationPane.getSipTargetAddress().trim()));
                     }
                 });
+            }
+
+            void startChatMessaging(){
+                messageButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        ChatClient client = new ChatClient(destinationPane.getSipTargetAddress().trim(), Integer.parseInt(destinationPane.getSipTargetPort()));
+                        client.execute();
+                    }
+                });
+
             }
         }
 
