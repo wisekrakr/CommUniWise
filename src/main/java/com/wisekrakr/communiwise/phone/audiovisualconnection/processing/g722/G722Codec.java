@@ -6,6 +6,8 @@ Technology of the codec is based on sub-band ADPCM (SB-ADPCM). G.722 sample audi
 10 ms, double that of traditional telephony interfaces, which results in superior audio quality and clarity.
  */
 
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.utils.CodecUtil;
+
 public class G722Codec {
 
     private final int bitsPerSample = 8;
@@ -96,11 +98,11 @@ public class G722Codec {
     private static final int[] ihn = {0, 1, 0};
     private static final int[] ihp = {0, 3, 2};
 
-    //why is 160 so important? The coder works on a frame of 160 speech samples.
-    //320 here because a short(16) is twice the length of a byte (8).
-    private final short[] decoded = new short[320];
 
-    public short[] decode(byte[] rtpPacketData) {
+    public byte[] decode(byte[] rtpPacketData) {
+        //why is 160 so important? The coder works on a frame of 160 speech samples.
+        //320 here because a short(16) is twice the length of a byte (8).
+        short[] decoded = new short[320];
 
         int dlowt;
         int rlow;
@@ -119,7 +121,7 @@ public class G722Codec {
 
         outlen = 0;
         rhigh = 0;
-        for (j = 0; j < rtpPacketData.length;) {
+        for (j = 0; j < rtpPacketData.length; ) {
             if (packed) {
                 /* Unpack the code bits */
                 if (inBits < bitsPerSample) {
@@ -245,10 +247,11 @@ public class G722Codec {
                 }
             }
         }
-        return decoded;
+
+        return CodecUtil.shortsToBytes(decoded, outlen);
     }
 
-    private int encodeBytes(byte[] rawData, short[]amp) {
+    private int encodeBytes(byte[] rawData, short[] amp) {
 
         int dlow;
         int dhigh;
@@ -276,9 +279,9 @@ public class G722Codec {
 
         g722Bytes = 0;
         xhigh = 0;
-        for (j = 0; j < len;) {
+        for (j = 0; j < len; ) {
             if (ituTestMode) {
-                xlow =  xhigh = amp[j++] >> 1;
+                xlow = xhigh = amp[j++] >> 1;
             } else {
                 if (eightK) {
                     xlow = amp[j++];

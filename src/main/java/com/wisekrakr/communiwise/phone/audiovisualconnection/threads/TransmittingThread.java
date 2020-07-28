@@ -69,6 +69,8 @@ public class TransmittingThread {
         }, "Capture thread");
         captureThread.setDaemon(true);
 
+        G722Codec g722Codec = new G722Codec();
+
         encoderThread = new Thread(new Runnable() {
             public void run() {
                 try {
@@ -77,7 +79,7 @@ public class TransmittingThread {
                     int encoded = 0;
 
                     while (!Thread.currentThread().isInterrupted()) {
-                        int read = rawDataInput.read(CodecUtil.shortsToBytes(rawBuffer));
+                        int read = rawDataInput.read(CodecUtil.shortsToBytes(rawBuffer, 0));
 //                        if(codec.contains("PCMU")) {
 //                            encoded = PcmuEncoder.process(rawBuffer, encodingBuffer, 0, read);
 //
@@ -92,7 +94,6 @@ public class TransmittingThread {
 
 
                         if(read != -1){
-                            G722Codec g722Codec = new G722Codec();
 
                             encodingBuffer = g722Codec.encode(rawBuffer);
                             encodedDataOutput.write(encodingBuffer, 0, encodingBuffer.length);

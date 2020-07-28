@@ -384,7 +384,7 @@ public class G722CodecOld {
 
     private final short[] decoded = new short[320];
 
-    public short[] decode(byte[] src8, int off) {
+    public short[] decode(byte[] src8) {
         int dlowt;
         int rlow;
         int ihigh;
@@ -400,7 +400,7 @@ public class G722CodecOld {
         int i;
         int j;
 
-        off += 12;  //skip RTP header
+        int off = 0;  // += 12;  //skip RTP header
         outlen = 0;
         rhigh = 0;
         for (j = 0; j < 160;) {
@@ -531,7 +531,5 @@ public class G722CodecOld {
         }
         return decoded;  //outlen;
     }
-
-
 
 }

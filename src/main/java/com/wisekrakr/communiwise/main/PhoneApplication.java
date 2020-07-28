@@ -21,7 +21,7 @@ import java.net.InetSocketAddress;
 
 public class PhoneApplication implements Serializable {
 
-    private static final AudioFormat FORMAT = new AudioFormat(8000, 16, 2, true, false); //G722 has 16000 samplerate
+    private static final AudioFormat FORMAT = new AudioFormat(16000, 16, 1, true, true); //G722 has 16000 samplerate
     private SipManager sipManager;
 
     private LoginScreen loginScreen;

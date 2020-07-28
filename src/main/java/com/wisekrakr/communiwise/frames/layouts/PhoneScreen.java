@@ -2,10 +2,9 @@ package com.wisekrakr.communiwise.frames.layouts;
 
 
 import com.wisekrakr.communiwise.frames.AudioPlayerFrame;
-import com.wisekrakr.communiwise.phone.device.PhoneAPI;
 import com.wisekrakr.communiwise.frames.ext.AbstractScreen;
 import com.wisekrakr.communiwise.frames.layouts.panes.background.GradientPanel;
-import com.wisekrakr.communiwise.phone.messaging.ChatClient;
+import com.wisekrakr.communiwise.phone.device.PhoneAPI;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -123,8 +122,8 @@ public class PhoneScreen extends AbstractScreen {
                 messageButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        ChatClient client = new ChatClient(destinationPane.getSipTargetAddress().trim(), Integer.parseInt(destinationPane.getSipTargetPort()));
-                        client.execute();
+//                        ChatClient client = new ChatClient(destinationPane.getSipTargetAddress().trim(), Integer.parseInt(destinationPane.getSipTargetPort()));
+//                        client.execute();
                     }
                 });
 

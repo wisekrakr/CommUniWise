@@ -15,8 +15,7 @@ public class CodecUtil {
         return output;
     }
 
-    public static byte[] shortsToBytes(short shortBuffer[]) {
-        int len = shortBuffer.length;
+    public static byte[] shortsToBytes(short shortBuffer[], int len) {
         byte[] output = new byte[len*2];
         int j = 0;
 
