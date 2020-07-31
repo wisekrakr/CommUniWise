@@ -1,6 +1,5 @@
 package com.wisekrakr.communiwise.phone.audiovisualconnection.threads;
 
-import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.G722Decoder;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.G722Encoder;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPPacket;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPParser;
@@ -19,7 +18,7 @@ public class TransmittingThread {
     private static final int PIPE_SIZE = 4096; // todo what size should it be? same as buffer size for the datagram packet?
     private final DatagramSocket socket;
     private final TargetDataLine targetDataLine;
-    private String codec;
+    private final String codec;
 
     private Thread captureThread;
     private Thread encoderThread;
@@ -69,16 +68,15 @@ public class TransmittingThread {
         captureThread.setDaemon(true);
 
         encoderThread = new Thread(new Runnable() {
+
             public void run() {
                 try {
-                    byte[] rawBuffer = new byte[BUFFER_SIZE /2];
+                    byte[] rawBuffer = new byte[BUFFER_SIZE];
 
                     while (!Thread.currentThread().isInterrupted()) {
                         int read = rawDataInput.read(rawBuffer);
 
-//                        System.arraycopy(rawBuffer, 0, encodingBuffer, 0, read);
-
-                        byte[] encodingBuffer = g722Encoder.encode_frame(rawBuffer);
+                        byte[] encodingBuffer = g722Encoder.encode(rawBuffer, BUFFER_SIZE);
 
                         encodedDataOutput.write(encodingBuffer, 0, read);
                     }
@@ -111,7 +109,7 @@ public class TransmittingThread {
 
                 rtpPacket.setCsrcList(new long[rtpPacket.getCsrcCount()]);
 
-                byte[] buffer = new byte[BUFFER_SIZE/2];
+                byte[] buffer = new byte[BUFFER_SIZE];
 
                 int targetSize = 1;
 
@@ -190,17 +188,14 @@ public class TransmittingThread {
         encodeFileThread = new Thread(new Runnable() {
             public void run() {
                 try {
-                    byte[] rawBuffer = new byte[BUFFER_SIZE/2];
-                    byte[] encodingBuffer = new byte[BUFFER_SIZE/2];
+                    byte[] rawBuffer = new byte[BUFFER_SIZE];
 
                     while (!Thread.currentThread().isInterrupted()) {
                         int read = rawDataInput.read(rawBuffer);
 
-                        System.arraycopy(rawBuffer, 0, encodingBuffer, 0, read);
+                        byte[] encodingBuffer = g722Encoder.encode(rawBuffer, BUFFER_SIZE);
 
-                        byte[] output = g722Encoder.encode_frame(encodingBuffer);
-
-                        encodedDataOutput.write(output, 0, read);
+                        encodedDataOutput.write(encodingBuffer, 0, read);
                     }
 
                     System.out.println("Encoding thread has stopped");
