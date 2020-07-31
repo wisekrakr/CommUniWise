@@ -67,8 +67,10 @@ public class PhoneScreen extends AbstractScreen {
 
             private JButton messageButton, audioCallButton, videoCallButton, unregisterButton;
             private JLabel controls;
+            private ChatFrame chatFrame;
 
             public ControlsPane() {
+                chatFrame = new ChatFrame("bla");
                 setLayout(new GridBagLayout());
                 setBorder(new CompoundBorder(new TitledBorder("Controls"), new EmptyBorder(12, 0, 0, 0)));
                 GridBagConstraints gbc = new GridBagConstraints();
@@ -122,8 +124,7 @@ public class PhoneScreen extends AbstractScreen {
                 messageButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-//                        ChatClient client = new ChatClient(destinationPane.getSipTargetAddress().trim(), Integer.parseInt(destinationPane.getSipTargetPort()));
-//                        client.execute();
+                        chatFrame.setVisible(true);
                     }
                 });
 

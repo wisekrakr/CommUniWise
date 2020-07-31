@@ -1,6 +1,7 @@
 package com.wisekrakr.communiwise.phone.audiovisualconnection.threads;
 
-import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.G722Codec;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.G722Decoder;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.pcmu.PcmuDecoder;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPPacket;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPParser;
 
@@ -13,16 +14,14 @@ public class ReceptionThread implements Runnable {
     private final SourceDataLine output;
     private final DatagramSocket socket;
     private String codec;
-    private short[] rawBuf;
-    private G722Codec g722Codec = new G722Codec();
+    private G722Decoder g722Decoder = new G722Decoder();
+    private PcmuDecoder pcmuDecoder = new PcmuDecoder();
 
 
     public ReceptionThread(SourceDataLine output, DatagramSocket socket, String codec) {
         this.output = output;
         this.socket = socket;
         this.codec = codec;
-
-        rawBuf = new short[160];
     }
 
     @Override
@@ -58,27 +57,15 @@ public class ReceptionThread implements Runnable {
     }
 
     private void receivedRtpPacket(RTPPacket rtpPacket) {
+        if(codec.contains("PCMU")) {
+            byte[] rawBuf = pcmuDecoder.process(rtpPacket.getData());
+            output.write(rawBuf, 0, rawBuf.length);
 
+        }else if(codec.contains("G722")){
+            byte[] rawBuf = g722Decoder.decode(rtpPacket.getData());
+            output.write(rawBuf, 0, rawBuf.length);
+        }
 
-//        if(codec.contains("PCMU")) {
-//            PcmuDecoder pcmuDecoder = new PcmuDecoder();
-//            rawBuf = pcmuDecoder.process(rtpPacket.getData());
-//
-//        }else if(codec.contains("G722")){
-//            G722Codec g722Codec = new G722Codec();
-//            rawBuf = g722Codec.process(rtpPacket.getData());
-//        }
-
-        byte[] rawBuf = g722Codec.decode(rtpPacket.getData());
-        output.write(rawBuf, 0, rawBuf.length);
-//        G722CodecOld g722Codec = new G722CodecOld();
-//        rawBuf = g722Codec.decode(rtpPacket.getData());
-//
-//        byte[] rawBytes = CodecUtil.shortsToBytes(rawBuf);
-//
-
-
-        System.out.println("    raw    " + rawBuf.length);
     }
 }
 

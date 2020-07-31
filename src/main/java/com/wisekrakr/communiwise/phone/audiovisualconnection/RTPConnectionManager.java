@@ -2,6 +2,7 @@ package com.wisekrakr.communiwise.phone.audiovisualconnection;
 
 import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.ReceptionThread;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.TransmittingThread;
+import com.wisekrakr.communiwise.phone.messaging.ReadThread;
 
 import javax.sound.sampled.*;
 import java.io.IOException;
@@ -17,6 +18,7 @@ public class RTPConnectionManager {
 
     private Thread receptionThread;
     private TransmittingThread transmittingThread;
+    private Thread chatThread;
 
     public RTPConnectionManager(TargetDataLine inputLine, SourceDataLine outputLine) {
         this.inputLine = inputLine;
@@ -27,7 +29,18 @@ public class RTPConnectionManager {
         this.socket = new DatagramSocket();
     }
 
-    public void connect(InetSocketAddress remoteAddress, String codec) throws IOException{
+    public void connectForTextMessaging(int port){
+
+        chatThread = new Thread(new ReadThread(socket,socket.getInetAddress(),port));
+        chatThread.setName("Chat thread");
+        chatThread.setDaemon(true);
+        chatThread.start();
+
+        System.out.println(" RTP Connection Chat Client: " + socket.isConnected());
+
+    }
+
+    public void connectForAudioStream(InetSocketAddress remoteAddress, String codec) throws IOException{
         socket.connect(remoteAddress);
 
         receptionThread = new Thread(new ReceptionThread(outputLine, socket, codec));
@@ -38,7 +51,7 @@ public class RTPConnectionManager {
         transmittingThread = new TransmittingThread(socket, inputLine, codec);
         transmittingThread.start();
 
-        System.out.println(" RTP Connection Client: " + socket.isConnected());
+        System.out.println(" RTP Connection Audio Client: " + socket.isConnected());
     }
 
     public void send(AudioInputStream audioStream)throws IOException{
@@ -63,6 +76,13 @@ public class RTPConnectionManager {
         socket.close();
 
         transmittingThread.stop();
+    }
+
+    public void stopChat(){
+        chatThread.interrupt();
+
+        socket.disconnect();
+        socket.close();
     }
 
     private void stopInput() {

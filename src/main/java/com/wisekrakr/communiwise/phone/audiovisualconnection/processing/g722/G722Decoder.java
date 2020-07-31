@@ -8,7 +8,9 @@ Technology of the codec is based on sub-band ADPCM (SB-ADPCM). G.722 sample audi
 
 import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.utils.CodecUtil;
 
-public class G722Codec {
+import javax.sound.sampled.AudioFormat;
+
+public class G722Decoder {
 
     private final int bitsPerSample = 8;
     private final boolean ituTestMode = false;
@@ -18,10 +20,8 @@ public class G722Codec {
     private final Band[] mainBand;
     private int inBuffer;
     private int inBits;
-    private int outBuffer;
-    private int outBits;
 
-    public G722Codec() {
+    public G722Decoder() {
         mainBand = new Band[2];
         mainBand[0] = new Band();
         mainBand[1] = new Band();
@@ -77,26 +77,8 @@ public class G722Codec {
             1688, 1360, 1040, 728,
             432, 136, -432, -136
     };
-    private static final int[] iLn = {
-            0, 63, 62, 31, 30, 29, 28, 27,
-            26, 25, 24, 23, 22, 21, 20, 19,
-            18, 17, 16, 15, 14, 13, 12, 11,
-            10, 9, 8, 7, 6, 5, 4, 0
-    };
-    private static final int[] ilp = {
-            0, 61, 60, 59, 58, 57, 56, 55,
-            54, 53, 52, 51, 50, 49, 48, 47,
-            46, 45, 44, 43, 42, 41, 40, 39,
-            38, 37, 36, 35, 34, 33, 32, 0
-    };
-    private static final int[] q6 = {
-            0, 35, 72, 110, 150, 190, 233, 276,
-            323, 370, 422, 473, 530, 587, 650, 714,
-            786, 858, 940, 1023, 1121, 1219, 1339, 1458,
-            1612, 1765, 1980, 2195, 2557, 2919, 0, 0
-    };
-    private static final int[] ihn = {0, 1, 0};
-    private static final int[] ihp = {0, 3, 2};
+
+
 
 
     public byte[] decode(byte[] rtpPacketData) {
@@ -251,149 +233,4 @@ public class G722Codec {
         return CodecUtil.shortsToBytes(decoded, outlen);
     }
 
-    private int encodeBytes(byte[] rawData, short[] amp) {
-
-        int dlow;
-        int dhigh;
-        int el;
-        int wd;
-        int wd1;
-        int ril;
-        int wd2;
-        int il4;
-        int ih2;
-        int wd3;
-        int eh;
-        int mih;
-        int i;
-        int j;
-        int xlow;
-        int xhigh;
-        int g722Bytes;
-        int sumeven;
-        int sumodd;
-        int ihigh;
-        int ilow;
-        int code;
-        int len = amp.length;
-
-        g722Bytes = 0;
-        xhigh = 0;
-        for (j = 0; j < len; ) {
-            if (ituTestMode) {
-                xlow = xhigh = amp[j++] >> 1;
-            } else {
-                if (eightK) {
-                    xlow = amp[j++];
-                } else {
-                    for (i = 0; i < 22; i++) {
-                        xInts[i] = xInts[i + 2];
-                    }
-                    xInts[22] = amp[j++];
-                    xInts[23] = amp[j++];
-
-                    sumeven = 0;
-                    sumodd = 0;
-                    for (i = 0; i < 12; i++) {
-                        sumodd += xInts[2 * i] * qmfCoeffs[i];
-                        sumeven += xInts[2 * i + 1] * qmfCoeffs[11 - i];
-                    }
-                    xlow = (sumeven + sumodd) >> 13;
-                    xhigh = (sumeven - sumodd) >> 13;
-                }
-            }
-            /* Block 1L, SUBTRA */
-            el = Band.saturate(xlow - mainBand[0]._s);
-
-            /* Block 1L, QUANTL */
-            wd = (el >= 0) ? el : -(el + 1);
-
-            for (i = 1; i < 30; i++) {
-                wd1 = (q6[i] * mainBand[0]._det) >> 12;
-                if (wd < wd1) {
-                    break;
-                }
-            }
-            ilow = (el < 0) ? iLn[i] : ilp[i];
-
-            /* Block 2L, INVQAL */
-            ril = ilow >> 2;
-            wd2 = qm4[ril];
-            dlow = (mainBand[0]._det * wd2) >> 15;
-
-            /* Block 3L, LOGSCL */
-            il4 = rl42[ril];
-            wd = (mainBand[0]._nb * 127) >> 7;
-            mainBand[0]._nb = wd + wl[il4];
-            if (mainBand[0]._nb < 0) {
-                mainBand[0]._nb = 0;
-            } else if (mainBand[0]._nb > 18432) {
-                mainBand[0]._nb = 18432;
-            }
-
-            /* Block 3L, SCALEL */
-            wd1 = (mainBand[0]._nb >> 6) & 31;
-            wd2 = 8 - (mainBand[0]._nb >> 11);
-            wd3 = (wd2 < 0) ? (ilb[wd1] << -wd2) : (ilb[wd1] >> wd2);
-            mainBand[0]._det = wd3 << 2;
-
-            mainBand[0].block4(dlow);
-
-            if (eightK) {
-
-                code = (0xC0 | ilow) >> (8 - bitsPerSample);
-            } else {
-                /* Block 1H, SUBTRA */
-                eh = Band.saturate(xhigh - mainBand[1]._s);
-
-                /* Block 1H, QUANTH */
-                wd = (eh >= 0) ? eh : -(eh + 1);
-                wd1 = (564 * mainBand[1]._det) >> 12;
-                mih = (wd >= wd1) ? 2 : 1;
-                ihigh = (eh < 0) ? ihn[mih] : ihp[mih];
-
-                /* Block 2H, INVQAH */
-                wd2 = qm2[ihigh];
-                dhigh = (mainBand[1]._det * wd2) >> 15;
-
-                /* Block 3H, LOGSCH */
-                ih2 = rh2[ihigh];
-                wd = (mainBand[1]._nb * 127) >> 7;
-                mainBand[1]._nb = wd + wh[ih2];
-                if (mainBand[1]._nb < 0) {
-                    mainBand[1]._nb = 0;
-                } else if (mainBand[1]._nb > 22528) {
-                    mainBand[1]._nb = 22528;
-                }
-
-                /* Block 3H, SCALEH */
-                wd1 = (mainBand[1]._nb >> 6) & 31;
-                wd2 = 10 - (mainBand[1]._nb >> 11);
-                wd3 = (wd2 < 0) ? (ilb[wd1] << -wd2) : (ilb[wd1] >> wd2);
-                mainBand[1]._det = wd3 << 2;
-
-                mainBand[1].block4(dhigh);
-                code = ((ihigh << 6) | ilow) >> (8 - bitsPerSample);
-            }
-
-            if (packed) {
-                outBuffer |= (code << outBits);
-                outBits += bitsPerSample;
-                if (outBits >= 8) {
-                    rawData[g722Bytes++] = (byte) (outBuffer & 0xFF);
-                    outBits -= 8;
-                    outBuffer >>= 8;
-                }
-            } else {
-                rawData[g722Bytes++] = (byte) code;
-            }
-        }
-        return g722Bytes;
-    }
-
-    public byte[] encode(short[] rawData) {
-        byte[] ret = new byte[320];
-        encodeBytes(ret, rawData);
-        return ret;
-    }
 }

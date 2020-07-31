@@ -14,22 +14,27 @@ public class AudioManager {
     static AudioFormat MP3_FORMAT = new AudioFormat(44100, 16,2, true, true);
     private File wavFile;
 
+    public AudioManager(TargetDataLine targetDataLine) {
+        this.targetDataLine = targetDataLine;
+    }
+
     public void startRecordingWavFile(){
         wavFile = new File("src/main/resources/" + Math.random() * 1000 + ".wav");
+
 
         if(!Thread.currentThread().isInterrupted()){
             recorder = new Thread(()->{
                 try {
-                    DataLine.Info info = new DataLine.Info(TargetDataLine.class, WAV_FORMAT);
-                    targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
-                    targetDataLine.open(WAV_FORMAT);
-                    targetDataLine.start();
+//                    DataLine.Info info = new DataLine.Info(TargetDataLine.class, WAV_FORMAT);
+//                    targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
+//                    targetDataLine.open(WAV_FORMAT);
+//                    targetDataLine.start();
 
                     AudioInputStream ais = new AudioInputStream(targetDataLine);
 
                     AudioSystem.write(ais, AudioFileFormat.Type.WAVE, wavFile);
 
-                } catch (IOException | LineUnavailableException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             });
@@ -74,8 +79,8 @@ public class AudioManager {
 
         recorder.interrupt();
 
-        targetDataLine.stop();
-        targetDataLine.close();
+//        targetDataLine.stop();
+//        targetDataLine.close();
 
 //        convertWAVtoMP3File(wavFile.getAbsolutePath());
     }

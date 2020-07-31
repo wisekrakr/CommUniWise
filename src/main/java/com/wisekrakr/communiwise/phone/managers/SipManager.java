@@ -665,6 +665,8 @@ public class SipManager implements SipClient {
 
         callRequest.addHeader(headerFactory.createHeader("sipphone.Call-Info", "<http://www.antd.nist.gov>"));
 
+        System.out.println("Our INVITE Request: \r\n" + callRequest);
+
         return callRequest;
 
     }

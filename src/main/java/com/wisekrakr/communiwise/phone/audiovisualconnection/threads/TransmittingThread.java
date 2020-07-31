@@ -1,13 +1,12 @@
 package com.wisekrakr.communiwise.phone.audiovisualconnection.threads;
 
-import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.G722Codec;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.G722CodecOld;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.pcmu.PcmuEncoder;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.utils.CodecUtil;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.G722Decoder;
+import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.G722Encoder;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPPacket;
 import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPParser;
 
-import javax.sound.sampled.*;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.TargetDataLine;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -29,6 +28,7 @@ public class TransmittingThread {
     private Thread encodeFileThread;
     private Thread rtpFileSenderThread;
 
+    private final G722Encoder g722Encoder = new G722Encoder();
 
     public TransmittingThread(DatagramSocket socket, TargetDataLine targetDataLine, String codec) {
         this.socket = socket;
@@ -36,9 +36,8 @@ public class TransmittingThread {
         this.codec = codec;
     }
 
-
     public void start() throws IOException {
-        //todo AudioInputStream
+
         PipedOutputStream rawDataOutput = new PipedOutputStream();
         PipedInputStream rawDataInput = new PipedInputStream(rawDataOutput, PIPE_SIZE);
 
@@ -69,40 +68,25 @@ public class TransmittingThread {
         }, "Capture thread");
         captureThread.setDaemon(true);
 
-        G722Codec g722Codec = new G722Codec();
-
         encoderThread = new Thread(new Runnable() {
             public void run() {
                 try {
-                    short[] rawBuffer = new short[160];
-                    byte[] encodingBuffer = new byte[320];
-                    int encoded = 0;
+                    byte[] rawBuffer = new byte[BUFFER_SIZE /2];
 
                     while (!Thread.currentThread().isInterrupted()) {
-                        int read = rawDataInput.read(CodecUtil.shortsToBytes(rawBuffer, 0));
-//                        if(codec.contains("PCMU")) {
-//                            encoded = PcmuEncoder.process(rawBuffer, encodingBuffer, 0, read);
-//
-//                        }else if(codec.contains("G722")){
-//                            G722Codec g722Codec = new G722Codec();
-//                            encoded = g722Codec.encode(rawBuffer);
-//                        }
+                        int read = rawDataInput.read(rawBuffer);
 
+//                        System.arraycopy(rawBuffer, 0, encodingBuffer, 0, read);
 
+                        byte[] encodingBuffer = g722Encoder.encode_frame(rawBuffer);
 
-
-
-
-                        if(read != -1){
-
-                            encodingBuffer = g722Codec.encode(rawBuffer);
-                            encodedDataOutput.write(encodingBuffer, 0, encodingBuffer.length);
-                        }
+                        encodedDataOutput.write(encodingBuffer, 0, read);
                     }
+
 
                     System.out.println("Encoding thread has stopped");
                 } catch (Throwable e) {
-                    System.out.println("Encoding thread has stopped unexpectedly " + e.getMessage());
+                    System.out.println("Encoding thread has stopped unexpectedly " + e);
                 }
             }
         }, "Encoding thread");
@@ -117,7 +101,7 @@ public class TransmittingThread {
                 rtpPacket.setExtension(false);
                 rtpPacket.setCsrcCount(0);
                 rtpPacket.setMarker(false);
-                rtpPacket.setPayloadType(0); //PCMU == 0   PCMA == 8    telephone-event == 101
+                rtpPacket.setPayloadType(9); //PCMU == 0   PCMA == 8    telephone-event == 101
 
                 Random random = new Random();
                 int sequenceNumber = random.nextInt();
@@ -127,7 +111,7 @@ public class TransmittingThread {
 
                 rtpPacket.setCsrcList(new long[rtpPacket.getCsrcCount()]);
 
-                byte[] buffer = new byte[BUFFER_SIZE]; //was 1024
+                byte[] buffer = new byte[BUFFER_SIZE/2];
 
                 int targetSize = 1;
 
@@ -206,14 +190,17 @@ public class TransmittingThread {
         encodeFileThread = new Thread(new Runnable() {
             public void run() {
                 try {
-                    byte[] rawBuffer = new byte[10000];
-                    byte[] encodingBuffer = new byte[10000];
+                    byte[] rawBuffer = new byte[BUFFER_SIZE/2];
+                    byte[] encodingBuffer = new byte[BUFFER_SIZE/2];
 
                     while (!Thread.currentThread().isInterrupted()) {
                         int read = rawDataInput.read(rawBuffer);
 
-                        int encoded = PcmuEncoder.process(rawBuffer, encodingBuffer, 0, read);
-                        encodedDataOutput.write(encodingBuffer, 0, encoded);
+                        System.arraycopy(rawBuffer, 0, encodingBuffer, 0, read);
+
+                        byte[] output = g722Encoder.encode_frame(encodingBuffer);
+
+                        encodedDataOutput.write(output, 0, read);
                     }
 
                     System.out.println("Encoding thread has stopped");
@@ -240,7 +227,7 @@ public class TransmittingThread {
                 //The interpretation of the marker is defined by a profile. It is intended to allow significant events such as frame boundaries to be marked in the packet stream.
                 rtpPacket.setMarker(false);
                 //This field identifies the format of the RTP payload and determines its interpretation by the application
-                rtpPacket.setPayloadType(0); //PCMU == 0   PCMA == 8    telephone-event == 101
+                rtpPacket.setPayloadType(9); //PCMU == 0   PCMA == 8    telephone-event == 101   G722 = 9
 
                 Random random = new Random();
                 int sequenceNumber = random.nextInt();
@@ -255,7 +242,7 @@ public class TransmittingThread {
                 //     of contributing sources.
                 rtpPacket.setCsrcList(new long[rtpPacket.getCsrcCount()]); //todo is this needed?
 
-                byte[] buffer = new byte[BUFFER_SIZE * 2];
+                byte[] buffer = new byte[BUFFER_SIZE];
 
                 int targetSize = 1;
 
@@ -325,6 +312,16 @@ public class TransmittingThread {
     public static final int BUFFER_SIZE = SAMPLE_SIZE * 20;
 
 
-
+    // todo recording thread
+//    new Thread(() -> {
+//        AudioInputStream aisRecording = new AudioInputStream((InputStream) snkSavePIStream, audioformat, AudioSystem.NOT_SPECIFIED);
+//        File fileRecordedWav = new File("Rec_" + dateFilename + ".wav");
+//        System.out.println("fileRecordedWav:" + fileRecordedWav.getAbsolutePath());
+//        try {
+//            AudioSystem.write(aisRecording, AudioFileFormat.Type.WAVE, fileRecordedWav);
+//        } catch (IOException ex) {
+//            System.out.println("Save File -> ex:" + ex.getMessage());
+//        }
+//    }).start();
 
 }
