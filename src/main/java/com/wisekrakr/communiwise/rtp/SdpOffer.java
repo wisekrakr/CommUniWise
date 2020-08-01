@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone.audiovisualconnection.rtp;
+package com.wisekrakr.communiwise.rtp;
 
 import javax.sdp.*;
 import java.io.Serializable;

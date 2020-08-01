@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.wisekrakr.communiwise.phone.audiovisualconnection.util;
+package com.wisekrakr.communiwise.phone.connections.util;
 
 import java.io.*;
 

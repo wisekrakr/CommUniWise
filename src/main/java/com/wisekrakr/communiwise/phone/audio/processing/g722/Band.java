@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722;
+package com.wisekrakr.communiwise.phone.audio.processing.g722;
 
 public class Band {
 

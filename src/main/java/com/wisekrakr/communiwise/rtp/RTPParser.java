@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone.audiovisualconnection.rtp;
+package com.wisekrakr.communiwise.rtp;
 
 public class RTPParser {
 

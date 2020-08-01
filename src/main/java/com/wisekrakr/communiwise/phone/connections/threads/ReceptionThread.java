@@ -1,9 +1,9 @@
-package com.wisekrakr.communiwise.phone.audiovisualconnection.threads;
+package com.wisekrakr.communiwise.phone.connections.threads;
 
-import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722.G722Decoder;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.processing.pcmu.PcmuDecoder;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPPacket;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.rtp.RTPParser;
+import com.wisekrakr.communiwise.phone.audio.processing.g722.G722Decoder;
+import com.wisekrakr.communiwise.phone.audio.processing.pcmu.PcmuDecoder;
+import com.wisekrakr.communiwise.rtp.RTPPacket;
+import com.wisekrakr.communiwise.rtp.RTPParser;
 
 import javax.sound.sampled.SourceDataLine;
 import java.io.IOException;

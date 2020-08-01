@@ -1,16 +1,16 @@
 package com.wisekrakr.communiwise.main;
 
 
-import com.wisekrakr.communiwise.phone.audiovisualconnection.AudioManager;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.RTPConnectionManager;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.SoundAPI;
-import com.wisekrakr.communiwise.phone.device.PhoneAPI;
-import com.wisekrakr.communiwise.phone.managers.SipManagerListener;
-import com.wisekrakr.communiwise.phone.managers.SipManager;
 import com.wisekrakr.communiwise.frames.layouts.AudioCallScreen;
 import com.wisekrakr.communiwise.frames.layouts.IncomingCallScreen;
 import com.wisekrakr.communiwise.frames.layouts.LoginScreen;
 import com.wisekrakr.communiwise.frames.layouts.PhoneScreen;
+import com.wisekrakr.communiwise.phone.audio.AudioManager;
+import com.wisekrakr.communiwise.phone.audio.SoundAPI;
+import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
+import com.wisekrakr.communiwise.phone.device.PhoneAPI;
+import com.wisekrakr.communiwise.phone.managers.SipManager;
+import com.wisekrakr.communiwise.phone.managers.SipManagerListener;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
@@ -22,7 +22,7 @@ import java.net.InetSocketAddress;
 public class PhoneApplication implements Serializable {
 
     private static final AudioFormat FORMAT_SOURCE = new AudioFormat(16000, 16, 1, true, true); //G722 has 16000 samplerate
-    private static final AudioFormat FORMAT_TARGET = new AudioFormat(8000, 8, 1, true, true);
+    private static final AudioFormat FORMAT_TARGET = new AudioFormat(8000, 8, 1, true, false);
     private SipManager sipManager;
 
     private LoginScreen loginScreen;
@@ -31,7 +31,7 @@ public class PhoneApplication implements Serializable {
     private AudioCallScreen audioCallScreen;
 
     private RTPConnectionManager rtpConnectionManager;
-    private AudioManager audioManager;
+//    private AudioManager audioManager;
 
     private static void printHelp(String message) {
         System.out.println(message);
@@ -84,7 +84,6 @@ public class PhoneApplication implements Serializable {
 
             String localAddress = args[0];
 
-
             application.initialize(
                     inputLine,
                     outputLine,
@@ -106,9 +105,11 @@ public class PhoneApplication implements Serializable {
         }
 
         application.run();
+
     }
 
     private void run() {
+
     }
 
     private void initialize(TargetDataLine inputLine, SourceDataLine outputLine, String localAddress, int localPort, String transport, String proxyHost, int proxyPort) throws Exception {
@@ -124,7 +125,7 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void onBye() {
-                        rtpConnectionManager.stopStreaming();
+                        rtpConnectionManager.stopStreamingAudio();
                     }
 
                     @Override
@@ -141,7 +142,7 @@ public class PhoneApplication implements Serializable {
                         //todo codec?
 
                         try {
-                            rtpConnectionManager.connectForAudioStream(new InetSocketAddress(rtpHost, rtpPort), codec);
+                            rtpConnectionManager.connectRTPAudio(new InetSocketAddress(rtpHost, rtpPort), codec);
                         } catch (Exception e) {
                             System.out.println("Unable to connect: " + e);
 
@@ -185,7 +186,7 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void onHangup() {
-                        rtpConnectionManager.stopStreaming();
+                        rtpConnectionManager.stopStreamingAudio();
                     }
 
                     @Override
@@ -211,7 +212,7 @@ public class PhoneApplication implements Serializable {
         rtpConnectionManager = new RTPConnectionManager(inputLine, outputLine);
         rtpConnectionManager.init();
 
-        audioManager = new AudioManager(inputLine);
+//        audioManager = new AudioManager(rtpConnectionManager.getSocket(), inputLine);
 
         sipManager.initialize();
 
@@ -273,7 +274,8 @@ public class PhoneApplication implements Serializable {
 
             @Override
             public void startRecording() {
-                audioManager.startRecordingWavFile();
+
+//                audioManager.startRecordingWavFile();
             }
 
             @Override
@@ -284,7 +286,7 @@ public class PhoneApplication implements Serializable {
                     AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
                     AudioInputStream lowResAudioStream = AudioSystem.getAudioInputStream(FORMAT_TARGET, audioStream);
 
-                    rtpConnectionManager.send(lowResAudioStream);
+//                    audioManager.startSendingAudio(lowResAudioStream);
                 } catch (IOException | UnsupportedAudioFileException e) {
                     System.out.println(" error while sending audio file " + e);
                 }
@@ -292,12 +294,12 @@ public class PhoneApplication implements Serializable {
 
             @Override
             public void stopRecording() {
-                audioManager.stopRecording();
+//                audioManager.stopRecording();
             }
 
             @Override
             public void stopRemoteSound() {
-                rtpConnectionManager.stopSend();
+//                audioManager.stopSendingAudio();
             }
 
             @Override

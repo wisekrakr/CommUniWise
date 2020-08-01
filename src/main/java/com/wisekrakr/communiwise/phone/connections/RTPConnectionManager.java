@@ -1,8 +1,7 @@
-package com.wisekrakr.communiwise.phone.audiovisualconnection;
+package com.wisekrakr.communiwise.phone.connections;
 
-import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.ReceptionThread;
-import com.wisekrakr.communiwise.phone.audiovisualconnection.threads.TransmittingThread;
-import com.wisekrakr.communiwise.phone.messaging.ReadThread;
+import com.wisekrakr.communiwise.phone.connections.threads.ReceptionThread;
+import com.wisekrakr.communiwise.phone.connections.threads.TransmittingThread;
 
 import javax.sound.sampled.*;
 import java.io.IOException;
@@ -29,18 +28,19 @@ public class RTPConnectionManager {
         this.socket = new DatagramSocket();
     }
 
-    public void connectForTextMessaging(int port){
+    //todo this not here
+//    public void connectRTPChat(int port){
+//
+//        chatThread = new Thread(new ReadThread(socket,socket.getInetAddress(),port));
+//        chatThread.setName("Chat thread");
+//        chatThread.setDaemon(true);
+//        chatThread.start();
+//
+//        System.out.println(" RTP Connection Chat Client: " + socket.isConnected());
+//
+//    }
 
-        chatThread = new Thread(new ReadThread(socket,socket.getInetAddress(),port));
-        chatThread.setName("Chat thread");
-        chatThread.setDaemon(true);
-        chatThread.start();
-
-        System.out.println(" RTP Connection Chat Client: " + socket.isConnected());
-
-    }
-
-    public void connectForAudioStream(InetSocketAddress remoteAddress, String codec) throws IOException{
+    public void connectRTPAudio(InetSocketAddress remoteAddress, String codec) throws IOException{
         socket.connect(remoteAddress);
 
         receptionThread = new Thread(new ReceptionThread(outputLine, socket, codec));
@@ -54,14 +54,7 @@ public class RTPConnectionManager {
         System.out.println(" RTP Connection Audio Client: " + socket.isConnected());
     }
 
-    public void send(AudioInputStream audioStream)throws IOException{
-        transmittingThread.startSending(audioStream);
-    }
-    public void stopSend(){
-        transmittingThread.interruptSending();
-    }
-
-    public void stopStreaming() {
+    public void stopStreamingAudio() {
         receptionThread.interrupt();
         try {
             receptionThread.join(1000);
@@ -76,13 +69,6 @@ public class RTPConnectionManager {
         socket.close();
 
         transmittingThread.stop();
-    }
-
-    public void stopChat(){
-        chatThread.interrupt();
-
-        socket.disconnect();
-        socket.close();
     }
 
     private void stopInput() {

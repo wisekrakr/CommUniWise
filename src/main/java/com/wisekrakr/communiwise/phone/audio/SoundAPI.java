@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone.audiovisualconnection;
+package com.wisekrakr.communiwise.phone.audio;
 
 public interface SoundAPI {
 

@@ -1,26 +1,39 @@
-package com.wisekrakr.communiwise.phone.audiovisualconnection;
+package com.wisekrakr.communiwise.phone.audio;
 
+
+import com.wisekrakr.communiwise.phone.connections.threads.RemoteAudioPlayThread;
 
 import javax.sound.sampled.*;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.DatagramSocket;
 
 public class AudioManager {
 
     private Thread recorder;
+    private RemoteAudioPlayThread remoteAudioPlayThread;
+    private DatagramSocket socket;
     private TargetDataLine targetDataLine;
 
     static AudioFormat WAV_FORMAT = new AudioFormat(16000, 8,2, true, true);
     static AudioFormat MP3_FORMAT = new AudioFormat(44100, 16,2, true, true);
     private File wavFile;
 
-    public AudioManager(TargetDataLine targetDataLine) {
+    public AudioManager(DatagramSocket socket, TargetDataLine targetDataLine) {
+        this.socket = socket;
         this.targetDataLine = targetDataLine;
+    }
+
+    public void startSendingAudio(AudioInputStream audioStream) throws IOException{
+        remoteAudioPlayThread = new RemoteAudioPlayThread(socket, targetDataLine);
+        remoteAudioPlayThread.startSending(audioStream);
+    }
+
+    public void stopSendingAudio(){
+        remoteAudioPlayThread.stopSending();
     }
 
     public void startRecordingWavFile(){
         wavFile = new File("src/main/resources/" + Math.random() * 1000 + ".wav");
-
 
         if(!Thread.currentThread().isInterrupted()){
             recorder = new Thread(()->{
@@ -34,8 +47,8 @@ public class AudioManager {
 
                     AudioSystem.write(ais, AudioFileFormat.Type.WAVE, wavFile);
 
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (Throwable e) {
+                    System.out.println("Recording thread has stopped unexpectedly " + e.getMessage());
                 }
             });
         }
@@ -78,9 +91,6 @@ public class AudioManager {
         System.out.println("Recording stopped for file " + wavFile.getName());
 
         recorder.interrupt();
-
-//        targetDataLine.stop();
-//        targetDataLine.close();
 
 //        convertWAVtoMP3File(wavFile.getAbsolutePath());
     }

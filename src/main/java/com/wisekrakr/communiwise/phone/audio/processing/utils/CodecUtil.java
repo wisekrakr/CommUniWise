@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone.audiovisualconnection.processing.utils;
+package com.wisekrakr.communiwise.phone.audio.processing.utils;
 
 public class CodecUtil {
 

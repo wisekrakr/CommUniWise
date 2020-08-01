@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone.audiovisualconnection.processing;
+package com.wisekrakr.communiwise.phone.audio.processing;
 
 public abstract class Decoder {
 

@@ -21,7 +21,7 @@
  * Chengxiang Lu and Alex Hauptmann
  *
  */
-package com.wisekrakr.communiwise.phone.audiovisualconnection.processing.g722;
+package com.wisekrakr.communiwise.phone.audio.processing.g722;
 
 
 public class G722Encoder  {
@@ -30,11 +30,11 @@ public class G722Encoder  {
     disabled. */
     private boolean ituTestMode;
     /*! TRUE if the G.722 data is packed */
-    private boolean packed = false;
+    private final boolean packed = false;
     /*! TRUE if decode to 8k samples/second */
-    private boolean eightK = true;
+    private final boolean eightK = true;
     /*! 6 for 48000kbps, 7 for 56000kbps, or 8 for 64000kbps. */
-    private int bitsPerSample = 8;
+    private final int bitsPerSample = 8;
 
     private final int[] xInts = new int[24];
     private final Band[] bands = new Band[2];
@@ -262,4 +262,6 @@ public class G722Encoder  {
         process(ret, compressed);
         return ret;
     }
+
+
 }
