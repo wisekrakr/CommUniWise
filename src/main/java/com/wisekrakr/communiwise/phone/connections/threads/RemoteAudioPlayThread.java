@@ -24,7 +24,7 @@ public class RemoteAudioPlayThread {
     private Thread encodeFileThread;
     private Thread rtpFileSenderThread;
 
-    private final G722Encoder g722Encoder = new G722Encoder();
+    private final G722Encoder g722Encoder = new G722Encoder(1000);
 
     public RemoteAudioPlayThread(DatagramSocket socket, TargetDataLine targetDataLine) {
         this.targetDataLine = targetDataLine;
@@ -66,13 +66,14 @@ public class RemoteAudioPlayThread {
             public void run() {
                 try {
                     byte[] rawBuffer = new byte[BUFFER_SIZE];
+                    byte[] encodingBuffer = new byte[BUFFER_SIZE];
 
                     while (!Thread.currentThread().isInterrupted()) {
                         int read = rawDataInput.read(rawBuffer);
 
-                        byte[] encodingBuffer = g722Encoder.encode(rawBuffer, BUFFER_SIZE);
+                        int encoded = g722Encoder.encode(encodingBuffer, rawBuffer, read);
 
-                        encodedDataOutput.write(encodingBuffer, 0, encodingBuffer.length);
+                        encodedDataOutput.write(encodingBuffer, 0, encoded);
                     }
 
                     System.out.println("Encoding WAV File thread has stopped");

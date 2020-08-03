@@ -2,8 +2,8 @@ package com.wisekrakr.communiwise.phone.audio.processing.utils;
 
 public class CodecUtil {
 
-    public static short[] bytesToShorts(byte byteBuffer[]) {
-        int len = byteBuffer.length/2;
+    public static short[] bytesToShorts(byte byteBuffer[], int l) {
+        int len = l/2;
         short[] output = new short[len];
         int j = 0;
 

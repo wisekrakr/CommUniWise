@@ -41,15 +41,15 @@ public class ReceptionThread implements Runnable {
                 break;
             }
 
-                byte[] data = receivedPacket.getData();
-                int offset = receivedPacket.getOffset();
-                int length = receivedPacket.getLength();
+            byte[] data = receivedPacket.getData();
+            int offset = receivedPacket.getOffset();
+            int length = receivedPacket.getLength();
 
-                byte[] fragmentData = new byte[length];
-                System.arraycopy(data, offset, fragmentData, 0, length);
+            byte[] fragmentData = new byte[length];
+            System.arraycopy(data, offset, fragmentData, 0, length);
 
-                RTPPacket rtpPacket = RTPParser.decode(fragmentData);
-                receivedRtpPacket(rtpPacket);
+            RTPPacket rtpPacket = RTPParser.decode(fragmentData);
+            receivedRtpPacket(rtpPacket);
 
         }
 
@@ -57,11 +57,11 @@ public class ReceptionThread implements Runnable {
     }
 
     private void receivedRtpPacket(RTPPacket rtpPacket) {
-        if(codec.contains("PCMU")) {
+        if (codec.contains("PCMU")) {
             byte[] rawBuf = pcmuDecoder.process(rtpPacket.getData());
             output.write(rawBuf, 0, rawBuf.length);
 
-        }else if(codec.contains("G722")){
+        } else if (codec.contains("G722")) {
             byte[] rawBuf = g722Decoder.decode(rtpPacket.getData());
             output.write(rawBuf, 0, rawBuf.length);
         }

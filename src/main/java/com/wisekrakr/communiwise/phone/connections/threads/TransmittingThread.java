@@ -1,14 +1,9 @@
 package com.wisekrakr.communiwise.phone.connections.threads;
 
-import com.wisekrakr.communiwise.phone.audio.MicrophoneAnalyzer;
 import com.wisekrakr.communiwise.phone.audio.processing.g722.G722Encoder;
-import com.wisekrakr.communiwise.phone.audio.util.AudioUtil;
 import com.wisekrakr.communiwise.rtp.RTPPacket;
 import com.wisekrakr.communiwise.rtp.RTPParser;
 
-import javax.sound.sampled.AudioFileFormat;
-import javax.sound.sampled.Control;
-import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.TargetDataLine;
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -28,7 +23,7 @@ public class TransmittingThread {
     private Thread encoderThread;
     private Thread rtpSenderThread;
 
-    private final G722Encoder g722Encoder = new G722Encoder();
+    private final G722Encoder g722Encoder = new G722Encoder(2000);
 
     public TransmittingThread(DatagramSocket socket, TargetDataLine targetDataLine, String codec) {
         this.socket = socket;
@@ -37,7 +32,6 @@ public class TransmittingThread {
     }
 
     public void start() throws IOException {
-
         PipedOutputStream rawDataOutput = new PipedOutputStream();
         PipedInputStream rawDataInput = new PipedInputStream(rawDataOutput, PIPE_SIZE);
 
@@ -55,6 +49,8 @@ public class TransmittingThread {
                     rawDataOutput.write(buffer, 0, actuallyRead);
 
                     if (actuallyRead < buffer.length) {
+                        System.out.println("   Couldn't read what I wanted");
+
                         break;
                     }
                 }
@@ -74,6 +70,7 @@ public class TransmittingThread {
             public void run() {
                 try {
                     byte[] rawBuffer = new byte[BUFFER_SIZE];
+                    byte[] encodingBuffer = new byte[BUFFER_SIZE];
 
                     while (!Thread.currentThread().isInterrupted()) {
                         int read = rawDataInput.read(rawBuffer);
@@ -81,10 +78,12 @@ public class TransmittingThread {
 //                        System.out.println(String.format("%-50s %50s %30s %30s", targetDataLine.getBufferSize(), targetDataLine.getFramePosition(),
 //                                targetDataLine.getLevel(), targetDataLine.available()));
 
-                        byte[] encodingBuffer = g722Encoder.encode(rawBuffer, BUFFER_SIZE);
 
-                        encodedDataOutput.write(encodingBuffer, 0, encodingBuffer.length);
+                        int encoded = g722Encoder.encode(encodingBuffer, rawBuffer, read);
 
+                        System.out.println("Read : " + rawBuffer.length + " encoded : " + encoded);
+
+                        encodedDataOutput.write(encodingBuffer, 0, encoded);
                     }
 
 

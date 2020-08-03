@@ -22,7 +22,7 @@ import java.net.InetSocketAddress;
 public class PhoneApplication implements Serializable {
 
     private static final AudioFormat FORMAT_SOURCE = new AudioFormat(16000, 16, 1, true, true); //G722 has 16000 samplerate
-    private static final AudioFormat FORMAT_TARGET = new AudioFormat(8000, 8, 1, true, false);
+//    private static final AudioFormat FORMAT_TARGET = new AudioFormat(8000, 8, 1, true, false);
     private SipManager sipManager;
 
     private LoginScreen loginScreen;
@@ -61,7 +61,7 @@ public class PhoneApplication implements Serializable {
 
             for (int i = 0; i < mixers.length; i++) {
                 if (args[1].equals(mixers[i].getName())) {
-                    inputLine = (TargetDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(TargetDataLine.class, FORMAT_TARGET));
+                    inputLine = (TargetDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(TargetDataLine.class, FORMAT_SOURCE));
                 }
                 if (args[2].equals(mixers[i].getName())) {
                     outputLine = (SourceDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(SourceDataLine.class, FORMAT_SOURCE));
@@ -79,7 +79,7 @@ public class PhoneApplication implements Serializable {
 
             int playBuffer = 100 * Math.max(10, 12);
 
-            inputLine.open(FORMAT_TARGET, playBuffer);
+            inputLine.open(FORMAT_SOURCE, playBuffer);
             outputLine.open(FORMAT_SOURCE);
 
             String localAddress = args[0];
@@ -284,7 +284,7 @@ public class PhoneApplication implements Serializable {
                 try {
 
                     AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
-                    AudioInputStream lowResAudioStream = AudioSystem.getAudioInputStream(FORMAT_TARGET, audioStream);
+                    AudioInputStream lowResAudioStream = AudioSystem.getAudioInputStream(FORMAT_SOURCE, audioStream);
 
 //                    audioManager.startSendingAudio(lowResAudioStream);
                 } catch (IOException | UnsupportedAudioFileException e) {
