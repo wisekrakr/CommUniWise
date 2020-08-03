@@ -117,7 +117,7 @@ public class RemoteAudioPlayThread {
 
                 byte[] buffer = new byte[BUFFER_SIZE];
 
-                int targetSize = 1;
+                int targetSize = 148;
 
                 int timestamp = 0;
                 try {
@@ -131,7 +131,7 @@ public class RemoteAudioPlayThread {
                         rtpPacket.setData(Arrays.copyOf(buffer, numBytesRead));
                         rtpPacket.setSequenceNumber(sequenceNumber++);
 
-                        timestamp += numBytesRead;
+                        timestamp += numBytesRead / 2;
 
                         //The timestamp reflects the sampling instant of the first octet in the RTP data packet.
                         // The sampling instant must be derived from a clock that increments monotonically and linearly in time to allow synchronization and jitter calculations

@@ -5,7 +5,6 @@ import com.wisekrakr.communiwise.frames.layouts.AudioCallScreen;
 import com.wisekrakr.communiwise.frames.layouts.IncomingCallScreen;
 import com.wisekrakr.communiwise.frames.layouts.LoginScreen;
 import com.wisekrakr.communiwise.frames.layouts.PhoneScreen;
-import com.wisekrakr.communiwise.phone.audio.AudioManager;
 import com.wisekrakr.communiwise.phone.audio.SoundAPI;
 import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;

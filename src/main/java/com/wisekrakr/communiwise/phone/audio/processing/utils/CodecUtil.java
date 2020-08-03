@@ -10,7 +10,6 @@ public class CodecUtil {
         for (int i = 0; i < len; i++) {
             output[i] = (short) (byteBuffer[j++] << 8);
             output[i] |= (byteBuffer[j++] & 0xff);
-
         }
         return output;
     }

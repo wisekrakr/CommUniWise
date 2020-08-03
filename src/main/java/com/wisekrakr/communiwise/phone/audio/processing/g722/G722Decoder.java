@@ -79,7 +79,7 @@ public class G722Decoder {
 
 
 
-    public byte[] decode(byte[] rtpPacketData) {
+    public byte[] decode(byte[] rtpPacketData, int length) {
         //why is 160 so important? The coder works on a frame of 160 speech samples.
         //320 here because a short(16) is twice the length of a byte (8).
         short[] decoded = new short[320];
@@ -101,7 +101,7 @@ public class G722Decoder {
 
         outlen = 0;
         rhigh = 0;
-        for (j = 0; j < rtpPacketData.length; ) {
+        for (j = 0; j < length; ) {
             if (packed) {
                 /* Unpack the code bits */
                 if (inBits < bitsPerSample) {

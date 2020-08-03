@@ -62,7 +62,7 @@ public class ReceptionThread implements Runnable {
             output.write(rawBuf, 0, rawBuf.length);
 
         } else if (codec.contains("G722")) {
-            byte[] rawBuf = g722Decoder.decode(rtpPacket.getData());
+            byte[] rawBuf = g722Decoder.decode(rtpPacket.getData(), rtpPacket.getData().length);
             output.write(rawBuf, 0, rawBuf.length);
         }
 

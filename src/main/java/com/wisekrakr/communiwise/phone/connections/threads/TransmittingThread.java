@@ -1,6 +1,7 @@
 package com.wisekrakr.communiwise.phone.connections.threads;
 
 import com.wisekrakr.communiwise.phone.audio.processing.g722.G722Encoder;
+import com.wisekrakr.communiwise.phone.audio.processing.utils.CodecUtil;
 import com.wisekrakr.communiwise.rtp.RTPPacket;
 import com.wisekrakr.communiwise.rtp.RTPParser;
 
@@ -46,6 +47,10 @@ public class TransmittingThread {
                 while (!Thread.currentThread().isInterrupted()) {
                     int actuallyRead = targetDataLine.read(buffer, 0, buffer.length);
 
+                    System.out.println("Read " + actuallyRead + " from the audio");
+
+//                    printData(buffer, actuallyRead);
+
                     rawDataOutput.write(buffer, 0, actuallyRead);
 
                     if (actuallyRead < buffer.length) {
@@ -69,11 +74,13 @@ public class TransmittingThread {
 
             public void run() {
                 try {
-                    byte[] rawBuffer = new byte[BUFFER_SIZE];
-                    byte[] encodingBuffer = new byte[BUFFER_SIZE];
+                    byte[] rawBuffer = new byte[200];
+                    byte[] encodingBuffer = new byte[200];
 
                     while (!Thread.currentThread().isInterrupted()) {
                         int read = rawDataInput.read(rawBuffer);
+
+//                        printData(rawBuffer,read);
 
 //                        System.out.println(String.format("%-50s %50s %30s %30s", targetDataLine.getBufferSize(), targetDataLine.getFramePosition(),
 //                                targetDataLine.getLevel(), targetDataLine.available()));
@@ -81,7 +88,7 @@ public class TransmittingThread {
 
                         int encoded = g722Encoder.encode(encodingBuffer, rawBuffer, read);
 
-                        System.out.println("Read : " + rawBuffer.length + " encoded : " + encoded);
+                        System.out.println("Read : " + read + " encoded : " + encoded);
 
                         encodedDataOutput.write(encodingBuffer, 0, encoded);
                     }
@@ -96,6 +103,9 @@ public class TransmittingThread {
         encoderThread.setDaemon(true);
 
         rtpSenderThread = new Thread(new Runnable() {
+
+            int timestamp = 0;
+
             @Override
             public void run() {
                 RTPPacket rtpPacket = new RTPPacket();
@@ -116,9 +126,8 @@ public class TransmittingThread {
 
                 byte[] buffer = new byte[BUFFER_SIZE];
 
-                int targetSize = 1;
+                int targetSize = Math.min(1000, BUFFER_SIZE);
 
-                int timestamp = 0;
                 try {
                     while (!Thread.currentThread().isInterrupted()) {
                         int numBytesRead = 0;
@@ -127,12 +136,12 @@ public class TransmittingThread {
                             numBytesRead += encodedDataInput.read(buffer, numBytesRead, buffer.length - numBytesRead);
                         }
 
+                        System.out.println("About to send " + numBytesRead + " bytes ");
+
                         rtpPacket.setData(Arrays.copyOf(buffer, numBytesRead));
                         rtpPacket.setSequenceNumber(sequenceNumber++);
-
-                        timestamp += numBytesRead;
-
                         rtpPacket.setTimestamp(timestamp);
+
 
                         send(rtpPacket);
                     }
@@ -145,6 +154,7 @@ public class TransmittingThread {
 
             private void send(RTPPacket rtpPacket) {
                 byte[] buf = RTPParser.encode(rtpPacket);
+                timestamp += timestamp + buf.length;
                 final DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length, socket.getInetAddress(), socket.getPort());
 
                 if (!socket.isClosed()) {
