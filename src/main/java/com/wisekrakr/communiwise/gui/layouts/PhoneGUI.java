@@ -1,9 +1,8 @@
-package com.wisekrakr.communiwise.frames.layouts;
+package com.wisekrakr.communiwise.gui.layouts;
 
 
-import com.wisekrakr.communiwise.frames.AudioPlayerFrame;
-import com.wisekrakr.communiwise.frames.ext.AbstractScreen;
-import com.wisekrakr.communiwise.frames.layouts.panes.background.GradientPanel;
+import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
+import com.wisekrakr.communiwise.gui.layouts.panes.background.GradientPanel;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
 
 import javax.swing.*;
@@ -15,10 +14,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
-public class PhoneScreen extends AbstractScreen {
+public class PhoneGUI extends AbstractScreen {
     private final PhoneAPI phone;
 
-    public PhoneScreen(PhoneAPI phone) {
+    public PhoneGUI(PhoneAPI phone) {
         this.phone = phone;
     }
 
@@ -31,6 +30,10 @@ public class PhoneScreen extends AbstractScreen {
         setBounds((screenSize.width - 288) / 2, (screenSize.height - 310) / 2, 700, 300);
 
         setVisible(true);
+
+        MenuGUI menuGUI = new MenuGUI(this);
+        menuGUI.init();
+
     }
 
     public class PhonePane extends GradientPanel {
@@ -214,8 +217,8 @@ public class PhoneScreen extends AbstractScreen {
                 options.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        OptionsPane optionsPane = new OptionsPane();
-                        optionsPane.init();
+//                        OptionsPane optionsPane = new OptionsPane();
+//                        optionsPane.init();
                     }
                 });
             }
@@ -228,7 +231,7 @@ public class PhoneScreen extends AbstractScreen {
 
                             @Override
                             public void run() {
-                                new AudioPlayerFrame().setVisible(true);
+                                new AudioPlayerGUI().setVisible(true);
                             }
                         });
                     }
@@ -283,117 +286,117 @@ public class PhoneScreen extends AbstractScreen {
 
         }
 
-        public class OptionsPane extends JPanel {
-            public OptionsPane() {
-                //        super(new GridLayout(1, 1));
-
-                JTabbedPane tabbedPane = new JTabbedPane();
-
-                JComponent general = makeTextPanel("General");
-                tabbedPane.addTab("General", null, general, "General Options");
-
-                JComponent audio = audioTab();
-                tabbedPane.addTab("Audio", null, audio, "Audio Options");
-
-                JComponent video = makeTextPanel("Video");
-                tabbedPane.addTab("Video", null, video, "Video options");
-
-                add(tabbedPane);
-
-                tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-            }
-
-            public void init() {
-                JFrame frame = new JFrame("Please choose a mixer.");
-
-                frame.add(new OptionsPane(), BorderLayout.CENTER);
-
-                frame.pack();
-                frame.setVisible(true);
-            }
-
-            protected JComponent audioTab() {
-                JPanel panel = new JPanel(new GridLayout(0, 2));
-
-                JPanel outputPanel = new JPanel(new GridLayout(0, 1));
-                JPanel inputPanel = new JPanel(new GridLayout(0, 1));
-
-                outputPanel.setBorder(BorderFactory.createTitledBorder("Please choose your output mixer."));
-                inputPanel.setBorder(BorderFactory.createTitledBorder("Please choose your input mixer."));
-/*
-                java.util.List<String> outputNames = application.getRTPConnectionManager().getMixerNames();
-                List<String> inputNames = application.getRTPConnectionManager().getMixerNames();
-
-                JScrollPane scrollPane1 = new JScrollPane(outputPanel);
-                JScrollPane scrollPane2 = new JScrollPane(inputPanel);
-
-                panel.add(scrollPane1);
-                panel.add(scrollPane2);
-
-                for (JRadioButton jrb : mixerList((ArrayList<String>) outputNames, outputPanel)) {
-                    jrb.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            try {
-                                System.out.println("    Selected output Mixer: " + jrb.getText().trim());
-
-                                application.getRTPConnectionManager().selectAudioOutput(jrb.getText().trim());
-
-                            } catch (LineUnavailableException lineUnavailableException) {
-                                lineUnavailableException.printStackTrace();
-                            }
-                            JOptionPane.showMessageDialog(outputPanel, "You chose " + jrb.getText());
-                        }
-                    });
-
-                }
-
-                for (JRadioButton jrb : mixerList((ArrayList<String>) inputNames, inputPanel)) {
-                    jrb.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            try {
-                                System.out.println("    Selected input Mixer: " + jrb.getText().trim());
-
-                                application.getRTPConnectionManager().selectAudioInput(jrb.getText().trim());
-
-                            } catch (LineUnavailableException lineUnavailableException) {
-                                lineUnavailableException.printStackTrace();
-                            }
-                            JOptionPane.showMessageDialog(outputPanel, "You chose " + jrb.getText());
-                        }
-                    });
-                }*/
-
-
-                return panel;
-            }
-
-            /**
-             * Returns a list of mixer types as radio buttons to choose from
-             *
-             * @return ArrayList of radio buttons
-             */
-            private ArrayList<JRadioButton> mixerList(ArrayList<String> list, JPanel panel) {
-                ArrayList<JRadioButton> buttonList = new ArrayList<>();
-                ButtonGroup bg = new ButtonGroup();
-                for (String name : list) {
-                    JRadioButton jrb = new JRadioButton(name);
-                    buttonList.add(jrb);
-                    bg.add(jrb);
-                    panel.add(jrb);
-                }
-                return buttonList;
-            }
-
-            private JComponent makeTextPanel(String text) {
-                JPanel panel = new JPanel(false);
-                JLabel filler = new JLabel(text);
-                filler.setHorizontalAlignment(JLabel.CENTER);
-                panel.setLayout(new GridLayout(1, 1));
-                panel.add(filler);
-                return panel;
-            }
-        }
+//        public class OptionsPane extends JPanel {
+//            public OptionsPane() {
+//                //        super(new GridLayout(1, 1));
+//
+//                JTabbedPane tabbedPane = new JTabbedPane();
+//
+//                JComponent general = makeTextPanel("General");
+//                tabbedPane.addTab("General", null, general, "General Options");
+//
+//                JComponent audio = audioTab();
+//                tabbedPane.addTab("Audio", null, audio, "Audio Options");
+//
+//                JComponent video = makeTextPanel("Video");
+//                tabbedPane.addTab("Video", null, video, "Video options");
+//
+//                add(tabbedPane);
+//
+//                tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+//            }
+//
+//            public void init() {
+//                JFrame frame = new JFrame("Please choose a mixer.");
+//
+//                frame.add(new OptionsPane(), BorderLayout.CENTER);
+//
+//                frame.pack();
+//                frame.setVisible(true);
+//            }
+//
+//            protected JComponent audioTab() {
+//                JPanel panel = new JPanel(new GridLayout(0, 2));
+//
+//                JPanel outputPanel = new JPanel(new GridLayout(0, 1));
+//                JPanel inputPanel = new JPanel(new GridLayout(0, 1));
+//
+//                outputPanel.setBorder(BorderFactory.createTitledBorder("Please choose your output mixer."));
+//                inputPanel.setBorder(BorderFactory.createTitledBorder("Please choose your input mixer."));
+///*
+//                java.util.List<String> outputNames = application.getRTPConnectionManager().getMixerNames();
+//                List<String> inputNames = application.getRTPConnectionManager().getMixerNames();
+//
+//                JScrollPane scrollPane1 = new JScrollPane(outputPanel);
+//                JScrollPane scrollPane2 = new JScrollPane(inputPanel);
+//
+//                panel.add(scrollPane1);
+//                panel.add(scrollPane2);
+//
+//                for (JRadioButton jrb : mixerList((ArrayList<String>) outputNames, outputPanel)) {
+//                    jrb.addActionListener(new ActionListener() {
+//                        @Override
+//                        public void actionPerformed(ActionEvent e) {
+//                            try {
+//                                System.out.println("    Selected output Mixer: " + jrb.getText().trim());
+//
+//                                application.getRTPConnectionManager().selectAudioOutput(jrb.getText().trim());
+//
+//                            } catch (LineUnavailableException lineUnavailableException) {
+//                                lineUnavailableException.printStackTrace();
+//                            }
+//                            JOptionPane.showMessageDialog(outputPanel, "You chose " + jrb.getText());
+//                        }
+//                    });
+//
+//                }
+//
+//                for (JRadioButton jrb : mixerList((ArrayList<String>) inputNames, inputPanel)) {
+//                    jrb.addActionListener(new ActionListener() {
+//                        @Override
+//                        public void actionPerformed(ActionEvent e) {
+//                            try {
+//                                System.out.println("    Selected input Mixer: " + jrb.getText().trim());
+//
+//                                application.getRTPConnectionManager().selectAudioInput(jrb.getText().trim());
+//
+//                            } catch (LineUnavailableException lineUnavailableException) {
+//                                lineUnavailableException.printStackTrace();
+//                            }
+//                            JOptionPane.showMessageDialog(outputPanel, "You chose " + jrb.getText());
+//                        }
+//                    });
+//                }*/
+//
+//
+//                return panel;
+//            }
+//
+//            /**
+//             * Returns a list of mixer types as radio buttons to choose from
+//             *
+//             * @return ArrayList of radio buttons
+//             */
+//            private ArrayList<JRadioButton> mixerList(ArrayList<String> list, JPanel panel) {
+//                ArrayList<JRadioButton> buttonList = new ArrayList<>();
+//                ButtonGroup bg = new ButtonGroup();
+//                for (String name : list) {
+//                    JRadioButton jrb = new JRadioButton(name);
+//                    buttonList.add(jrb);
+//                    bg.add(jrb);
+//                    panel.add(jrb);
+//                }
+//                return buttonList;
+//            }
+//
+//            private JComponent makeTextPanel(String text) {
+//                JPanel panel = new JPanel(false);
+//                JLabel filler = new JLabel(text);
+//                filler.setHorizontalAlignment(JLabel.CENTER);
+//                panel.setLayout(new GridLayout(1, 1));
+//                panel.add(filler);
+//                return panel;
+//            }
+//        }
     }
 }

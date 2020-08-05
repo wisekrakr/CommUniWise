@@ -21,7 +21,7 @@ Timestamp:
 Sequence Number:
     The sequence number is monotonically increasing and is set as the packet is sent. This property is used in many payload formats
     to recover the order of everything from the whole stream down to fragments of application data units (ADUs) and the order they need to be decoded.
-     Discontinuous transmissions do not result in gaps in the sequence number, as it is monotonically increasing for each sent RTP packet.
+    Discontinuous transmissions do not result in gaps in the sequence number, as it is monotonically increasing for each sent RTP packet.
 Payload Type:
     The payload type is used to indicate on a per packet basis which format is used. The binding between a payload type number and a payload
     format and its configuration are dynamically bound and RTP session specific. The configuration information can be bound to a payload type

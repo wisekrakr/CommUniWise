@@ -33,6 +33,7 @@ public class TransmittingThread {
     }
 
     public void start() throws IOException {
+
         PipedOutputStream rawDataOutput = new PipedOutputStream();
         PipedInputStream rawDataInput = new PipedInputStream(rawDataOutput, PIPE_SIZE);
 
@@ -47,7 +48,7 @@ public class TransmittingThread {
                 while (!Thread.currentThread().isInterrupted()) {
                     int actuallyRead = targetDataLine.read(buffer, 0, buffer.length);
 
-                    System.out.println("Read " + actuallyRead + " from the audio");
+//                    System.out.println("Read " + actuallyRead + " from the audio");
 
 //                    printData(buffer, actuallyRead);
 
@@ -74,21 +75,17 @@ public class TransmittingThread {
 
             public void run() {
                 try {
-                    byte[] rawBuffer = new byte[200];
-                    byte[] encodingBuffer = new byte[200];
+                    byte[] rawBuffer = new byte[BUFFER_SIZE];
+                    byte[] encodingBuffer = new byte[BUFFER_SIZE];
 
                     while (!Thread.currentThread().isInterrupted()) {
                         int read = rawDataInput.read(rawBuffer);
 
 //                        printData(rawBuffer,read);
 
-//                        System.out.println(String.format("%-50s %50s %30s %30s", targetDataLine.getBufferSize(), targetDataLine.getFramePosition(),
-//                                targetDataLine.getLevel(), targetDataLine.available()));
-
-
                         int encoded = g722Encoder.encode(encodingBuffer, rawBuffer, read);
 
-                        System.out.println("Read : " + read + " encoded : " + encoded);
+//                        System.out.println("Read : " + read + " encoded : " + encoded);
 
                         encodedDataOutput.write(encodingBuffer, 0, encoded);
                     }
@@ -136,7 +133,7 @@ public class TransmittingThread {
                             numBytesRead += encodedDataInput.read(buffer, numBytesRead, buffer.length - numBytesRead);
                         }
 
-                        System.out.println("About to send " + numBytesRead + " bytes ");
+//                        System.out.println("About to send " + numBytesRead + " bytes ");
 
                         rtpPacket.setData(Arrays.copyOf(buffer, numBytesRead));
                         rtpPacket.setSequenceNumber(sequenceNumber++);
@@ -178,6 +175,8 @@ public class TransmittingThread {
         encoderThread.interrupt();
         rtpSenderThread.interrupt();
     }
+
+
 
     public static final int SAMPLE_SIZE = 16;
     public static final int BUFFER_SIZE = SAMPLE_SIZE * 20;

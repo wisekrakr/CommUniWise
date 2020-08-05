@@ -1,10 +1,11 @@
 package com.wisekrakr.communiwise.main;
 
 
-import com.wisekrakr.communiwise.frames.layouts.AudioCallScreen;
-import com.wisekrakr.communiwise.frames.layouts.IncomingCallScreen;
-import com.wisekrakr.communiwise.frames.layouts.LoginScreen;
-import com.wisekrakr.communiwise.frames.layouts.PhoneScreen;
+import com.wisekrakr.communiwise.gui.layouts.AudioCallGUI;
+import com.wisekrakr.communiwise.gui.layouts.IncomingCallGUI;
+import com.wisekrakr.communiwise.gui.layouts.LoginGUI;
+import com.wisekrakr.communiwise.gui.layouts.PhoneGUI;
+import com.wisekrakr.communiwise.phone.audio.AudioManager;
 import com.wisekrakr.communiwise.phone.audio.SoundAPI;
 import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
@@ -21,16 +22,13 @@ import java.net.InetSocketAddress;
 public class PhoneApplication implements Serializable {
 
     private static final AudioFormat FORMAT_SOURCE = new AudioFormat(16000, 16, 1, true, true); //G722 has 16000 samplerate
-//    private static final AudioFormat FORMAT_TARGET = new AudioFormat(8000, 8, 1, true, false);
     private SipManager sipManager;
 
-    private LoginScreen loginScreen;
-    private PhoneScreen phoneScreen;
-    private IncomingCallScreen incomingCallScreen;
-    private AudioCallScreen audioCallScreen;
+    private IncomingCallGUI incomingCallGUI;
+    private AudioCallGUI audioCallGUI;
 
     private RTPConnectionManager rtpConnectionManager;
-//    private AudioManager audioManager;
+    private AudioManager audioManager;
 
     private static void printHelp(String message) {
         System.out.println(message);
@@ -125,15 +123,17 @@ public class PhoneApplication implements Serializable {
                     @Override
                     public void onBye() {
                         rtpConnectionManager.stopStreamingAudio();
+
+                        audioCallGUI.hideWindow();
                     }
 
                     @Override
                     public void onRemoteCancel() {
-
                     }
 
                     @Override
                     public void onRemoteDeclined() {
+
                     }
 
                     @Override
@@ -158,10 +158,13 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void onRinging(String from) {
-//                        SwingUtilities.invokeLater(() -> {
-//                            incomingCallScreen = new IncomingCallScreen(((LoginState) active).phone);
-//                            incomingCallScreen.showWindow();
-//                        });
+//                        if(sipManager.getSipSessionState() == SipSessionState.INCOMING){
+//                            SwingUtilities.invokeLater(() -> {
+//                                incomingCallGUI = new IncomingCallGUI(((LoginState) active).phone);
+//                                incomingCallGUI.showWindow();
+//                            });
+//                        }
+
                     }
 
                     @Override
@@ -186,6 +189,7 @@ public class PhoneApplication implements Serializable {
                     @Override
                     public void onHangup() {
                         rtpConnectionManager.stopStreamingAudio();
+
                     }
 
                     @Override
@@ -211,7 +215,7 @@ public class PhoneApplication implements Serializable {
         rtpConnectionManager = new RTPConnectionManager(inputLine, outputLine);
         rtpConnectionManager.init();
 
-//        audioManager = new AudioManager(rtpConnectionManager.getSocket(), inputLine);
+        audioManager = new AudioManager(rtpConnectionManager.getSocket(), inputLine, outputLine);
 
         sipManager.initialize();
 
@@ -224,7 +228,7 @@ public class PhoneApplication implements Serializable {
     }
 
     public class LoggedInState implements ApplicationState {
-        private PhoneScreen screen;
+        private PhoneGUI screen;
         private PhoneAPI phone;
 
         public LoggedInState(PhoneAPI phone) {
@@ -237,7 +241,7 @@ public class PhoneApplication implements Serializable {
 
         @Override
         public void enter() {
-            screen = new PhoneScreen(phone);
+            screen = new PhoneGUI(phone);
             screen.showWindow();
         }
 
@@ -248,7 +252,7 @@ public class PhoneApplication implements Serializable {
     }
 
     public class LoginState implements ApplicationState {
-        private LoginScreen screen;
+        private LoginGUI screen;
         private PhoneAPI phone;
 
         public LoginState(PhoneAPI phone) {
@@ -257,13 +261,13 @@ public class PhoneApplication implements Serializable {
 
         @Override
         public void enter() {
-            screen = new LoginScreen(phone);
+            screen = new LoginGUI(phone);
 
             screen.showWindow();
         }
 
         @Override
-        public void leave() {
+        public void leave()  {
             screen.hideWindow();
         }
     }
@@ -274,7 +278,7 @@ public class PhoneApplication implements Serializable {
             @Override
             public void startRecording() {
 
-//                audioManager.startRecordingWavFile();
+                audioManager.startRecordingWavFile();
             }
 
             @Override
@@ -285,7 +289,7 @@ public class PhoneApplication implements Serializable {
                     AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
                     AudioInputStream lowResAudioStream = AudioSystem.getAudioInputStream(FORMAT_SOURCE, audioStream);
 
-//                    audioManager.startSendingAudio(lowResAudioStream);
+                    audioManager.startSendingAudio(lowResAudioStream);
                 } catch (IOException | UnsupportedAudioFileException e) {
                     System.out.println(" error while sending audio file " + e);
                 }
@@ -293,12 +297,12 @@ public class PhoneApplication implements Serializable {
 
             @Override
             public void stopRecording() {
-//                audioManager.stopRecording();
+                audioManager.stopRecording();
             }
 
             @Override
             public void stopRemoteSound() {
-//                audioManager.stopSendingAudio();
+                audioManager.stopSendingAudio();
             }
 
             @Override
@@ -325,17 +329,19 @@ public class PhoneApplication implements Serializable {
                 @Override
                 public void initiateCall(String sipAddress) {
                     //todo codec
-                    sipManager.initiateCall(sipAddress, rtpConnectionManager.getSocket().getLocalPort());//todo get local rtp port here
+                    sipManager.initiateCall(sipAddress, rtpConnectionManager.getSocket().getLocalPort());
 
-                    audioCallScreen = new AudioCallScreen(this, getSoundApi());
-                    audioCallScreen.showWindow();
+                    audioCallGUI = new AudioCallGUI(this, getSoundApi());
+                    audioCallGUI.showWindow();
 
                     proxyAddress = sipAddress;
                 }
 
                 @Override
                 public void accept() {
-                    sipManager.acceptCall(rtpConnectionManager.getSocket().getLocalPort()); //todo get local rtp port here
+                    sipManager.acceptCall(rtpConnectionManager.getSocket().getLocalPort());
+
+                    incomingCallGUI = new IncomingCallGUI(this);
                 }
 
                 @Override
@@ -351,7 +357,7 @@ public class PhoneApplication implements Serializable {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    audioCallScreen.hideWindow();
+                    audioCallGUI.hideWindow();
                 }
 
                 @Override

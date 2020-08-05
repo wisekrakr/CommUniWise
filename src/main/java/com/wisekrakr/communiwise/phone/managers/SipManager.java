@@ -65,10 +65,10 @@ public class SipManager implements SipClient {
     private SipSessionState sipSessionState;
 
     private ServerTransaction waitingCall;
+    private ClientTransaction currentCall;
     private int status;
 
     public SipManager(String proxyHost, int proxyPort, String localSipAddress, int localSipPort, String sipTransport) {
-        //sipProfile.getRemoteEndpoint() + "/" + sipProfile.getTransport()
 
         this.proxyHost = proxyHost;
         this.proxyPort = proxyPort;
@@ -77,10 +77,7 @@ public class SipManager implements SipClient {
         this.sipTransport = sipTransport;
         this.localRtpHost = localSipAddress;
 
-
         accountManager = new SipAccountManager();
-
-        //sipProfile.getLocalIp(), sipProfile.getLocalPort(), sipProfile.getTransport()
     }
 
     public SipManager listener(SipManagerListener listener) {
@@ -99,6 +96,10 @@ public class SipManager implements SipClient {
         this.traceLevel = traceLevel;
 
         return this;
+    }
+
+    public SipSessionState getSipSessionState() {
+        return sipSessionState;
     }
 
     public void initialize() throws Exception {
@@ -248,7 +249,7 @@ public class SipManager implements SipClient {
                                         Dialog dialog1 = transaction.getDialog();
                                         System.out.println("Dialog State = " + dialog1.getState());
 
-                                        transaction.sendResponse(messageFactory.createResponse(200, requestEvent.getRequest()));
+                                        transaction.sendResponse(messageFactory.createResponse(Response.OK, requestEvent.getRequest()));
 
                                         System.out.println("Sending 200 Canceled Request");
                                         System.out.println("Dialog State = " + dialog1.getState());
@@ -287,11 +288,8 @@ public class SipManager implements SipClient {
                             System.out.println("Response received : Status Code = " + processedResponse.getStatusCode() + " " + cseq);
                             ClientTransaction clientTransaction = responseEvent.getClientTransaction();
 
+                            currentCall = clientTransaction;
 
-//                            Dialog dialog = null;
-//                            if(clientTransaction.getDialog() != null){
-//                                dialog = clientTransaction.getDialog();
-//                            }
                             status = processedResponse.getStatusCode();
 
                             if (processedResponse.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED
@@ -526,9 +524,18 @@ public class SipManager implements SipClient {
         if (sipSessionState == SipSessionState.CALLING) {
             sipSessionState = SipSessionState.IDLE; //todo: trying to reset the system to make or get new calls after a call.
             try {
-                this.udpSipProvider.getNewClientTransaction(makeByeRequest(recipient)).sendRequest();
-            } catch (SipException e) {
-                e.printStackTrace();
+
+                final Dialog dialog = currentCall.getDialog();
+
+                ClientTransaction newTransaction = udpSipProvider.getNewClientTransaction(dialog.createRequest(Request.BYE));
+
+                dialog.sendRequest(newTransaction);
+
+                //todo if the call came from a peer, we need to send a bye with a server transaction.
+//                this.udpSipProvider.getNewClientTransaction(makeByeRequest(recipient)).sendRequest();
+
+            } catch (Throwable e) {
+                throw new IllegalStateException("Unable to hangup call", e);
             }
 
             listener.onHangup();
@@ -613,7 +620,6 @@ public class SipManager implements SipClient {
 
         return byeRequest;
     }
-
 
     public Request createRegisterRequest() throws ParseException, InvalidArgumentException {
         return createRequest(addressFactory.createAddress("sip:" + proxyHost + ":" + proxyPort).getURI(), clientAddress, clientAddress, Request.REGISTER, null);
@@ -711,22 +717,12 @@ public class SipManager implements SipClient {
         routeUri.setLrParam();
         routeUri.setPort(proxyPort);
 
-//        Address routeAddress = addressFactory.createAddress("sip:"
-//                + "damian2" + "@"
-//                + localSipAddress + ":" + localSipPort + ";transport=" + sipTransport
-//                + ";registering_acc=" + proxyHost);
-//        RouteHeader route = headerFactory.createRouteHeader(routeAddress);
-//        request.addHeader(route);
-        //todo: this information below is needed if someone wants to call us (A Contact Header)
+        Address routeAddress = addressFactory.createAddress(from + ":" + localSipPort + ";transport=" + sipTransport
+                + ";registering_acc=" + proxyHost);
 
-//        Address routeAddress = addressFactory.createAddress("sip:"
-//                + "damian2" + "@"
-//                + localSipAddress + ":" + localSipPort + ";transport=" + sipTransport
-//                + ";registering_acc=" + proxyHost);
-//
-//        ContactHeader route = headerFactory.createContactHeader(routeAddress);
-//        request.addHeader(route);
-
+        if(sipSessionState == SipSessionState.REGISTERING){
+            request.addHeader(headerFactory.createContactHeader(routeAddress));
+        }
 
         if (content != null) {
             ContentTypeHeader contentTypeHeader = headerFactory.createContentTypeHeader("text", "plain");

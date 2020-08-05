@@ -85,6 +85,9 @@ public class RemoteAudioPlayThread {
         encodeFileThread.setDaemon(true);
 
         rtpFileSenderThread = new Thread(new Runnable() {
+
+            int timestamp = 0;
+
             @Override
             public void run() {
                 // TODO: research meaning of all fields
@@ -117,9 +120,8 @@ public class RemoteAudioPlayThread {
 
                 byte[] buffer = new byte[BUFFER_SIZE];
 
-                int targetSize = 148;
+                int targetSize = Math.min(1000, BUFFER_SIZE);
 
-                int timestamp = 0;
                 try {
                     while (!Thread.currentThread().isInterrupted()) {
                         int numBytesRead = 0;
@@ -130,14 +132,14 @@ public class RemoteAudioPlayThread {
 
                         rtpPacket.setData(Arrays.copyOf(buffer, numBytesRead));
                         rtpPacket.setSequenceNumber(sequenceNumber++);
+                        rtpPacket.setTimestamp(timestamp);
 
-                        timestamp += numBytesRead / 2;
+
+                        send(rtpPacket);
 
                         //The timestamp reflects the sampling instant of the first octet in the RTP data packet.
                         // The sampling instant must be derived from a clock that increments monotonically and linearly in time to allow synchronization and jitter calculations
-                        rtpPacket.setTimestamp(timestamp);
 
-                        send(rtpPacket);
                     }
 
                     System.out.println("Sending WAV File thread has stopped");
@@ -148,6 +150,7 @@ public class RemoteAudioPlayThread {
 
             private void send(RTPPacket rtpPacket) {
                 byte[] buf = RTPParser.encode(rtpPacket);
+                timestamp += timestamp + buf.length;
                 final DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length, socket.getInetAddress(), socket.getPort());
 
                 if (!socket.isClosed()) {

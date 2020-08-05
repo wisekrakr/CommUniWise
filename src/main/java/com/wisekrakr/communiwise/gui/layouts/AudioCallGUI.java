@@ -1,9 +1,9 @@
-package com.wisekrakr.communiwise.frames.layouts;
+package com.wisekrakr.communiwise.gui.layouts;
 
 import com.wisekrakr.communiwise.phone.audio.SoundAPI;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
-import com.wisekrakr.communiwise.frames.ext.AbstractScreen;
-import com.wisekrakr.communiwise.frames.layouts.objects.Button;
+import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
+import com.wisekrakr.communiwise.gui.layouts.objects.Button;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,11 +11,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 
-public class AudioCallScreen extends AbstractScreen {
+public class AudioCallGUI extends AbstractScreen {
     private final PhoneAPI phone;
     private final SoundAPI audioSound;
 
-    public AudioCallScreen(PhoneAPI phone, SoundAPI audioSound) throws HeadlessException {
+    public AudioCallGUI(PhoneAPI phone, SoundAPI audioSound) throws HeadlessException {
         this.phone = phone;
         this.audioSound = audioSound;
 

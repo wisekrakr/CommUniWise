@@ -1,22 +1,22 @@
-package com.wisekrakr.communiwise.frames.layouts;
+package com.wisekrakr.communiwise.gui.layouts;
 
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
-import com.wisekrakr.communiwise.frames.ext.AbstractScreen;
-import com.wisekrakr.communiwise.frames.layouts.objects.Button;
+import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
+import com.wisekrakr.communiwise.gui.layouts.objects.Button;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class IncomingCallScreen extends AbstractScreen {
+public class IncomingCallGUI extends AbstractScreen {
 
     private final PhoneAPI phone;
 
     private JPanel panel;
 
 
-    public IncomingCallScreen(PhoneAPI phone) throws HeadlessException {
+    public IncomingCallGUI(PhoneAPI phone) throws HeadlessException {
         this.phone = phone;
     }
 

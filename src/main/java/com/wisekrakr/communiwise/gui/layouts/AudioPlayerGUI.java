@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.frames;
+package com.wisekrakr.communiwise.gui.layouts;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -24,7 +24,7 @@ import javax.swing.JSlider;
 import javax.swing.filechooser.FileFilter;
 
 
-public class AudioPlayerFrame extends JFrame implements ActionListener {
+public class AudioPlayerGUI extends JFrame implements ActionListener {
 	private Thread playbackThread;
 	private AudioPlayTimer timer;
 
@@ -47,7 +47,7 @@ public class AudioPlayerFrame extends JFrame implements ActionListener {
 	private Thread player;
 	private Clip audioClip;
 
-	public AudioPlayerFrame() {
+	public AudioPlayerGUI() {
 		setLayout(new GridBagLayout());
 		GridBagConstraints constraints = new GridBagConstraints();
 		constraints.insets = new Insets(5, 5, 5, 5);

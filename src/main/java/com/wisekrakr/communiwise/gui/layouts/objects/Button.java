@@ -1,6 +1,6 @@
-package com.wisekrakr.communiwise.frames.layouts.objects;
+package com.wisekrakr.communiwise.gui.layouts.objects;
 
-import com.wisekrakr.communiwise.frames.layouts.ext.RoundedBorder;
+import com.wisekrakr.communiwise.gui.layouts.ext.RoundedBorder;
 
 import javax.swing.*;
 import java.awt.*;

@@ -20,9 +20,7 @@ package com.wisekrakr.communiwise.phone.audio.processing.pcmu;
 */
 
 
-import com.wisekrakr.communiwise.phone.audio.processing.Decoder;
-
-public class PcmuDecoder extends Decoder {
+public class PcmuDecoder {
 
     //    private final static int cBias = 0x84;
 //    private int QUANT_MASK = 0xf;
@@ -64,7 +62,7 @@ public class PcmuDecoder extends Decoder {
             56, 48, 40, 32, 24, 16, 8, 0
     };
 
-    @Override
+
     public byte[] process(byte[] media) {
         byte[] res = new byte[media.length * 2];
         int j = 0;

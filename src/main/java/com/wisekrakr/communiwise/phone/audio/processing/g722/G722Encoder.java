@@ -26,6 +26,8 @@ package com.wisekrakr.communiwise.phone.audio.processing.g722;
 
 import com.wisekrakr.communiwise.phone.audio.processing.utils.CodecUtil;
 
+import static com.wisekrakr.communiwise.phone.audio.processing.g722.G722Codec.saturate;
+
 public class G722Encoder  {
 
     /*! TRUE if the operating in the special ITU test mode, with the band split filters
@@ -112,21 +114,6 @@ public class G722Encoder  {
         _band[1]._det = 8;
 
     }
-
-    final static short saturate(int amp) {
-        short amp16;
-
-        /* Hopefully this is optimised for the common case - not clipping */
-        amp16 = (short) amp;
-        if (amp == amp16) {
-            return amp16;
-        }
-        if (amp > Short.MAX_VALUE) {
-            return Short.MAX_VALUE;
-        }
-        return Short.MIN_VALUE;
-    }
-
 
     int process(byte output[], short input[]) {
         int dlow;

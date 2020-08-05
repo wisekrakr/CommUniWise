@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.frames.layouts.ext;
+package com.wisekrakr.communiwise.gui.layouts.ext;
 
 import javax.swing.border.Border;
 import java.awt.*;

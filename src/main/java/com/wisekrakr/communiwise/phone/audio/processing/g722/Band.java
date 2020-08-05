@@ -1,5 +1,7 @@
 package com.wisekrakr.communiwise.phone.audio.processing.g722;
 
+import static com.wisekrakr.communiwise.phone.audio.processing.g722.G722Codec.saturate;
+
 public class Band {
 
     int _s;
@@ -104,16 +106,4 @@ public class Band {
         _s = saturate(_sp + _sz);
     }
 
-    final static short saturate(int amp) {
-        short amp16;
-
-        amp16 = (short) amp;
-        if (amp == amp16) {
-            return amp16;
-        }
-        if (amp > Short.MAX_VALUE) {
-            return Short.MAX_VALUE;
-        }
-        return Short.MIN_VALUE;
-    }
 }

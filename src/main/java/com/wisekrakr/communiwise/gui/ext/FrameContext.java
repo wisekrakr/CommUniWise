@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.frames.ext;
+package com.wisekrakr.communiwise.gui.ext;
 
 public interface FrameContext {
     void hideWindow();

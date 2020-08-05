@@ -13,14 +13,16 @@ public class AudioManager {
     private RemoteAudioPlayThread remoteAudioPlayThread;
     private DatagramSocket socket;
     private TargetDataLine targetDataLine;
+    private SourceDataLine sourceDataLine;
 
     static AudioFormat WAV_FORMAT = new AudioFormat(16000, 8,2, true, true);
     static AudioFormat MP3_FORMAT = new AudioFormat(44100, 16,2, true, true);
     private File wavFile;
 
-    public AudioManager(DatagramSocket socket, TargetDataLine targetDataLine) {
+    public AudioManager(DatagramSocket socket, TargetDataLine targetDataLine, SourceDataLine sourceDataLine) {
         this.socket = socket;
         this.targetDataLine = targetDataLine;
+        this.sourceDataLine = sourceDataLine;
     }
 
     public void startSendingAudio(AudioInputStream audioStream) throws IOException{
