@@ -1,6 +1,5 @@
 package com.wisekrakr.communiwise.phone.calling;
 
-import com.wisekrakr.communiwise.user.SipProfile;
 
 import java.net.SocketAddress;
 import java.util.HashMap;

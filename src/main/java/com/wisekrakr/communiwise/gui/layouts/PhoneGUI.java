@@ -2,116 +2,103 @@ package com.wisekrakr.communiwise.gui.layouts;
 
 
 import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
-import com.wisekrakr.communiwise.gui.layouts.panes.background.GradientPanel;
+import com.wisekrakr.communiwise.gui.layouts.utils.FrameDragListener;
+import com.wisekrakr.communiwise.phone.device.AccountAPI;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
+import com.wisekrakr.communiwise.phone.managers.EventManager;
+import com.wisekrakr.communiwise.user.SipUserProfile;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 
 public class PhoneGUI extends AbstractScreen {
-    private final PhoneAPI phone;
 
-    public PhoneGUI(PhoneAPI phone) {
+    private final EventManager eventManager;
+    private final PhoneAPI phone;
+    private final AccountAPI account;
+
+    private static final int DESIRED_HEIGHT = 300;
+    private static final int DESIRED_WIDTH = 700;
+
+    private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+    public PhoneGUI(EventManager eventManager, PhoneAPI phone, AccountAPI account) {
+        this.eventManager = eventManager;
         this.phone = phone;
+        this.account = account;
     }
 
     public void showWindow() {
         setTitle("CommUniWise Phone");
+        setUndecorated(true);
 
         add(new PhonePane());
 
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width - 288) / 2, (screenSize.height - 310) / 2, 700, 300);
+        setMinimumSize(new Dimension(DESIRED_WIDTH, DESIRED_HEIGHT));
+        setBounds((screenSize.width - DESIRED_WIDTH) / 2, (screenSize.height - DESIRED_HEIGHT) / 2, DESIRED_WIDTH, DESIRED_HEIGHT);
 
+        Border raised = BorderFactory.createRaisedBevelBorder();
+        Border lowered = BorderFactory.createLoweredBevelBorder();
+        Border compound = BorderFactory.createCompoundBorder(raised, lowered);
+
+        getRootPane().setBorder(compound);
+
+        FrameDragListener frameDragListener = new FrameDragListener(this);
+        this.addMouseListener(frameDragListener);
+        this.addMouseMotionListener(frameDragListener);
+
+        PhoneGUIMenu phoneGUIMenu = new PhoneGUIMenu(this, eventManager, phone, account);
+        phoneGUIMenu.init();
+
+        pack();
         setVisible(true);
-
-        MenuGUI menuGUI = new MenuGUI(this);
-        menuGUI.init();
 
     }
 
-    public class PhonePane extends GradientPanel {
+
+    public class PhonePane extends JPanel {
         private DestinationPane destinationPane;
         private ControlsPane controlsPane;
-        private MenuPane menuPane;
 
         public PhonePane() {
-            setLayout(new GridBagLayout());
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.gridx = 0;
-            gbc.gridy = 0;
-            gbc.weightx = 1;
-            gbc.weighty = 0.33;
-            gbc.anchor = GridBagConstraints.WEST;
-            gbc.fill = GridBagConstraints.BOTH;
-            gbc.insets = new Insets(4, 4, 4, 4);
+            BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
+            setLayout(boxLayout);
 
-            add((destinationPane = new DestinationPane()), gbc);
-            gbc.gridy++;
-            add((controlsPane = new ControlsPane()), gbc);
-            gbc.gridy++;
+            setMinimumSize(new Dimension(DESIRED_WIDTH, DESIRED_HEIGHT));
 
-            gbc.gridy = 0;
-            gbc.gridx++;
-            gbc.gridheight = GridBagConstraints.REMAINDER;
-            gbc.fill = GridBagConstraints.VERTICAL;
-            gbc.weighty = 1;
-            gbc.weightx = 0;
-            add((menuPane = new MenuPane()), gbc);
+            add((destinationPane = new DestinationPane()), BorderLayout.CENTER);
+            add((controlsPane = new ControlsPane()), BorderLayout.CENTER);
+
         }
 
         public class ControlsPane extends JPanel {
 
             private JButton messageButton, audioCallButton, videoCallButton, unregisterButton;
-            private JLabel controls;
-            private ChatFrame chatFrame;
 
             public ControlsPane() {
-                chatFrame = new ChatFrame("bla");
-                setLayout(new GridBagLayout());
+
+                setLayout(new GridLayout());
                 setBorder(new CompoundBorder(new TitledBorder("Controls"), new EmptyBorder(12, 0, 0, 0)));
-                GridBagConstraints gbc = new GridBagConstraints();
-                gbc.gridx = 0;
-                gbc.gridy = 0;
-                gbc.anchor = GridBagConstraints.WEST;
-                gbc.insets = new Insets(0, 0, 0, 4);
 
-                JPanel panel = new JPanel(new GridBagLayout());
-                panel.add(new JLabel("Make a connection: "), gbc);
-                gbc.gridx++;
-                gbc.weightx = 1;
-                gbc.fill = GridBagConstraints.HORIZONTAL;
-                gbc.insets = new Insets(0, 0, 0, 0);
-                panel.add((controls = new JLabel()), gbc);
+                JPanel panel = new JPanel(new GridLayout());
+                panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Controls"));
 
-                gbc.gridx = 0;
-                gbc.gridy = 0;
-                gbc.weightx = 1;
-                gbc.gridwidth = GridBagConstraints.REMAINDER;
-                gbc.fill = GridBagConstraints.HORIZONTAL;
-                gbc.insets = new Insets(4, 4, 4, 4);
-                add(panel, gbc);
-
-                gbc.gridwidth = 1;
-                gbc.weightx = 0.25;
-                gbc.gridy++;
-                gbc.fill = GridBagConstraints.HORIZONTAL;
-                add((messageButton = new JButton("Message")), gbc);
-                gbc.gridx++;
-                add((audioCallButton = new JButton("Audio Call")), gbc);
-                gbc.gridx++;
-                add((videoCallButton = new JButton("Video Call")), gbc);
-                gbc.gridx++;
-                add((unregisterButton = new JButton("Unregister")), gbc);
-
+                initComponents();
                 makeAudioCall();
                 startChatMessaging();
+            }
+
+            void initComponents(){
+                add((messageButton = new JButton("Message")), BorderLayout.CENTER);
+                add((audioCallButton = new JButton("Audio Call")), BorderLayout.CENTER);
+                add((videoCallButton = new JButton("Video Call")), BorderLayout.CENTER);
+                add((unregisterButton = new JButton("Unregister")), BorderLayout.CENTER);
             }
 
             void makeAudioCall() {
@@ -127,6 +114,8 @@ public class PhoneGUI extends AbstractScreen {
                 messageButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
+
+                        ChatFrame chatFrame = new ChatFrame("bla");
                         chatFrame.setVisible(true);
                     }
                 });
@@ -141,29 +130,36 @@ public class PhoneGUI extends AbstractScreen {
 
             public DestinationPane() {
 
-                setLayout(new GridBagLayout());
-                GridBagConstraints gbc = new GridBagConstraints();
+                GridLayout gridLayout = new GridLayout(4, 2);
+                setLayout(gridLayout);
+                setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Destination"));
 
-                gbc.gridx = 0;
-                gbc.gridy = 0;
-                gbc.anchor = GridBagConstraints.WEST;
+                add(new JLabel("Contact Name (or Number): "), BorderLayout.WEST);
+                add((sipTargetName = new JTextField(3)), BorderLayout.CENTER);
 
-                add(new JLabel("Contact Name (or Number): "), gbc);
-                gbc.gridy++;
-                add(new JLabel("Contact Address (ip or server): "), gbc);
-                gbc.gridy++;
-                add(new JLabel("Contact Port (5060 or 5061): "), gbc);
+                add(new JLabel("Contact Address (ip or server): "), BorderLayout.WEST);
+                add((sipTargetAddress = new JTextField("asterisk.interzone", 3)), BorderLayout.CENTER);
 
-                gbc.gridx++;
-                gbc.gridy = 0;
-                gbc.weightx = 1;
-                gbc.fill = GridBagConstraints.HORIZONTAL;
+                add(new JLabel("Contact Port (5060 or 5061): "), BorderLayout.WEST);
+                add((sipTargetPort = new JTextField("5060", 3)), BorderLayout.CENTER);
 
-                add((sipTargetName = new JTextField(3)), gbc);
-                gbc.gridy++;
-                add((sipTargetAddress = new JTextField("asterisk.interzone", 3)), gbc);
-                gbc.gridy++;
-                add((sipTargetPort = new JTextField("5060", 3)), gbc);
+                JButton button = new JButton("save");
+                add(button, BorderLayout.EAST);
+
+                button.addActionListener(new ActionListener() {
+
+                    SipUserProfile sipUserProfile;
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        sipUserProfile = new SipUserProfile(Integer.parseInt(sipTargetPort.getText()), sipTargetAddress.getText(), sipTargetName.getText());
+
+                        account.saveContact(sipUserProfile);
+
+                    }
+
+                });
+
             }
 
 
@@ -180,63 +176,7 @@ public class PhoneGUI extends AbstractScreen {
             }
         }
 
-        public class MenuPane extends JPanel {
 
-            private JButton okay, cancel, help, player, options;
-
-            public MenuPane() {
-
-                setLayout(new GridBagLayout());
-                GridBagConstraints gbc = new GridBagConstraints();
-
-                gbc.gridx = 0;
-                gbc.gridy = 0;
-                gbc.gridwidth = GridBagConstraints.REMAINDER;
-                gbc.fill = GridBagConstraints.HORIZONTAL;
-                gbc.weightx = 1;
-                gbc.insets = new Insets(4, 4, 4, 4);
-
-                add((okay = new JButton("Ok")), gbc);
-                gbc.gridy++;
-                add((cancel = new JButton("Cancel")), gbc);
-                gbc.gridy++;
-                add((help = new JButton("Help")), gbc);
-                gbc.gridy++;
-                add((player = new JButton("Player")), gbc);
-                gbc.gridy++;
-                gbc.weighty = 1;
-                gbc.anchor = GridBagConstraints.SOUTH;
-                add((options = new JButton("Options >>")), gbc);
-
-                clickOptions();
-                clickPlayer();
-
-            }
-
-            private void clickOptions() {
-                options.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-//                        OptionsPane optionsPane = new OptionsPane();
-//                        optionsPane.init();
-                    }
-                });
-            }
-
-            private void clickPlayer() {
-                player.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        SwingUtilities.invokeLater(new Runnable() {
-
-                            @Override
-                            public void run() {
-                                new AudioPlayerGUI().setVisible(true);
-                            }
-                        });
-                    }
-                });
-            }
 /*
             private void audioOptions() {
                 JFrame chooseMixerFrame = new JFrame("Sound Mixer");
@@ -398,5 +338,5 @@ public class PhoneGUI extends AbstractScreen {
 //                return panel;
 //            }
 //        }
-    }
+
 }

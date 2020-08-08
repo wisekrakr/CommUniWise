@@ -1,6 +1,8 @@
 package com.wisekrakr.communiwise.phone.device;
 
 
+import java.util.Map;
+
 public interface PhoneAPI {
     void register(String realm, String domain, String username, String password, String fromAddress);
 

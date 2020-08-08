@@ -10,10 +10,10 @@ import gov.nist.javax.sdp.parser.AttributeFieldParser;
 import gov.nist.javax.sdp.parser.SDPAnnounceParser;
 import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
+import gov.nist.javax.sip.clientauthutils.UserCredentials;
 import gov.nist.javax.sip.message.SIPMessage;
 
 import javax.sdp.MediaDescription;
-import javax.sdp.SdpConstants;
 import javax.sip.*;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
@@ -43,8 +43,7 @@ public class SipManager implements SipClient {
     private final String sipTransport;
     private final String proxyHost;
     private final int proxyPort;
-
-    private final SipAccountManager accountManager;
+    private SipAccountManager accountManager;
 
     private int traceLevel = 0;
     private String serverLogFile;
@@ -69,7 +68,6 @@ public class SipManager implements SipClient {
     private int status;
 
     public SipManager(String proxyHost, int proxyPort, String localSipAddress, int localSipPort, String sipTransport) {
-
         this.proxyHost = proxyHost;
         this.proxyPort = proxyPort;
         this.localSipAddress = localSipAddress;
@@ -77,7 +75,7 @@ public class SipManager implements SipClient {
         this.sipTransport = sipTransport;
         this.localRtpHost = localSipAddress;
 
-        accountManager = new SipAccountManager();
+
     }
 
     public SipManager listener(SipManagerListener listener) {
@@ -98,11 +96,9 @@ public class SipManager implements SipClient {
         return this;
     }
 
-    public SipSessionState getSipSessionState() {
-        return sipSessionState;
-    }
+    public void initialize(SipAccountManager accountManager) throws Exception {
+        this.accountManager = accountManager;
 
-    public void initialize() throws Exception {
         sipSessionState = SipSessionState.IDLE;
 
 
@@ -134,13 +130,10 @@ public class SipManager implements SipClient {
 
         sipStack = sipFactory.createSipStack(properties);
 
-        authenticationHelper = ((SipStackExt) sipStack)
-                .getAuthenticationHelper(accountManager, headerFactory);
-
+        authenticationHelper = ((SipStackExt) sipStack).getAuthenticationHelper(accountManager, headerFactory);
 
         ListeningPoint udp = sipStack.createListeningPoint(localSipAddress, localSipPort, sipTransport);
         udpSipProvider = sipStack.createSipProvider(udp);
-
 
         udpSipProvider.addSipListener(
                 new SipListener() {
@@ -401,8 +394,6 @@ public class SipManager implements SipClient {
                         } else {
                             transaction = timeoutEvent.getClientTransaction();
                             System.out.println(timeoutEvent.getTimeout().getValue());
-
-
                         }
                         System.out.println("state = " + transaction.getState());
                         System.out.println("dialog = " + transaction.getDialog());

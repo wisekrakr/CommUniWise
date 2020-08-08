@@ -1,34 +1,30 @@
 package com.wisekrakr.communiwise.main;
 
 
-import com.wisekrakr.communiwise.gui.layouts.AudioCallGUI;
-import com.wisekrakr.communiwise.gui.layouts.IncomingCallGUI;
-import com.wisekrakr.communiwise.gui.layouts.LoginGUI;
 import com.wisekrakr.communiwise.gui.layouts.PhoneGUI;
 import com.wisekrakr.communiwise.phone.audio.AudioManager;
-import com.wisekrakr.communiwise.phone.audio.SoundAPI;
 import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
-import com.wisekrakr.communiwise.phone.device.PhoneAPI;
+import com.wisekrakr.communiwise.phone.device.DeviceImplementations;
+import com.wisekrakr.communiwise.phone.managers.EventManager;
 import com.wisekrakr.communiwise.phone.managers.SipManager;
 import com.wisekrakr.communiwise.phone.managers.SipManagerListener;
+import com.wisekrakr.communiwise.user.SipAccountManager;
 
 import javax.sound.sampled.*;
-import javax.swing.*;
-import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 
 public class PhoneApplication implements Serializable {
 
-    private static final AudioFormat FORMAT_SOURCE = new AudioFormat(16000, 16, 1, true, true); //G722 has 16000 samplerate
+    private static final AudioFormat FORMAT = new AudioFormat(16000, 16, 1, true, true);
+
     private SipManager sipManager;
-
-    private IncomingCallGUI incomingCallGUI;
-    private AudioCallGUI audioCallGUI;
-
     private RTPConnectionManager rtpConnectionManager;
     private AudioManager audioManager;
+    private SipAccountManager accountManager;
+    private EventManager eventManager;
+
+//    private DeviceImplementations impl;
 
     private static void printHelp(String message) {
         System.out.println(message);
@@ -50,6 +46,7 @@ public class PhoneApplication implements Serializable {
         }
 
         PhoneApplication application = new PhoneApplication();
+
         try {
             Mixer.Info[] mixers = AudioSystem.getMixerInfo();
 
@@ -58,10 +55,10 @@ public class PhoneApplication implements Serializable {
 
             for (int i = 0; i < mixers.length; i++) {
                 if (args[1].equals(mixers[i].getName())) {
-                    inputLine = (TargetDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(TargetDataLine.class, FORMAT_SOURCE));
+                    inputLine = (TargetDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(TargetDataLine.class, FORMAT));
                 }
                 if (args[2].equals(mixers[i].getName())) {
-                    outputLine = (SourceDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(SourceDataLine.class, FORMAT_SOURCE));
+                    outputLine = (SourceDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(SourceDataLine.class, FORMAT));
                 }
             }
 
@@ -76,8 +73,8 @@ public class PhoneApplication implements Serializable {
 
             int playBuffer = 100 * Math.max(10, 12);
 
-            inputLine.open(FORMAT_SOURCE, playBuffer);
-            outputLine.open(FORMAT_SOURCE);
+            inputLine.open(FORMAT, playBuffer);
+            outputLine.open(FORMAT);
 
             String localAddress = args[0];
 
@@ -106,7 +103,6 @@ public class PhoneApplication implements Serializable {
     }
 
     private void run() {
-
     }
 
     private void initialize(TargetDataLine inputLine, SourceDataLine outputLine, String localAddress, int localPort, String transport, String proxyHost, int proxyPort) throws Exception {
@@ -124,7 +120,7 @@ public class PhoneApplication implements Serializable {
                     public void onBye() {
                         rtpConnectionManager.stopStreamingAudio();
 
-                        audioCallGUI.hideWindow();
+//                        audioCallGUI.hideWindow();
                     }
 
                     @Override
@@ -179,11 +175,14 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void onRegistered() {
-                        SwingUtilities.invokeLater(() -> {
-                            if (active instanceof LoginState) {
-                                enterState(new LoggedInState(((LoginState) active).phone));
-                            }
-                        });
+                        //todo eventManager.registerSuccessful()
+//                        SwingUtilities.invokeLater(() -> {
+//                            if (active instanceof LoginState) {
+//                                enterState(new LoggedInState(((LoginState) active).phone, impl.accountApiImpl(accountManager.getUserInfo())));
+//                            }
+//                        });
+
+
                     }
 
                     @Override
@@ -200,191 +199,120 @@ public class PhoneApplication implements Serializable {
                     @Override
                     public void authenticationFailed() {
                         System.out.println("Authentication failed :-(");
-                        SwingUtilities.invokeLater(() -> {
-                            if (!(active instanceof LoginState)) {
-                                // TODO: WRONG
-                                enterState(new LoginState(null));
-                            }
-                        });
+//                        SwingUtilities.invokeLater(() -> {
+//                            if (!(active instanceof LoginState)) {
+//                                // TODO: WRONG
+//                                enterState(new LoginState(null));
+//                            }
+//                        });
                     }
                 });
 
         // Handles changing of screens
-        initGUI();
+//        initGUI();
 
         rtpConnectionManager = new RTPConnectionManager(inputLine, outputLine);
         rtpConnectionManager.init();
 
+        accountManager = new SipAccountManager();
+
         audioManager = new AudioManager(rtpConnectionManager.getSocket(), inputLine, outputLine);
 
-        sipManager.initialize();
+//        impl = new DeviceImplementations();
 
+//        PhoneGUI phoneGUI = new PhoneGUI(
+//                impl.phoneApiImpl(sipManager,rtpConnectionManager,audioManager,FORMAT),
+//                impl.accountApiImpl(accountManager.getUserInfo()));
+//        phoneGUI.showWindow();
+
+        sipManager.initialize(accountManager);
+
+        eventManager = new EventManager(sipManager, rtpConnectionManager, accountManager, audioManager);
+        eventManager.open();
     }
 
-    public interface ApplicationState {
-        void enter();
-
-        void leave();
-    }
-
-    public class LoggedInState implements ApplicationState {
-        private PhoneGUI screen;
-        private PhoneAPI phone;
-
-        public LoggedInState(PhoneAPI phone) {
-            this.phone = phone;
-        }
-
-        public PhoneAPI getPhone() {
-            return phone;
-        }
-
-        @Override
-        public void enter() {
-            screen = new PhoneGUI(phone);
-            screen.showWindow();
-        }
-
-        @Override
-        public void leave() {
-            screen.hideWindow();
-        }
-    }
-
-    public class LoginState implements ApplicationState {
-        private LoginGUI screen;
-        private PhoneAPI phone;
-
-        public LoginState(PhoneAPI phone) {
-            this.phone = phone;
-        }
-
-        @Override
-        public void enter() {
-            screen = new LoginGUI(phone);
-
-            screen.showWindow();
-        }
-
-        @Override
-        public void leave()  {
-            screen.hideWindow();
-        }
-    }
-
-    private SoundAPI getSoundApi(){
-        return new SoundAPI() {
-
-            @Override
-            public void startRecording() {
-
-                audioManager.startRecordingWavFile();
-            }
-
-            @Override
-            public void playRemoteSound(String file) {
-                File audioFile = new File(file);
-                try {
-
-                    AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
-                    AudioInputStream lowResAudioStream = AudioSystem.getAudioInputStream(FORMAT_SOURCE, audioStream);
-
-                    audioManager.startSendingAudio(lowResAudioStream);
-                } catch (IOException | UnsupportedAudioFileException e) {
-                    System.out.println(" error while sending audio file " + e);
-                }
-            }
-
-            @Override
-            public void stopRecording() {
-                audioManager.stopRecording();
-            }
-
-            @Override
-            public void stopRemoteSound() {
-                audioManager.stopSendingAudio();
-            }
-
-            @Override
-            public void mute(boolean muted) {
-//                BooleanControl bc = (BooleanControl) inputLine.getControl(BooleanControl.Type.MUTE);
-//                if (bc != null) {
-//                    bc.setValue(true);
-//                }
-            }
-        };
-    }
-
-    public void initGUI() {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Throwable e) {
-                System.out.println("WARNING: unable to set look and feel, will continue");
-            }
-
-            enterState(new LoginState(new PhoneAPI() {
-                String proxyAddress;
-
-                @Override
-                public void initiateCall(String sipAddress) {
-                    //todo codec
-                    sipManager.initiateCall(sipAddress, rtpConnectionManager.getSocket().getLocalPort());
-
-                    audioCallGUI = new AudioCallGUI(this, getSoundApi());
-                    audioCallGUI.showWindow();
-
-                    proxyAddress = sipAddress;
-                }
-
-                @Override
-                public void accept() {
-                    sipManager.acceptCall(rtpConnectionManager.getSocket().getLocalPort());
-
-                    incomingCallGUI = new IncomingCallGUI(this);
-                }
-
-                @Override
-                public void reject() {
-                    sipManager.reject();
-                }
-
-
-                @Override
-                public void hangup() {
-                    try {
-                        sipManager.hangup(proxyAddress);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    audioCallGUI.hideWindow();
-                }
-
-                @Override
-                public void register(String realm, String domain, String username, String password, String fromAddress) {
-                    sipManager.login(realm, username, password, domain, fromAddress);
-                }
-
-                @Override
-                public int callStatus() {
-                    return sipManager.getStatus();
-                }
-            }));
-        });
-    }
-
-    private ApplicationState active;
-
-    private void enterState(ApplicationState loginState) {
-        if (active != null) {
-            active.leave();
-            active = null;
-        }
-
-        active = loginState;
-
-        if (active != null) {
-            active.enter();
-        }
-    }
+//    public interface ApplicationState {
+//        void enter();
+//
+//        void leave();
+//    }
+//
+//    public class LoggedInState implements ApplicationState {
+//        private PhoneGUI screen;
+//        private PhoneAPI phone;
+//        private AccountAPI account;
+//
+//
+//        public LoggedInState(PhoneAPI phone, AccountAPI account) {
+//            this.phone = phone;
+//            this.account = account;
+//        }
+//
+//        public PhoneAPI getPhone() {
+//            return phone;
+//        }
+//
+//        public AccountAPI getAccount() {
+//            return account;
+//        }
+//
+//        @Override
+//        public void enter() {
+//            screen = new PhoneGUI(phone, account);
+//            screen.showWindow();
+//        }
+//
+//        @Override
+//        public void leave() {
+//            screen.hideWindow();
+//        }
+//    }
+//
+//    public class LoginState implements ApplicationState {
+//        private LoginGUI screen;
+//        private PhoneAPI phone;
+//
+//        public LoginState(PhoneAPI phone) {
+//            this.phone = phone;
+//        }
+//
+//        @Override
+//        public void enter() {
+//            screen = new LoginGUI(phone);
+//            screen.showWindow();
+//        }
+//
+//        @Override
+//        public void leave()  {
+//            screen.hideWindow();
+//        }
+//    }
+//
+//    public void initGUI() {
+//
+//        SwingUtilities.invokeLater(() -> {
+//            try {
+//                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+//            } catch (Throwable e) {
+//                System.out.println("WARNING: unable to set look and feel, will continue");
+//            }
+//
+//            enterState(new LoginState(impl.phoneApiImpl(sipManager, rtpConnectionManager,audioManager,FORMAT)));
+//        });
+//    }
+//
+//    private ApplicationState active;
+//
+//    private void enterState(ApplicationState loginState) {
+//        if (active != null) {
+//            active.leave();
+//            active = null;
+//        }
+//
+//        active = loginState;
+//
+//        if (active != null) {
+//            active.enter();
+//        }
+//    }
 }

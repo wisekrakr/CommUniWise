@@ -1,6 +1,6 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
-import com.wisekrakr.communiwise.phone.audio.SoundAPI;
+import com.wisekrakr.communiwise.phone.device.SoundAPI;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
 import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
 import com.wisekrakr.communiwise.gui.layouts.objects.Button;

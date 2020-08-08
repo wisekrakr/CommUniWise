@@ -1,22 +1,29 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
 import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
+import com.wisekrakr.communiwise.gui.layouts.utils.FrameDragListener;
 import com.wisekrakr.communiwise.phone.device.PhoneAPI;
 import com.wisekrakr.communiwise.gui.layouts.objects.Button;
 
+import javax.imageio.ImageIO;
 import javax.sip.address.Address;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class LoginGUI extends AbstractScreen {
     private final PhoneAPI phoneAPI;
 
     private final JPanel textPanel = new JPanel();
     private final JPanel buttonPanel = new JPanel();
+    private final JPanel logoPanel = new JPanel();
 
     private JTextField domainInput;
     private JTextField usernameInput;
@@ -30,35 +37,50 @@ public class LoginGUI extends AbstractScreen {
     private final JLabel username = new JLabel("username");
     private final JLabel password = new JLabel("password");
 
+    private Image image;
 
     public LoginGUI(PhoneAPI phoneAPI) throws HeadlessException {
         this.phoneAPI = phoneAPI;
     }
 
     private static final int DESIRED_HEIGHT = 300;
-    private static final int DESIRED_WIDTH = 500;
+    private static final int DESIRED_WIDTH = 600;
 
+    public LoginGUI initialize(){
+        showWindow();
+
+        return this;
+    }
 
     @Override
     public void showWindow() {
         setTitle("Login to CommUniWise");
+        setUndecorated(true);
+        setBackground(Color.lightGray);
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width - DESIRED_WIDTH) / 2, (screenSize.height - DESIRED_HEIGHT) / 2, DESIRED_WIDTH, DESIRED_HEIGHT);
-        getRootPane().setBorder(BorderFactory.createMatteBorder(4,4,4,4, Constants.SUNSET_ORANGE));
+        getRootPane().setBorder(BorderFactory.createEtchedBorder(Constants.DARK_CYAN, Color.darkGray));
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         initComponents();
+        buildLogoPanel();
         buildTextPanel();
         buildButtonPanel();
 
         setLayout(new BorderLayout());
 
-        add(textPanel,BorderLayout.NORTH);
-        add(buttonPanel,BorderLayout.CENTER);
+        add(logoPanel,BorderLayout.WEST);
+        add(textPanel,BorderLayout.CENTER);
+        add(buttonPanel,BorderLayout.SOUTH);
+
+        FrameDragListener frameDragListener = new FrameDragListener(this);
+        this.addMouseListener(frameDragListener);
+        this.addMouseMotionListener(frameDragListener);
 
         setVisible(true);
+        setResizable(true);
 
     }
 
@@ -70,17 +92,30 @@ public class LoginGUI extends AbstractScreen {
         passwordInput = new JPasswordField("45jf83f");
     }
 
+    public void buildLogoPanel(){
+
+        try {
+            image = ImageIO.read(new File("src/main/resources/logo1.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        JLabel picLabel = new JLabel(new ImageIcon(image));
+        logoPanel.add(picLabel);
+        logoPanel.setBackground(Constants.LIGHT_CYAN);
+    }
+
     public void buildTextPanel () {
+
         GridLayout gridLayout = new GridLayout(6, 2);
         gridLayout.setVgap(5);
         textPanel.setLayout(gridLayout);
-        textPanel.setBorder(new EmptyBorder(10,10,10,10));
-
+        textPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Registration Panel"));
 
         fromInput.setText("sip:"+ usernameInput.getText() + "@" + domainInput.getText());
 
         textPanel.add(fromAddress,BorderLayout.WEST);
         textPanel.add(fromInput,BorderLayout.CENTER);
+        fromInput.setEditable(false);
         textPanel.add(username,BorderLayout.WEST);
         textPanel.add(usernameInput,BorderLayout.CENTER);
         textPanel.add(password,BorderLayout.WEST);
@@ -89,15 +124,25 @@ public class LoginGUI extends AbstractScreen {
         textPanel.add(realmInput,BorderLayout.CENTER);
         textPanel.add(domain,BorderLayout.WEST);
         textPanel.add(domainInput,BorderLayout.CENTER);
+
         textPanel.setBackground(Constants.LIGHT_CYAN);
     }
 
     public void buildButtonPanel () {
         buttonPanel.setLayout(new FlowLayout());
 
-        Button loginButton = new Button("Login", 10, 160);
+        java.awt.Button loginButton = new java.awt.Button("Register");
+        loginButton.setFont(new java.awt.Font("Arial", Font.BOLD, 14));
+        loginButton.setBackground(Constants.DARK_CYAN);
+        loginButton.setForeground(Constants.LIGHT_CYAN);
 
-        buttonPanel.add(loginButton);
+        java.awt.Button closeButton = new java.awt.Button("Close");
+        closeButton.setFont(new java.awt.Font("Arial", Font.BOLD, 14));
+        closeButton.setBackground(Constants.DARK_CYAN);
+        closeButton.setForeground(Constants.LIGHT_CYAN);
+
+        buttonPanel.add(loginButton, BorderLayout.PAGE_END);
+        buttonPanel.add(closeButton, BorderLayout.PAGE_END);
 
         loginButton.addActionListener(new ActionListener() {
             @Override
@@ -106,7 +151,15 @@ public class LoginGUI extends AbstractScreen {
             }
         });
 
-        buttonPanel.setBackground(Color.LIGHT_GRAY);
+        closeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                hideWindow();
+            }
+        });
+
+        buttonPanel.setBackground(Constants.LIGHT_CYAN);
     }
 
 

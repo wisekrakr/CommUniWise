@@ -9,6 +9,7 @@ import java.util.Map;
 
 public class SipAccountManager implements AccountManager {
     private final Map<String, UserCredentials> credentials = new HashMap<>();
+    private final Map<String, String> userInfo = new HashMap<>();
 
     public void clear() {
         credentials.clear();
@@ -16,9 +17,16 @@ public class SipAccountManager implements AccountManager {
 
     public void addCredentials(String realm, String userName, String password, String domain) {
         credentials.put(realm, new SipUserCredentials(userName, domain, password));
+
+        userInfo.put("userName", userName);
+        userInfo.put("domain", domain);
     }
 
     public UserCredentials getCredentials(ClientTransaction challengedTransaction, String realm) {
         return credentials.get(realm);
+    }
+
+    public Map<String, String> getUserInfo() {
+        return userInfo;
     }
 }
