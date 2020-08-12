@@ -14,13 +14,12 @@ import java.awt.event.ActionListener;
 public class AudioCallGUI extends AbstractScreen {
     private final PhoneAPI phone;
     private final SoundAPI audioSound;
+    private String callId;
 
-    public AudioCallGUI(PhoneAPI phone, SoundAPI audioSound) throws HeadlessException {
+    public AudioCallGUI(PhoneAPI phone, SoundAPI audioSound, String callId) throws HeadlessException {
         this.phone = phone;
         this.audioSound = audioSound;
-
-
-        showWindow();
+        this.callId = callId;
     }
 
     public void showWindow() {

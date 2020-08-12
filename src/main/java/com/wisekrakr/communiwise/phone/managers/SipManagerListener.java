@@ -1,5 +1,7 @@
 package com.wisekrakr.communiwise.phone.managers;
 
+import javax.sip.address.Address;
+
 public interface SipManagerListener {
     void onTextMessage(String message, String from);
 
@@ -9,11 +11,11 @@ public interface SipManagerListener {
 
     void onRemoteDeclined();
 
-    void callConfirmed(String rtpHost, int rtpPort, String codec);
+    void callConfirmed(String rtpHost, int rtpPort, String codec, String callId);
 
     void onUnavailable();
 
-    void onRinging(String from);
+    void onRinging(String callId, Address address);
 
     void onBusy();
 
@@ -21,7 +23,7 @@ public interface SipManagerListener {
 
     void onRegistered();
 
-    void onHangup();
+    void onHangup(String callId);
 
     void onTrying();
 

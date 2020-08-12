@@ -1,47 +1,83 @@
 package com.wisekrakr.communiwise.phone.managers;
 
+import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
 import com.wisekrakr.communiwise.gui.layouts.AudioCallGUI;
+import com.wisekrakr.communiwise.gui.layouts.AcceptCallGUI;
 import com.wisekrakr.communiwise.gui.layouts.LoginGUI;
 import com.wisekrakr.communiwise.gui.layouts.PhoneGUI;
-import com.wisekrakr.communiwise.phone.audio.AudioManager;
-import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
+import com.wisekrakr.communiwise.phone.device.AccountAPI;
 import com.wisekrakr.communiwise.phone.device.DeviceImplementations;
-import com.wisekrakr.communiwise.user.SipAccountManager;
+import com.wisekrakr.communiwise.phone.device.PhoneAPI;
+import com.wisekrakr.communiwise.phone.device.SoundAPI;
 
 import javax.swing.*;
+import java.util.HashMap;
 import java.util.Map;
 
-public class EventManager implements SipManagerListener, FrameManagerListener{
+public class EventManager implements FrameManagerListener{
 
     //todo handle in the PhoneApp
 
     private PhoneGUI phoneGUI;
     private LoginGUI loginGUI;
-    private Map<String, AudioCallGUI> callGUIs;
 
-    private final DeviceImplementations impl;
-    private final SipManager sipManager;
-    private final RTPConnectionManager rtpConnectionManager;
-    private final SipAccountManager accountManager;
-    private final AudioManager audioManager;
+    private Map<String, AbstractScreen> callGUIs = new HashMap<>();
 
-    public EventManager(SipManager sipManager, RTPConnectionManager rtpConnectionManager, SipAccountManager accountManager, AudioManager audioManager) {
-        this.sipManager = sipManager;
-        this.rtpConnectionManager = rtpConnectionManager;
-        this.accountManager = accountManager;
-        this.audioManager = audioManager;
+    private DeviceImplementations impl;
 
-        impl = new DeviceImplementations();
+    private PhoneAPI phone;
+    private AccountAPI account;
+    private SoundAPI sound;
+
+    public EventManager(DeviceImplementations impl) {
+        this.impl = impl;
+
+        phone = impl.getPhoneApi();
+        account = impl.getAccountApi();
+        sound = impl.getSoundApi();
     }
 
 
     @Override
-    public void onOutgoingCall() {
+    public void onOutgoingCall(String callId) {
+        SwingUtilities.invokeLater(() -> {
+            AudioCallGUI audioCallGUI = new AudioCallGUI(phone, sound, callId);
 
+            callGUIs.put(callId, audioCallGUI);
+
+            audioCallGUI.showWindow();
+        });
     }
 
     @Override
-    public void onIncomingCall() {
+    public void onIncomingCall(String callId) {
+        SwingUtilities.invokeLater(() -> {
+            AcceptCallGUI acceptCallGUI = new AcceptCallGUI(phone, callId);
+
+            callGUIs.put(callId, acceptCallGUI);
+
+            acceptCallGUI.showWindow();
+        });
+    }
+
+    @Override
+    public void onHangUp(String callId) {
+        //todo this has to be fixed
+        AudioCallGUI callGUI = (AudioCallGUI) callGUIs.entrySet().stream().filter(cc -> callId.equals(cc.getKey()));
+
+
+        callGUI.hideWindow();
+    }
+
+    @Override
+    public void onAcceptingCall(String callId) {
+        SwingUtilities.invokeLater(() -> {
+            AudioCallGUI audioCallGUI = new AudioCallGUI(phone, sound, callId);
+
+            callGUIs.put(callId, audioCallGUI);
+
+            audioCallGUI.showWindow();
+        });
 
     }
 
@@ -59,9 +95,7 @@ public class EventManager implements SipManagerListener, FrameManagerListener{
                 System.out.println("WARNING: unable to set look and feel, will continue");
             }
 
-            phoneGUI = new PhoneGUI(this,
-                    impl.phoneApiImpl(sipManager,rtpConnectionManager,audioManager),
-                    impl.accountApiImpl(accountManager.getUserInfo()));
+            phoneGUI = new PhoneGUI(this, phone, account);
             phoneGUI.showWindow();
         });
     }
@@ -69,75 +103,34 @@ public class EventManager implements SipManagerListener, FrameManagerListener{
     @Override
     public void onRegistering() {
         SwingUtilities.invokeLater(() -> {
-                if (loginGUI != null) {
-                    loginGUI.showWindow();
-                }
-                loginGUI = new LoginGUI(impl.phoneApiImpl(sipManager,rtpConnectionManager,audioManager)).initialize();
+            try {
+                loginGUI = new LoginGUI(phone);
+                loginGUI.showWindow();
+            }catch (Throwable e){
+                System.out.println("Login GUI could not be displayed " + e);
+
+            }
         });
     }
 
     @Override
-    public void onTextMessage(String message, String from) {
-
-    }
-
-    @Override
-    public void onBye() {
-
-    }
-
-    @Override
-    public void onRemoteCancel() {
-
-    }
-
-    @Override
-    public void onRemoteDeclined() {
-
-    }
-
-    @Override
-    public void callConfirmed(String rtpHost, int rtpPort, String codec) {
-
-    }
-
-    @Override
-    public void onUnavailable() {
-
-    }
-
-    @Override
-    public void onRinging(String from) {
-
-    }
-
-    @Override
-    public void onBusy() {
-
-    }
-
-    @Override
-    public void onRemoteAccepted() {
-
-    }
-
-    @Override
     public void onRegistered() {
+        try{
+            if(loginGUI.isActive()){
+                loginGUI.hideWindow();
+            }
+        }catch (Throwable e){
+            System.out.println("Login GUI Could not be displayed " + e);
 
+        }
     }
 
     @Override
-    public void onHangup() {
+    public void onUnregistering() {
 
     }
 
-    @Override
-    public void onTrying() {
 
-    }
 
-    @Override
-    public void authenticationFailed() {
 
-    }
 }

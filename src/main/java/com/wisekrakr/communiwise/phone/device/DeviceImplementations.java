@@ -1,11 +1,10 @@
 package com.wisekrakr.communiwise.phone.device;
 
-import com.wisekrakr.communiwise.gui.layouts.AudioCallGUI;
-import com.wisekrakr.communiwise.gui.layouts.IncomingCallGUI;
 import com.wisekrakr.communiwise.phone.audio.AudioManager;
 import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
 import com.wisekrakr.communiwise.phone.managers.ContactManager;
 import com.wisekrakr.communiwise.phone.managers.SipManager;
+import com.wisekrakr.communiwise.user.SipAccountManager;
 import com.wisekrakr.communiwise.user.SipUserProfile;
 
 import javax.sound.sampled.AudioFormat;
@@ -17,11 +16,25 @@ import java.io.IOException;
 import java.util.Map;
 
 public class DeviceImplementations {
-    private static final AudioFormat FORMAT = new AudioFormat(16000, 16, 1, true, true);
 
+    private final SipManager sipManager;
+    private final RTPConnectionManager rtpConnectionManager;
+    private final AudioManager audioManager;
+    private final SipAccountManager accountManager;
+    private final ContactManager contactManager;
 
-    public SoundAPI soundApiImpl(AudioManager audioManager){
+    public DeviceImplementations(SipManager sipManager, RTPConnectionManager rtpConnectionManager,SipAccountManager accountManager, AudioManager audioManager) {
+        this.sipManager = sipManager;
+        this.rtpConnectionManager = rtpConnectionManager;
+        this.accountManager = accountManager;
+        this.audioManager = audioManager;
+
+        contactManager = new ContactManager();
+    }
+
+    public SoundAPI getSoundApi(){
         return new SoundAPI() {
+            private final AudioFormat FORMAT = new AudioFormat(16000, 16, 1, true, true);
 
             @Override
             public void startRecording() {
@@ -63,21 +76,15 @@ public class DeviceImplementations {
         };
     }
 
-    public PhoneAPI phoneApiImpl(SipManager sipManager, RTPConnectionManager rtpConnectionManager, AudioManager audioManager){
+    public PhoneAPI getPhoneApi(){
         return new PhoneAPI() {
 
-            String proxyAddress;
-            IncomingCallGUI incomingCallGUI;
-            AudioCallGUI audioCallGUI;
-
+            private String proxyAddress;
 
             @Override
             public void initiateCall(String sipAddress) {
                 //todo codec
                 sipManager.initiateCall(sipAddress, rtpConnectionManager.getSocket().getLocalPort());
-
-                audioCallGUI = new AudioCallGUI(this, soundApiImpl(audioManager));
-                audioCallGUI.showWindow();
 
                 proxyAddress = sipAddress;
             }
@@ -86,7 +93,6 @@ public class DeviceImplementations {
             public void accept() {
                 sipManager.acceptCall(rtpConnectionManager.getSocket().getLocalPort());
 
-                incomingCallGUI = new IncomingCallGUI(this);
             }
 
             @Override
@@ -99,15 +105,17 @@ public class DeviceImplementations {
             public void hangup() {
                 try {
                     sipManager.hangup(proxyAddress);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Throwable e) {
+                    throw new IllegalStateException("Unable to hang up the device", e);
                 }
-                audioCallGUI.hideWindow();
+
             }
+
 
             @Override
             public void register(String realm, String domain, String username, String password, String fromAddress) {
                 sipManager.login(realm, username, password, domain, fromAddress);
+
             }
 
             @Override
@@ -117,14 +125,13 @@ public class DeviceImplementations {
         };
     }
 
-    public AccountAPI accountApiImpl(Map<String, String> info){
-        ContactManager contactManager = new ContactManager();
+    public AccountAPI getAccountApi(){
 
         return new AccountAPI() {
 
             @Override
             public Map<String, String> getUserInfo() {
-                return info;
+                return accountManager.getUserInfo();
             }
 
             @Override

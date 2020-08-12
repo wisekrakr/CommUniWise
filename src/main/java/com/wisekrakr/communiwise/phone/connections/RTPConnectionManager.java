@@ -69,6 +69,7 @@ public class RTPConnectionManager {
         socket.close();
 
         transmittingThread.stop();
+
     }
 
     private void stopInput() {

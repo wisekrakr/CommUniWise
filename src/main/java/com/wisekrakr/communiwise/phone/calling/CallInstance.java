@@ -1,20 +1,30 @@
 package com.wisekrakr.communiwise.phone.calling;
 
 
-import java.net.SocketAddress;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.InetSocketAddress;
 
 public class CallInstance {
     private long timestampRecStart = 0;
-    private final Map<String, SocketAddress>callInstances = new HashMap<>();
+    private String id;
+    private String proxy;
+    private InetSocketAddress proxyAddress;
 
-    public CallInstance(String proxy, SocketAddress proxyAddress) {
-        callInstances.put(proxy, proxyAddress);
+    public CallInstance(String id, String proxy, InetSocketAddress proxyAddress) {
+        this.id = id;
+        this.proxy = proxy;
+        this.proxyAddress = proxyAddress;
     }
 
-    public Map<String, SocketAddress> getCallInstances() {
-        return callInstances;
+    public String getId() {
+        return id;
+    }
+
+    public String getProxy() {
+        return proxy;
+    }
+
+    public InetSocketAddress getProxyAddress() {
+        return proxyAddress;
     }
 
     public long getTime() {
@@ -29,4 +39,6 @@ public class CallInstance {
     public void resetTimestampRecStart() {
         timestampRecStart = getTime();
     }
+
+
 }

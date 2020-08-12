@@ -63,6 +63,8 @@ public class TransmittingThread {
 
                 targetDataLine.stop();
 
+                rawDataOutput.close();
+
                 System.out.println("Capture thread has stopped");
             } catch (Throwable e) {
                 System.out.println("Capture thread has stopped unexpectedly " + e.getMessage());
@@ -70,7 +72,6 @@ public class TransmittingThread {
         }, "Capture thread");
         captureThread.setDaemon(true);
 
-        //todo targetDataLine level is -1. Should be between 0 - 1. Low volume.
         encoderThread = new Thread(new Runnable() {
 
             public void run() {
@@ -89,6 +90,8 @@ public class TransmittingThread {
 
                         encodedDataOutput.write(encodingBuffer, 0, encoded);
                     }
+                    encodedDataOutput.close();
+                    rawDataInput.close();
 
 
                     System.out.println("Encoding thread has stopped");
@@ -143,6 +146,8 @@ public class TransmittingThread {
                         send(rtpPacket);
                     }
 
+                    encodedDataInput.close();
+
                     System.out.println("Sending thread has stopped");
                 } catch (Throwable e) {
                     System.out.println("Sending thread has stopped unexpectedly " + e.getMessage());
@@ -174,6 +179,7 @@ public class TransmittingThread {
         captureThread.interrupt();
         encoderThread.interrupt();
         rtpSenderThread.interrupt();
+
     }
 
 

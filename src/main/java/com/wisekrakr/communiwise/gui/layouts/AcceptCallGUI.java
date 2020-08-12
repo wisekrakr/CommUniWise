@@ -9,14 +9,14 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class IncomingCallGUI extends AbstractScreen {
+public class AcceptCallGUI extends AbstractScreen {
 
     private final PhoneAPI phone;
 
     private JPanel panel;
 
 
-    public IncomingCallGUI(PhoneAPI phone) throws HeadlessException {
+    public AcceptCallGUI(PhoneAPI phone, String callId) throws HeadlessException {
         this.phone = phone;
     }
 

@@ -10,7 +10,6 @@ import gov.nist.javax.sdp.parser.AttributeFieldParser;
 import gov.nist.javax.sdp.parser.SDPAnnounceParser;
 import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
-import gov.nist.javax.sip.clientauthutils.UserCredentials;
 import gov.nist.javax.sip.message.SIPMessage;
 
 import javax.sdp.MediaDescription;
@@ -67,6 +66,8 @@ public class SipManager implements SipClient {
     private ClientTransaction currentCall;
     private int status;
 
+    //todo create a list of calls so that we can pass all kinds of info about the current calls
+
     public SipManager(String proxyHost, int proxyPort, String localSipAddress, int localSipPort, String sipTransport) {
         this.proxyHost = proxyHost;
         this.proxyPort = proxyPort;
@@ -74,8 +75,6 @@ public class SipManager implements SipClient {
         this.localSipPort = localSipPort;
         this.sipTransport = sipTransport;
         this.localRtpHost = localSipAddress;
-
-
     }
 
     public SipManager listener(SipManagerListener listener) {
@@ -95,6 +94,7 @@ public class SipManager implements SipClient {
 
         return this;
     }
+
 
     public void initialize(SipAccountManager accountManager) throws Exception {
         this.accountManager = accountManager;
@@ -135,6 +135,8 @@ public class SipManager implements SipClient {
         ListeningPoint udp = sipStack.createListeningPoint(localSipAddress, localSipPort, sipTransport);
         udpSipProvider = sipStack.createSipProvider(udp);
 
+        callId = udpSipProvider.getNewCallId();
+
         udpSipProvider.addSipListener(
                 new SipListener() {
                     @Override
@@ -152,6 +154,7 @@ public class SipManager implements SipClient {
                         }
 
                         System.out.println("Processing server request\n" + requestEvent.getRequest());
+                        System.out.println("SipSessionState \n" + sipSessionState);
 
 
                         try {
@@ -228,7 +231,9 @@ public class SipManager implements SipClient {
 
                                         waitingCall = transaction;
 
-                                        listener.onRinging(sp.getFrom().getAddress().toString());
+                                        listener.onRinging(callId.getCallId(), sp.getFrom().getAddress());
+
+
                                     }
                                     break;
 
@@ -246,15 +251,7 @@ public class SipManager implements SipClient {
 
                                         System.out.println("Sending 200 Canceled Request");
                                         System.out.println("Dialog State = " + dialog1.getState());
-/*
-                                    if (currentServerTransaction != null) {
-                                        // also send a 487 Request Terminated response to the original INVITE request
-                                        Request originalInviteRequest = currentServerTransaction.getRequest();
-                                        Response originalInviteResponse = messageFactory.createResponse(Response.REQUEST_TERMINATED, originalInviteRequest);
-                                        currentServerTransaction.sendResponse(originalInviteResponse);
-                                    }
 
- */
                                     }
 
                                     listener.onRemoteCancel();
@@ -322,12 +319,12 @@ public class SipManager implements SipClient {
                                         MediaDescription incomingMediaDescriptor = (MediaDescription) sessionDescription.getMediaDescriptions(false).get(0);
 
                                         String codec = parseAttribute((AttributeField) incomingMediaDescriptor.getAttributes(false).get(0));
-
                                         listener.callConfirmed(
                                                 sessionDescription.getConnection().getAddress(),
                                                 incomingMediaDescriptor.getMedia().getMediaPort(),
-                                                codec);
-
+                                                codec,
+                                                callId.getCallId()
+                                        );
                                         break;
 
                                     case Request.CANCEL:
@@ -368,7 +365,7 @@ public class SipManager implements SipClient {
                                 listener.onBusy();
                             } else if (processedResponse.getStatusCode() == Response.RINGING) {
                                 System.out.println("RINGING");
-                                listener.onRinging("yo mama");
+//                                listener.onRinging(sp.getCallId().getCallId(), sp.getFrom().getAddress().toString());
                             } else if (processedResponse.getStatusCode() == Response.SERVICE_UNAVAILABLE) {
                                 System.out.println("SERVICE_UNAVAILABLE");
                                 listener.onUnavailable();
@@ -427,7 +424,6 @@ public class SipManager implements SipClient {
 
         sipSessionState = SipSessionState.IDLE;
 
-        callId = udpSipProvider.getNewCallId();
     }
 
     private String parseAttribute(AttributeField attribute) {
@@ -500,10 +496,10 @@ public class SipManager implements SipClient {
         sipSessionState = SipSessionState.CALLING;
         try {
             this.udpSipProvider.getNewClientTransaction(makeInviteRequest(recipient, localRtpPort)).sendRequest();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             sipSessionState = SipSessionState.READY;
 
-            System.out.println("Call failed " + e);
+            throw new IllegalStateException("Call failed " , e);
         }
     }
 
@@ -513,7 +509,6 @@ public class SipManager implements SipClient {
         // TODO: sendByeClient(currentClientTransaction);  sendByeClient(currentServerTransaction);
 
         if (sipSessionState == SipSessionState.CALLING) {
-            sipSessionState = SipSessionState.IDLE; //todo: trying to reset the system to make or get new calls after a call.
             try {
 
                 final Dialog dialog = currentCall.getDialog();
@@ -522,6 +517,7 @@ public class SipManager implements SipClient {
 
                 dialog.sendRequest(newTransaction);
 
+
                 //todo if the call came from a peer, we need to send a bye with a server transaction.
 //                this.udpSipProvider.getNewClientTransaction(makeByeRequest(recipient)).sendRequest();
 
@@ -529,7 +525,7 @@ public class SipManager implements SipClient {
                 throw new IllegalStateException("Unable to hangup call", e);
             }
 
-            listener.onHangup();
+            listener.onHangup(callId.getCallId());
         }
 
     }
@@ -570,7 +566,7 @@ public class SipManager implements SipClient {
 
             waitingCall.sendResponse(responseOK);
 
-            listener.onRemoteAccepted();
+//            listener.onRemoteAccepted();
 
             sipSessionState = SipSessionState.ESTABLISHED;
         } catch (Exception e) {

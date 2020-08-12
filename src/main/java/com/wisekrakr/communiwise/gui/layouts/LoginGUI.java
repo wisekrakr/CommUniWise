@@ -46,11 +46,7 @@ public class LoginGUI extends AbstractScreen {
     private static final int DESIRED_HEIGHT = 300;
     private static final int DESIRED_WIDTH = 600;
 
-    public LoginGUI initialize(){
-        showWindow();
 
-        return this;
-    }
 
     @Override
     public void showWindow() {

@@ -1,8 +1,8 @@
 package com.wisekrakr.communiwise.main;
 
 
-import com.wisekrakr.communiwise.gui.layouts.PhoneGUI;
 import com.wisekrakr.communiwise.phone.audio.AudioManager;
+import com.wisekrakr.communiwise.phone.calling.CallInstance;
 import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
 import com.wisekrakr.communiwise.phone.device.DeviceImplementations;
 import com.wisekrakr.communiwise.phone.managers.EventManager;
@@ -10,21 +10,22 @@ import com.wisekrakr.communiwise.phone.managers.SipManager;
 import com.wisekrakr.communiwise.phone.managers.SipManagerListener;
 import com.wisekrakr.communiwise.user.SipAccountManager;
 
+import javax.sip.address.Address;
 import javax.sound.sampled.*;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PhoneApplication implements Serializable {
 
     private static final AudioFormat FORMAT = new AudioFormat(16000, 16, 1, true, true);
 
-    private SipManager sipManager;
     private RTPConnectionManager rtpConnectionManager;
-    private AudioManager audioManager;
-    private SipAccountManager accountManager;
     private EventManager eventManager;
 
-//    private DeviceImplementations impl;
+    private final Map<String, CallInstance> callInstances = new HashMap<>();
+
 
     private static void printHelp(String message) {
         System.out.println(message);
@@ -107,7 +108,8 @@ public class PhoneApplication implements Serializable {
 
     private void initialize(TargetDataLine inputLine, SourceDataLine outputLine, String localAddress, int localPort, String transport, String proxyHost, int proxyPort) throws Exception {
 
-        sipManager = new SipManager(proxyHost, proxyPort, localAddress, localPort, transport).
+
+        SipManager sipManager = new SipManager(proxyHost, proxyPort, localAddress, localPort, transport).
                 logging("server.log", "debug.log", 16).
                 listener(new SipManagerListener() {
 
@@ -133,18 +135,33 @@ public class PhoneApplication implements Serializable {
                     }
 
                     @Override
-                    public void callConfirmed(String rtpHost, int rtpPort, String codec) {
+                    public void callConfirmed(String rtpHost, int rtpPort, String codec, String callId) {
                         //todo codec?
+                        CallInstance callInstance = null;
+                        InetSocketAddress proxyAddress = new InetSocketAddress(rtpHost, rtpPort);
 
                         try {
-                            rtpConnectionManager.connectRTPAudio(new InetSocketAddress(rtpHost, rtpPort), codec);
-                        } catch (Exception e) {
+                            rtpConnectionManager.connectRTPAudio(proxyAddress, codec);
+                        } catch (Throwable e) {
                             System.out.println("Unable to connect: " + e);
 
                             e.printStackTrace();
                         }
 
-//                        incomingCallScreen.hideWindow();
+
+                        try {
+                            callInstance = new CallInstance(callId, "bla", proxyAddress);
+                            callInstances.put(callId, callInstance);
+                        } catch (Throwable e) {
+                            System.out.println("Unable to create call instance: " + e);
+
+                            e.printStackTrace();
+                        }
+
+                        if (callInstance != null) {
+                            eventManager.onOutgoingCall(callId);
+                        }
+
                     }
 
                     @Override
@@ -153,13 +170,17 @@ public class PhoneApplication implements Serializable {
                     }
 
                     @Override
-                    public void onRinging(String from) {
-//                        if(sipManager.getSipSessionState() == SipSessionState.INCOMING){
-//                            SwingUtilities.invokeLater(() -> {
-//                                incomingCallGUI = new IncomingCallGUI(((LoginState) active).phone);
-//                                incomingCallGUI.showWindow();
-//                            });
-//                        }
+                    public void onRinging(String callId, Address address) {
+                        CallInstance callInstance = null;
+                        try {
+                            callInstance = new CallInstance(callId, "bla", (InetSocketAddress) address);
+                            callInstances.put(callId, callInstance);
+                        } catch (Throwable e) {
+                            System.out.println("Unable to create call instance: " + e);
+
+                            e.printStackTrace();
+                        }
+                        eventManager.onIncomingCall(callId);
 
                     }
 
@@ -170,30 +191,23 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void onRemoteAccepted() {
-
                     }
 
                     @Override
                     public void onRegistered() {
-                        //todo eventManager.registerSuccessful()
-//                        SwingUtilities.invokeLater(() -> {
-//                            if (active instanceof LoginState) {
-//                                enterState(new LoggedInState(((LoginState) active).phone, impl.accountApiImpl(accountManager.getUserInfo())));
-//                            }
-//                        });
-
-
+                        eventManager.onRegistered();
                     }
 
                     @Override
-                    public void onHangup() {
+                    public void onHangup(String callId) {
+                        eventManager.onHangUp(callId);
+
                         rtpConnectionManager.stopStreamingAudio();
 
                     }
 
                     @Override
                     public void onTrying() {
-
                     }
 
                     @Override
@@ -206,113 +220,25 @@ public class PhoneApplication implements Serializable {
 //                            }
 //                        });
                     }
+
+
                 });
 
-        // Handles changing of screens
-//        initGUI();
 
         rtpConnectionManager = new RTPConnectionManager(inputLine, outputLine);
         rtpConnectionManager.init();
 
-        accountManager = new SipAccountManager();
+        SipAccountManager accountManager = new SipAccountManager();
 
-        audioManager = new AudioManager(rtpConnectionManager.getSocket(), inputLine, outputLine);
-
-//        impl = new DeviceImplementations();
-
-//        PhoneGUI phoneGUI = new PhoneGUI(
-//                impl.phoneApiImpl(sipManager,rtpConnectionManager,audioManager,FORMAT),
-//                impl.accountApiImpl(accountManager.getUserInfo()));
-//        phoneGUI.showWindow();
+        AudioManager audioManager = new AudioManager(rtpConnectionManager.getSocket(), inputLine, outputLine);
 
         sipManager.initialize(accountManager);
 
-        eventManager = new EventManager(sipManager, rtpConnectionManager, accountManager, audioManager);
+        DeviceImplementations impl = new DeviceImplementations(sipManager, rtpConnectionManager, accountManager, audioManager);
+
+        eventManager = new EventManager(impl);
         eventManager.open();
+
     }
 
-//    public interface ApplicationState {
-//        void enter();
-//
-//        void leave();
-//    }
-//
-//    public class LoggedInState implements ApplicationState {
-//        private PhoneGUI screen;
-//        private PhoneAPI phone;
-//        private AccountAPI account;
-//
-//
-//        public LoggedInState(PhoneAPI phone, AccountAPI account) {
-//            this.phone = phone;
-//            this.account = account;
-//        }
-//
-//        public PhoneAPI getPhone() {
-//            return phone;
-//        }
-//
-//        public AccountAPI getAccount() {
-//            return account;
-//        }
-//
-//        @Override
-//        public void enter() {
-//            screen = new PhoneGUI(phone, account);
-//            screen.showWindow();
-//        }
-//
-//        @Override
-//        public void leave() {
-//            screen.hideWindow();
-//        }
-//    }
-//
-//    public class LoginState implements ApplicationState {
-//        private LoginGUI screen;
-//        private PhoneAPI phone;
-//
-//        public LoginState(PhoneAPI phone) {
-//            this.phone = phone;
-//        }
-//
-//        @Override
-//        public void enter() {
-//            screen = new LoginGUI(phone);
-//            screen.showWindow();
-//        }
-//
-//        @Override
-//        public void leave()  {
-//            screen.hideWindow();
-//        }
-//    }
-//
-//    public void initGUI() {
-//
-//        SwingUtilities.invokeLater(() -> {
-//            try {
-//                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//            } catch (Throwable e) {
-//                System.out.println("WARNING: unable to set look and feel, will continue");
-//            }
-//
-//            enterState(new LoginState(impl.phoneApiImpl(sipManager, rtpConnectionManager,audioManager,FORMAT)));
-//        });
-//    }
-//
-//    private ApplicationState active;
-//
-//    private void enterState(ApplicationState loginState) {
-//        if (active != null) {
-//            active.leave();
-//            active = null;
-//        }
-//
-//        active = loginState;
-//
-//        if (active != null) {
-//            active.enter();
-//        }
-//    }
 }
