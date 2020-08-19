@@ -18,7 +18,6 @@ public class RemoteAudioPlayThread {
     private static final int PIPE_SIZE = 4096;
 
     private final DatagramSocket socket;
-    private final TargetDataLine targetDataLine;
 
     private Thread audioFileThread;
     private Thread encodeFileThread;
@@ -26,8 +25,8 @@ public class RemoteAudioPlayThread {
 
     private final G722Encoder g722Encoder = new G722Encoder(1000);
 
-    public RemoteAudioPlayThread(DatagramSocket socket, TargetDataLine targetDataLine) {
-        this.targetDataLine = targetDataLine;
+    public RemoteAudioPlayThread(DatagramSocket socket) {
+
         this.socket = socket;
     }
 
@@ -56,9 +55,12 @@ public class RemoteAudioPlayThread {
                         break;
                     }
                 }
+                audioStream.close();
+                rawDataOutput.close();
             }catch (Throwable e){
                 System.out.println("Audio file thread has stopped unexpectedly " + e.getMessage());
             }
+
         });
         audioFileThread.setDaemon(true);
 
@@ -75,6 +77,8 @@ public class RemoteAudioPlayThread {
 
                         encodedDataOutput.write(encodingBuffer, 0, encoded);
                     }
+                    encodedDataOutput.close();
+                    rawDataInput.close();
 
                     System.out.println("Encoding WAV File thread has stopped");
                 } catch (Throwable e) {
@@ -141,6 +145,7 @@ public class RemoteAudioPlayThread {
                         // The sampling instant must be derived from a clock that increments monotonically and linearly in time to allow synchronization and jitter calculations
 
                     }
+                    encodedDataInput.close();
 
                     System.out.println("Sending WAV File thread has stopped");
                 } catch (Throwable e) {

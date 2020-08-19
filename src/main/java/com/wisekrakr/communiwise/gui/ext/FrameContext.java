@@ -4,4 +4,6 @@ public interface FrameContext {
     void hideWindow();
 
     void showWindow();
+
+    void showErrorStatus();
 }

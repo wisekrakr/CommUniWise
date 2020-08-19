@@ -1,25 +1,29 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
-import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
+import com.wisekrakr.communiwise.gui.layouts.background.AlertFrame;
 import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
 import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
 import com.wisekrakr.communiwise.gui.layouts.utils.FrameDragListener;
-import com.wisekrakr.communiwise.phone.device.PhoneAPI;
-import com.wisekrakr.communiwise.gui.layouts.objects.Button;
+import com.wisekrakr.communiwise.gui.layouts.utils.InputValidator;
+import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
+import javafx.event.Event;
+import javafx.event.EventHandler;
+import javafx.scene.control.Alert;
 
 import javax.imageio.ImageIO;
-import javax.sip.address.Address;
+import javax.sip.message.Response;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+import javax.swing.border.BevelBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
 public class LoginGUI extends AbstractScreen {
-    private final PhoneAPI phoneAPI;
+    private final PhoneAPI phone;
 
     private final JPanel textPanel = new JPanel();
     private final JPanel buttonPanel = new JPanel();
@@ -39,8 +43,8 @@ public class LoginGUI extends AbstractScreen {
 
     private Image image;
 
-    public LoginGUI(PhoneAPI phoneAPI) throws HeadlessException {
-        this.phoneAPI = phoneAPI;
+    public LoginGUI(PhoneAPI phone) throws HeadlessException {
+        this.phone = phone;
     }
 
     private static final int DESIRED_HEIGHT = 300;
@@ -59,6 +63,7 @@ public class LoginGUI extends AbstractScreen {
         getRootPane().setBorder(BorderFactory.createEtchedBorder(Constants.DARK_CYAN, Color.darkGray));
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
 
         initComponents();
         buildLogoPanel();
@@ -81,11 +86,46 @@ public class LoginGUI extends AbstractScreen {
     }
 
     private void initComponents(){
-        fromInput = new JTextField("sip:damian2@asterisk.interzone <Damian 2>");
+
         domainInput = new JTextField("asterisk.interzone");
         realmInput = new JTextField("asterisk");
         usernameInput = new JTextField("damian2");
         passwordInput = new JPasswordField("45jf83f");
+        fromInput = new JTextField("sip:"+ usernameInput.getText() + "@" + domainInput.getText());
+
+        usernameInput.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                fromInput.setText("sip:"+ usernameInput.getText() + "@" + domainInput.getText());
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {  }
+            @Override
+            public void changedUpdate(DocumentEvent e) {  }
+        });
+
+        domainInput.getDocument().addDocumentListener(new DocumentListener() {
+            String realmOnly;
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                fromInput.setText("sip:"+ usernameInput.getText() + "@" + domainInput.getText());
+
+                int dot = domainInput.getText().indexOf(".");
+
+                if(dot != -1){
+                    realmOnly = domainInput.getText().substring(0, dot);
+                }
+
+                realmInput.setText(realmOnly);
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {         }
+            @Override
+            public void changedUpdate(DocumentEvent e) {         }
+        });
     }
 
     public void buildLogoPanel(){
@@ -107,8 +147,6 @@ public class LoginGUI extends AbstractScreen {
         textPanel.setLayout(gridLayout);
         textPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Registration Panel"));
 
-        fromInput.setText("sip:"+ usernameInput.getText() + "@" + domainInput.getText());
-
         textPanel.add(fromAddress,BorderLayout.WEST);
         textPanel.add(fromInput,BorderLayout.CENTER);
         fromInput.setEditable(false);
@@ -118,6 +156,7 @@ public class LoginGUI extends AbstractScreen {
         textPanel.add(passwordInput,BorderLayout.CENTER);
         textPanel.add(realm,BorderLayout.WEST);
         textPanel.add(realmInput,BorderLayout.CENTER);
+        realmInput.setEditable(false);
         textPanel.add(domain,BorderLayout.WEST);
         textPanel.add(domainInput,BorderLayout.CENTER);
 
@@ -143,14 +182,13 @@ public class LoginGUI extends AbstractScreen {
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                phoneAPI.register(realmInput.getText(), domainInput.getText(), usernameInput.getText(), new String(passwordInput.getPassword()), fromInput.getText());
+                phone.register(realmInput.getText(), domainInput.getText(), usernameInput.getText(), new String(passwordInput.getPassword()), fromInput.getText());
             }
         });
 
         closeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
                 hideWindow();
             }
         });
@@ -158,5 +196,9 @@ public class LoginGUI extends AbstractScreen {
         buttonPanel.setBackground(Constants.LIGHT_CYAN);
     }
 
+    @Override
+    public void showErrorStatus(){
+        new AlertFrame().showAlert("Wrong credentials received....Please try again.", JOptionPane.ERROR_MESSAGE);
+    }
 
 }

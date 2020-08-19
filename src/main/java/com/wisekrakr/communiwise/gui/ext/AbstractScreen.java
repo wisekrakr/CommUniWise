@@ -12,4 +12,9 @@ public abstract class AbstractScreen extends JFrame implements FrameContext {
     @Override
     public void showWindow() {
     }
+
+    @Override
+    public void showErrorStatus() {
+
+    }
 }

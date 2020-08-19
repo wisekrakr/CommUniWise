@@ -3,12 +3,12 @@ package com.wisekrakr.communiwise.user;
 import gov.nist.javax.sip.clientauthutils.UserCredentials;
 
 public class SipUserCredentials implements UserCredentials {
-    private String userName;
+    private String username;
     private String sipDomain;
     private String password;
 
-    public SipUserCredentials(String userName, String sipDomain, String password) {
-        this.userName = userName;
+    public SipUserCredentials(String username, String sipDomain, String password) {
+        this.username = username;
         this.sipDomain = sipDomain;
         this.password = password;
     }
@@ -26,6 +26,6 @@ public class SipUserCredentials implements UserCredentials {
 
     public String getUserName() {
 
-        return userName;
+        return username;
     }
 }

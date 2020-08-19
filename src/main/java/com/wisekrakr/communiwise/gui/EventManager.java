@@ -1,36 +1,31 @@
-package com.wisekrakr.communiwise.phone.managers;
+package com.wisekrakr.communiwise.gui;
 
 import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
-import com.wisekrakr.communiwise.gui.layouts.AudioCallGUI;
-import com.wisekrakr.communiwise.gui.layouts.AcceptCallGUI;
-import com.wisekrakr.communiwise.gui.layouts.LoginGUI;
-import com.wisekrakr.communiwise.gui.layouts.PhoneGUI;
-import com.wisekrakr.communiwise.phone.device.AccountAPI;
-import com.wisekrakr.communiwise.phone.device.DeviceImplementations;
-import com.wisekrakr.communiwise.phone.device.PhoneAPI;
-import com.wisekrakr.communiwise.phone.device.SoundAPI;
+import com.wisekrakr.communiwise.gui.layouts.*;
+import com.wisekrakr.communiwise.gui.layouts.background.AlertFrame;
+import com.wisekrakr.communiwise.operations.DeviceImplementations;
+import com.wisekrakr.communiwise.operations.apis.AccountAPI;
+import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
+import com.wisekrakr.communiwise.operations.apis.SoundAPI;
 
 import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public class EventManager implements FrameManagerListener{
-
-    //todo handle in the PhoneApp
+public class EventManager implements FrameManagerListener {
 
     private PhoneGUI phoneGUI;
     private LoginGUI loginGUI;
+    private ContactsGUI contactsGUI;
 
-    private Map<String, AbstractScreen> callGUIs = new HashMap<>();
+    private final Map<String, AbstractScreen> callGUIs = new HashMap<>();
 
-    private DeviceImplementations impl;
-
-    private PhoneAPI phone;
-    private AccountAPI account;
-    private SoundAPI sound;
+    private final PhoneAPI phone;
+    private final AccountAPI account;
+    private final SoundAPI sound;
 
     public EventManager(DeviceImplementations impl) {
-        this.impl = impl;
 
         phone = impl.getPhoneApi();
         account = impl.getAccountApi();
@@ -62,11 +57,13 @@ public class EventManager implements FrameManagerListener{
 
     @Override
     public void onHangUp(String callId) {
-        //todo this has to be fixed
-        AudioCallGUI callGUI = (AudioCallGUI) callGUIs.entrySet().stream().filter(cc -> callId.equals(cc.getKey()));
+        for(AbstractScreen s: callGUIs.entrySet().stream().filter(cc -> callId.equals(cc.getKey())).map(Map.Entry::getValue).collect(Collectors.toList())){
+            s.hideWindow();
+        }
 
-
-        callGUI.hideWindow();
+        if (phoneGUI != null){
+            phoneGUI.showWindow();
+        }
     }
 
     @Override
@@ -88,6 +85,7 @@ public class EventManager implements FrameManagerListener{
 
     @Override
     public void open() {
+
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -115,9 +113,26 @@ public class EventManager implements FrameManagerListener{
 
     @Override
     public void onRegistered() {
+//        try {
+//            account.getContactManager().loadPhoneBook(account.getUserInfo().get("username"));
+//        }catch (Throwable e){
+//            throw new IllegalArgumentException("Phonebook could not be loaded", e);
+//        }
+
         try{
             if(loginGUI.isActive()){
                 loginGUI.hideWindow();
+            }
+        }catch (Throwable e){
+            System.out.println("Login GUI Could not be displayed " + e);
+        }
+    }
+
+    @Override
+    public void onAuthenticationFailed() {
+        try{
+            if(loginGUI.isActive()){
+                loginGUI.showErrorStatus();
             }
         }catch (Throwable e){
             System.out.println("Login GUI Could not be displayed " + e);
@@ -130,7 +145,27 @@ public class EventManager implements FrameManagerListener{
 
     }
 
+    @Override
+    public void menuContactListOpen() {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                if(account.getUserInfo().size() > 0){
+                    contactsGUI = new ContactsGUI(account);
+                    contactsGUI.showWindow();
+                }else{
+                    new AlertFrame().showAlert("You have to be logged in to see your contacts", JOptionPane.INFORMATION_MESSAGE);
+                }
 
 
+            }catch (Throwable e){
+                System.out.println("Contact list GUI could not be displayed " + e);
 
+            }
+        });
+    }
+
+    @Override
+    public void menuPreferencesOpen() {
+
+    }
 }

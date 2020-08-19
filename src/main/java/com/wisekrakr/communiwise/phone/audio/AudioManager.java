@@ -26,7 +26,7 @@ public class AudioManager {
     }
 
     public void startSendingAudio(AudioInputStream audioStream) throws IOException{
-        remoteAudioPlayThread = new RemoteAudioPlayThread(socket, targetDataLine);
+        remoteAudioPlayThread = new RemoteAudioPlayThread(socket);
         remoteAudioPlayThread.startSending(audioStream);
     }
 

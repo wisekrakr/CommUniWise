@@ -1,19 +1,22 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
 
-import com.wisekrakr.communiwise.phone.device.AccountAPI;
-import com.wisekrakr.communiwise.phone.device.PhoneAPI;
-import com.wisekrakr.communiwise.phone.managers.EventManager;
+import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
+import com.wisekrakr.communiwise.operations.apis.AccountAPI;
+import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
+import com.wisekrakr.communiwise.gui.EventManager;
 
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Line;
+import javax.sound.sampled.Mixer;
+import javax.sound.sampled.TargetDataLine;
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URI;
-import java.util.ArrayList;
 
 public class PhoneGUIMenu {
     private final JFrame mainFrame;
@@ -22,11 +25,9 @@ public class PhoneGUIMenu {
 
     private AccountFrame accountFrame;
     private OptionsPane optionsPane;
-    private ContactPane contactPane;
     private AboutFrame aboutFrame;
 
     private final EventManager eventManager;
-
 
     public PhoneGUIMenu(JFrame mainFrame, EventManager eventManager, PhoneAPI phone, AccountAPI account) {
         this.mainFrame = mainFrame;
@@ -44,15 +45,12 @@ public class PhoneGUIMenu {
 
         accountFrame = new AccountFrame();
         optionsPane = new OptionsPane();
-        contactPane = new ContactPane();
         aboutFrame = new AboutFrame();
 
         menu();
     }
 
-
-
-    public void menu() {
+    private void menu() {
 
         JMenuBar menuBar = new JMenuBar();
 
@@ -65,9 +63,6 @@ public class PhoneGUIMenu {
             @Override
             public void actionPerformed(ActionEvent e) {
                 eventManager.onRegistering();
-//                SwingUtilities.invokeLater(() -> {
-//                    new LoginGUI(phone).initialize();
-//                });
             }
         });
         menuFile.add(menuItemLogin);
@@ -94,8 +89,7 @@ public class PhoneGUIMenu {
         menuItemContacts.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                contactPane.setVisible(true);
-                contactPane.addContact.run();
+                eventManager.menuContactListOpen();
             }
         });
         menuAccount.add(menuItemContacts);
@@ -130,78 +124,9 @@ public class PhoneGUIMenu {
     }
 
 
-    protected class ContactPane extends JFrame {
-
-        private final JPanel mainPanel;
-        private final JPanel contactPanel;
-
-        GridBagConstraints gbc = new GridBagConstraints();
-
-        private int labelCount = 0;
-        private int gridx = 0;
-        private int gridy = 0;
-
-        public ContactPane() {
-
-            GridLayout gridLayout = new GridLayout();
-            setLayout(gridLayout);
-            setMaximumSize(new Dimension(200,300));
-
-            mainPanel = new JPanel(new GridLayout(0,1));
-            mainPanel.setBorder(new TitledBorder("Contact List"));
-            mainPanel.setMaximumSize(new Dimension(200,300));
-
-            contactPanel = new JPanel(new GridLayout(0,1));
-
-            add(mainPanel, BorderLayout.CENTER);
-
-        }
-
-        public Runnable addContact = new Runnable() {
-
-            @Override
-            public void run() {
-
-                gbc.weightx = 1;
-                gbc.weighty = 1;
-                gbc.gridx = gridx;
-                gbc.gridy = gridy;
-
-
-                for(String contact: account.getContactManager().getContacts().keySet()){
-//                    System.out.println("    MY CONTACTS    " + contact);
-
-                    contactPanel.add(new JLabel(++labelCount + " " + contact + " " + contact.substring(4,7)), gbc);
-                    contactPanel.revalidate();
-                }
-
-                gridy++;
-                if (gridy >= 0) {
-                    gridy = 0;
-                    gridx++;
-                }
-
-                mainPanel.add(new JScrollPane(contactPanel), BorderLayout.CENTER);
-
-                pack();
-                setLocationRelativeTo(null);
-
-                try {
-                    setLocationByPlatform(true);
-                    setMinimumSize(getSize());
-                } catch (Throwable e) {
-                    System.out.println("Could not add to contact list");
-                }
-
-            }
-        };
-
-    }
-
-
     protected class AboutFrame extends JFrame implements ActionListener, HyperlinkListener {
 
-        public AboutFrame() {
+        private AboutFrame() {
             setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
             setTitle("About");
             setUndecorated(true);
@@ -254,16 +179,16 @@ public class PhoneGUIMenu {
 
     protected class AccountFrame extends JFrame implements ActionListener {
 
-        public AccountFrame() {
+        private AccountFrame() {
             setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
             setTitle("Account Details");
             setUndecorated(true);
 
             String domain = account.getUserInfo().get("domain");
-            String userName = account.getUserInfo().get("userName");
+            String username = account.getUserInfo().get("username");
 
             String message = "Account logged in: <br>"
-                    + userName + "<br>" + "<br>"
+                    + username + "<br>" + "<br>"
                     + "Registered on Domain <br>"
                     + domain;
 
@@ -299,116 +224,51 @@ public class PhoneGUIMenu {
 
     }
 
-    protected class OptionsPane extends JFrame implements ActionListener {
+    protected class OptionsPane extends AbstractScreen {
+        private static final long serialVersionUID = 1L;
 
-        public OptionsPane() {
+        Mixer mixer = null;
 
-            //        super(new GridLayout(1, 1));
+        private OptionsPane() {
 
-            JTabbedPane tabbedPane = new JTabbedPane();
-
-            JComponent general = makeTextPanel("General");
-            tabbedPane.addTab("General", null, general, "General Options");
-
-            JComponent audio = audioTab();
-            tabbedPane.addTab("Audio", null, audio, "Audio Options");
-
-            JComponent video = makeTextPanel("Video");
-            tabbedPane.addTab("Video", null, video, "Video options");
-
-            add(tabbedPane);
-
-            tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-
-            pack();
-        }
-
-        protected JComponent audioTab() {
-            JPanel panel = new JPanel(new GridLayout(0, 2));
-
-            JPanel outputPanel = new JPanel(new GridLayout(0, 1));
-            JPanel inputPanel = new JPanel(new GridLayout(0, 1));
-
-            outputPanel.setBorder(BorderFactory.createTitledBorder("Please choose your output mixer."));
-            inputPanel.setBorder(BorderFactory.createTitledBorder("Please choose your input mixer."));
-
-//        List<String> outputNames = application.getRTPConnectionManager().getMixerNames();
-//        List<String> inputNames = application.getRTPConnectionManager().getMixerNames();
-
-            JScrollPane scrollPane1 = new JScrollPane(outputPanel);
-            JScrollPane scrollPane2 = new JScrollPane(inputPanel);
-
-            panel.add(scrollPane1);
-            panel.add(scrollPane2);
-
-//        for (JRadioButton jrb : mixerList((ArrayList<String>) outputNames, outputPanel)) {
-//            jrb.addActionListener(new ActionListener() {
-//                @Override
-//                public void actionPerformed(ActionEvent e) {
-//                    try {
-//                        System.out.println("    Selected output Mixer: " + jrb.getText().trim());
-//
-//                        application.getRTPConnectionManager().selectAudioOutput(jrb.getText().trim());
-//
-//                    } catch (LineUnavailableException lineUnavailableException) {
-//                        lineUnavailableException.printStackTrace();
-//                    }
-//                    JOptionPane.showMessageDialog(outputPanel, "You chose " + jrb.getText());
-//                }
-//            });
-//
-//        }
-//
-//        for (JRadioButton jrb : mixerList((ArrayList<String>) inputNames, inputPanel)) {
-//            jrb.addActionListener(new ActionListener() {
-//                @Override
-//                public void actionPerformed(ActionEvent e) {
-//                    try {
-//                        System.out.println("    Selected input Mixer: " + jrb.getText().trim());
-//
-//                        application.getRTPConnectionManager().selectAudioInput(jrb.getText().trim());
-//
-//                    } catch (LineUnavailableException lineUnavailableException) {
-//                        lineUnavailableException.printStackTrace();
-//                    }
-//                    JOptionPane.showMessageDialog(outputPanel, "You chose " + jrb.getText());
-//                }
-//            });
-//        }
-
-
-            return panel;
-        }
-
-        /**
-         * Returns a list of mixer types as radio buttons to choose from
-         *
-         * @return ArrayList of radio buttons
-         */
-        private ArrayList<JRadioButton> mixerList(ArrayList<String> list, JPanel panel) {
-            ArrayList<JRadioButton> buttonList = new ArrayList<>();
-            ButtonGroup bg = new ButtonGroup();
-            for (String name : list) {
-                JRadioButton jrb = new JRadioButton(name);
-                buttonList.add(jrb);
-                bg.add(jrb);
-                panel.add(jrb);
+            JPanel buttonPanel = new JPanel(new GridLayout(0, 1));
+            ButtonGroup group = new ButtonGroup();
+            Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
+            for (Mixer.Info info : mixerInfos) {
+                Mixer m = AudioSystem.getMixer(info);
+                Line.Info[] lineInfos = m.getTargetLineInfo();
+                if (lineInfos.length > 0 && lineInfos[0].getLineClass().equals(TargetDataLine.class)) {
+                    JRadioButton button = new JRadioButton();
+                    button.setText(info.getName());
+                    button.setActionCommand(info.toString());
+                    button.addActionListener(setInput);
+                    buttonPanel.add(button);
+                    group.add(button);
+                }
             }
-            return buttonList;
-        }
+            this.add(new JScrollPane(buttonPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                    JScrollPane.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
 
-        private JComponent makeTextPanel(String text) {
-            JPanel panel = new JPanel(false);
-            JLabel filler = new JLabel(text);
-            filler.setHorizontalAlignment(JLabel.CENTER);
-            panel.setLayout(new GridLayout(1, 1));
-            panel.add(filler);
-            return panel;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
+            this.setMaximumSize(new Dimension(300, 150));
+            this.setPreferredSize(new Dimension(300, 150));
 
         }
+
+        private ActionListener setInput = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                for (Mixer.Info info : AudioSystem.getMixerInfo()) {
+                    if (arg0.getActionCommand().equals(info.toString())) {
+                        Mixer newValue = AudioSystem.getMixer(info);
+
+                        firePropertyChange("mixer", mixer, newValue);
+
+                        mixer = newValue;
+                        break;
+                    }
+                }
+            }
+        };
+
     }
 }

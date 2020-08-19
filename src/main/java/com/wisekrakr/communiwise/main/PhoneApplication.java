@@ -2,12 +2,13 @@ package com.wisekrakr.communiwise.main;
 
 
 import com.wisekrakr.communiwise.phone.audio.AudioManager;
+import com.wisekrakr.communiwise.phone.audio.LineManager;
 import com.wisekrakr.communiwise.phone.calling.CallInstance;
 import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
-import com.wisekrakr.communiwise.phone.device.DeviceImplementations;
-import com.wisekrakr.communiwise.phone.managers.EventManager;
-import com.wisekrakr.communiwise.phone.managers.SipManager;
-import com.wisekrakr.communiwise.phone.managers.SipManagerListener;
+import com.wisekrakr.communiwise.operations.DeviceImplementations;
+import com.wisekrakr.communiwise.gui.EventManager;
+import com.wisekrakr.communiwise.phone.sip.SipManager;
+import com.wisekrakr.communiwise.phone.sip.SipManagerListener;
 import com.wisekrakr.communiwise.user.SipAccountManager;
 
 import javax.sip.address.Address;
@@ -54,6 +55,7 @@ public class PhoneApplication implements Serializable {
             TargetDataLine inputLine = null;
             SourceDataLine outputLine = null;
 
+
             for (int i = 0; i < mixers.length; i++) {
                 if (args[1].equals(mixers[i].getName())) {
                     inputLine = (TargetDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(TargetDataLine.class, FORMAT));
@@ -74,7 +76,7 @@ public class PhoneApplication implements Serializable {
 
             int playBuffer = 100 * Math.max(10, 12);
 
-            inputLine.open(FORMAT, playBuffer);
+            inputLine.open(FORMAT);
             outputLine.open(FORMAT);
 
             String localAddress = args[0];
@@ -201,9 +203,6 @@ public class PhoneApplication implements Serializable {
                     @Override
                     public void onHangup(String callId) {
                         eventManager.onHangUp(callId);
-
-                        rtpConnectionManager.stopStreamingAudio();
-
                     }
 
                     @Override
@@ -213,17 +212,12 @@ public class PhoneApplication implements Serializable {
                     @Override
                     public void authenticationFailed() {
                         System.out.println("Authentication failed :-(");
-//                        SwingUtilities.invokeLater(() -> {
-//                            if (!(active instanceof LoginState)) {
-//                                // TODO: WRONG
-//                                enterState(new LoginState(null));
-//                            }
-//                        });
+                        eventManager.onAuthenticationFailed();
+
                     }
-
-
                 });
 
+        LineManager lineManager = new LineManager();
 
         rtpConnectionManager = new RTPConnectionManager(inputLine, outputLine);
         rtpConnectionManager.init();

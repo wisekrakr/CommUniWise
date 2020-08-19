@@ -1,8 +1,8 @@
-package com.wisekrakr.communiwise.phone.managers;
+package com.wisekrakr.communiwise.phone.sip;
 
 
-import com.wisekrakr.communiwise.phone.managers.ext.SipClient;
-import com.wisekrakr.communiwise.phone.managers.ext.SipSessionState;
+import com.wisekrakr.communiwise.phone.sip.ext.SipClient;
+import com.wisekrakr.communiwise.phone.sip.ext.SipSessionState;
 import com.wisekrakr.communiwise.user.SipAccountManager;
 import gov.nist.javax.sdp.SessionDescriptionImpl;
 import gov.nist.javax.sdp.fields.AttributeField;
@@ -64,9 +64,10 @@ public class SipManager implements SipClient {
 
     private ServerTransaction waitingCall;
     private ClientTransaction currentCall;
-    private int status;
+    private enum CallDirection{INCOMING, OUTGOING, NONE};
+    private CallDirection callDirection;
 
-    //todo create a list of calls so that we can pass all kinds of info about the current calls
+    private int status;
 
     public SipManager(String proxyHost, int proxyPort, String localSipAddress, int localSipPort, String sipTransport) {
         this.proxyHost = proxyHost;
@@ -283,7 +284,8 @@ public class SipManager implements SipClient {
                             status = processedResponse.getStatusCode();
 
                             if (processedResponse.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED
-                                    || processedResponse.getStatusCode() == Response.UNAUTHORIZED) {
+                                    || processedResponse.getStatusCode() == Response.UNAUTHORIZED
+                                    || processedResponse.getStatusCode() == Response.FORBIDDEN) {
                                 System.out.println("Go for Authentication");
 
                                 try {
@@ -340,7 +342,7 @@ public class SipManager implements SipClient {
 
                                     case Request.BYE:
                                         sipSessionState = SipSessionState.IDLE;
-                                        System.out.println("--- Got 200 OK in UAC outgoing BYE");
+                                        System.out.println("--- Got 200 OK in UAC outgoing BYE from host");
 
                                         listener.onBye();
                                         break;
@@ -372,7 +374,13 @@ public class SipManager implements SipClient {
                             } else if (processedResponse.getStatusCode() == Response.TRYING) {
                                 System.out.println("Trying...");
                                 listener.onTrying();
-                            } else {
+                            }
+//                            else if (processedResponse.getStatusCode() == Response.FORBIDDEN) {
+//                                System.out.println("FORBIDDEN!");
+//                                sipSessionState = SipSessionState.IDLE;
+////                                listener.authenticationFailed();
+//                            }
+                            else {
                                 throw new IllegalStateException("Unknown status code " + processedResponse.getStatusCode());
                             }
 
@@ -431,7 +439,6 @@ public class SipManager implements SipClient {
             AttributeFieldParser attributeFieldParser = new AttributeFieldParser(attribute.toString());
             AttributeField attributeField = attributeFieldParser.attributeField();
 
-
             if(!attributeField.encode().isEmpty()){
                 System.out.println("encoded: " + attributeField.encode());
 
@@ -464,10 +471,17 @@ public class SipManager implements SipClient {
     public void login(String realm, String username, String password, String domain, String fromAddress) {
         assureState(SipSessionState.IDLE);
 
+        if(fromAddress.isEmpty()){
+            fromAddress = "sip:nobody@null.null";
+        }
+
         try {
             clientAddress = addressFactory.createAddress(fromAddress);
         } catch (ParseException e) {
+            listener.authenticationFailed();
+
             throw new IllegalArgumentException("Invalid from address " + fromAddress, e);
+
         }
 
         accountManager.clear();
@@ -494,6 +508,7 @@ public class SipManager implements SipClient {
     @Override
     public void initiateCall(String recipient, int localRtpPort) {
         sipSessionState = SipSessionState.CALLING;
+        callDirection = CallDirection.OUTGOING;
         try {
             this.udpSipProvider.getNewClientTransaction(makeInviteRequest(recipient, localRtpPort)).sendRequest();
         } catch (Throwable e) {
@@ -505,24 +520,12 @@ public class SipManager implements SipClient {
 
     @Override
     public void hangup(String recipient) {
-        // TODO: if sessionState ...
-        // TODO: sendByeClient(currentClientTransaction);  sendByeClient(currentServerTransaction);
 
         if (sipSessionState == SipSessionState.CALLING) {
-            try {
-
-                final Dialog dialog = currentCall.getDialog();
-
-                ClientTransaction newTransaction = udpSipProvider.getNewClientTransaction(dialog.createRequest(Request.BYE));
-
-                dialog.sendRequest(newTransaction);
-
-
-                //todo if the call came from a peer, we need to send a bye with a server transaction.
-//                this.udpSipProvider.getNewClientTransaction(makeByeRequest(recipient)).sendRequest();
-
-            } catch (Throwable e) {
-                throw new IllegalStateException("Unable to hangup call", e);
+            if(callDirection == CallDirection.INCOMING){
+                sendBye(waitingCall);
+            }else if(callDirection == CallDirection.OUTGOING){
+                sendBye(currentCall);
             }
 
             listener.onHangup(callId.getCallId());
@@ -530,11 +533,29 @@ public class SipManager implements SipClient {
 
     }
 
+    private void sendBye(Transaction transaction){
+        final Dialog dialog = transaction.getDialog();
+
+        if(dialog == null){
+            throw new IllegalStateException("Dialog can't be null");
+        }else{
+            try {
+                ClientTransaction newTransaction = udpSipProvider.getNewClientTransaction(dialog.createRequest(Request.BYE));
+
+                dialog.sendRequest(newTransaction);
+            }catch (Throwable e){
+                throw new IllegalStateException("Could not send bye request", e);
+            }
+        }
+        callDirection = CallDirection.NONE;
+    }
+
     @Override
     public void acceptCall(final int port) {
         if (waitingCall == null) {
             throw new IllegalStateException("No call waiting to be accepted");
         }
+        callDirection = CallDirection.INCOMING;
 
         try {
             Response responseOK = messageFactory.createResponse(Response.OK, waitingCall.getRequest());
@@ -594,18 +615,6 @@ public class SipManager implements SipClient {
 
     private void sendOk(RequestEvent requestEvt) throws ParseException, SipException, InvalidArgumentException {
         requestEvt.getServerTransaction().sendResponse(messageFactory.createResponse(Response.OK, requestEvt.getRequest()));
-    }
-
-    private Request makeByeRequest(String to) {
-        Request byeRequest;
-        try {
-            byeRequest = createRequest(addressFactory.createURI(to), clientAddress, addressFactory.createAddress(to), Request.BYE, null);
-
-        } catch (Throwable e) {
-            throw new IllegalStateException("Unable to send bye", e);
-        }
-
-        return byeRequest;
     }
 
     public Request createRegisterRequest() throws ParseException, InvalidArgumentException {

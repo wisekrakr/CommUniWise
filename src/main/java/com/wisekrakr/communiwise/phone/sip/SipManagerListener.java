@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone.managers;
+package com.wisekrakr.communiwise.phone.sip;
 
 import javax.sip.address.Address;
 

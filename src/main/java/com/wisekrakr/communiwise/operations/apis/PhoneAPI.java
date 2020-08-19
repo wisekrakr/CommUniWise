@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone.device;
+package com.wisekrakr.communiwise.operations.apis;
 
 
 public interface PhoneAPI {

@@ -48,10 +48,6 @@ public class TransmittingThread {
                 while (!Thread.currentThread().isInterrupted()) {
                     int actuallyRead = targetDataLine.read(buffer, 0, buffer.length);
 
-//                    System.out.println("Read " + actuallyRead + " from the audio");
-
-//                    printData(buffer, actuallyRead);
-
                     rawDataOutput.write(buffer, 0, actuallyRead);
 
                     if (actuallyRead < buffer.length) {
@@ -61,9 +57,9 @@ public class TransmittingThread {
                     }
                 }
 
-                targetDataLine.stop();
-
                 rawDataOutput.close();
+
+                targetDataLine.stop();
 
                 System.out.println("Capture thread has stopped");
             } catch (Throwable e) {

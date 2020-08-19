@@ -15,10 +15,10 @@ public class SipAccountManager implements AccountManager {
         credentials.clear();
     }
 
-    public void addCredentials(String realm, String userName, String password, String domain) {
-        credentials.put(realm, new SipUserCredentials(userName, domain, password));
+    public void addCredentials(String realm, String username, String password, String domain) {
+        credentials.put(realm, new SipUserCredentials(username, domain, password));
 
-        userInfo.put("userName", userName);
+        userInfo.put("username", username);
         userInfo.put("domain", domain);
     }
 

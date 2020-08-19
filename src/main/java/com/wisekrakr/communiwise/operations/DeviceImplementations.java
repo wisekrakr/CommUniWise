@@ -1,16 +1,15 @@
-package com.wisekrakr.communiwise.phone.device;
+package com.wisekrakr.communiwise.operations;
 
 import com.wisekrakr.communiwise.phone.audio.AudioManager;
 import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
-import com.wisekrakr.communiwise.phone.managers.ContactManager;
-import com.wisekrakr.communiwise.phone.managers.SipManager;
+import com.wisekrakr.communiwise.operations.apis.AccountAPI;
+import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
+import com.wisekrakr.communiwise.operations.apis.SoundAPI;
+import com.wisekrakr.communiwise.phone.sip.SipManager;
+import com.wisekrakr.communiwise.user.ContactManager;
 import com.wisekrakr.communiwise.user.SipAccountManager;
-import com.wisekrakr.communiwise.user.SipUserProfile;
 
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.sound.sampled.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -68,7 +67,7 @@ public class DeviceImplementations {
 
             @Override
             public void mute(boolean muted) {
-//                BooleanControl bc = (BooleanControl) inputLine.getControl(BooleanControl.Type.MUTE);
+//                BooleanControl bc = (BooleanControl) rtpConnectionManager.getSocket().gt.getControl(BooleanControl.Type.MUTE);
 //                if (bc != null) {
 //                    bc.setValue(true);
 //                }
@@ -116,6 +115,12 @@ public class DeviceImplementations {
             public void register(String realm, String domain, String username, String password, String fromAddress) {
                 sipManager.login(realm, username, password, domain, fromAddress);
 
+//                contactManager.loadPhoneBook(accountManager.getUserInfo().get("username"));
+                try {
+                    getAccountApi().getContactManager().loadPhoneBook(getAccountApi().getUserInfo().get("username"));
+                }catch (Throwable e){
+                    throw new IllegalArgumentException("Phonebook could not be loaded", e);
+                }
             }
 
             @Override
@@ -135,13 +140,20 @@ public class DeviceImplementations {
             }
 
             @Override
-            public void saveContact(SipUserProfile sipUserProfile) {
-                contactManager.addToContactList(sipUserProfile.getSipCallAddress(), sipUserProfile);
+            public void addContact(String username, String domain, int extension) {
+                contactManager.handleUserMenuSelection(ContactManager.UserOption.ADD_CONTACT,username,domain, extension);
+
             }
 
             @Override
-            public void removeContact(SipUserProfile sipUserProfile) {
-                contactManager.getContacts().remove(sipUserProfile.getSipCallAddress());
+            public void saveContactList() {
+                contactManager.handleUserMenuSelection(ContactManager.UserOption.SAVE,null,null, 0);
+            }
+
+            @Override
+            public void removeContact(String username) {
+                contactManager.handleUserMenuSelection(ContactManager.UserOption.DELETE_CONTACT, username,null, 0);
+
             }
 
             @Override
@@ -153,6 +165,7 @@ public class DeviceImplementations {
             public ContactManager getContactManager() {
                 return contactManager;
             }
+
         };
     }
 }

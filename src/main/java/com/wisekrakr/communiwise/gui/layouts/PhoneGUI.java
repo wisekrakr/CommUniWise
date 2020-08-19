@@ -1,12 +1,12 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
 
+import com.wisekrakr.communiwise.gui.EventManager;
 import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
+import com.wisekrakr.communiwise.gui.layouts.background.AlertFrame;
 import com.wisekrakr.communiwise.gui.layouts.utils.FrameDragListener;
-import com.wisekrakr.communiwise.phone.device.AccountAPI;
-import com.wisekrakr.communiwise.phone.device.PhoneAPI;
-import com.wisekrakr.communiwise.phone.managers.EventManager;
-import com.wisekrakr.communiwise.user.SipUserProfile;
+import com.wisekrakr.communiwise.operations.apis.AccountAPI;
+import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -56,15 +56,16 @@ public class PhoneGUI extends AbstractScreen {
         PhoneGUIMenu phoneGUIMenu = new PhoneGUIMenu(this, eventManager, phone, account);
         phoneGUIMenu.init();
 
-        pack();
+//        pack();
         setVisible(true);
+        setResizable(true);
 
     }
 
 
     public class PhonePane extends JPanel {
-        private DestinationPane destinationPane;
-        private ControlsPane controlsPane;
+        private final DestinationPane destinationPane;
+        private final ControlsPane controlsPane;
 
         public PhonePane() {
             BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
@@ -94,7 +95,7 @@ public class PhoneGUI extends AbstractScreen {
                 startChatMessaging();
             }
 
-            void initComponents(){
+            void initComponents() {
                 add((messageButton = new JButton("Message")), BorderLayout.CENTER);
                 add((audioCallButton = new JButton("Audio Call")), BorderLayout.CENTER);
                 add((videoCallButton = new JButton("Video Call")), BorderLayout.CENTER);
@@ -106,11 +107,13 @@ public class PhoneGUI extends AbstractScreen {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         phone.initiateCall("sip:" + (destinationPane.getSipTargetName().trim() + "@" + destinationPane.getSipTargetAddress().trim()));
+
+                        destinationPane.checkForInputs();
                     }
                 });
             }
 
-            void startChatMessaging(){
+            void startChatMessaging() {
                 messageButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
@@ -124,9 +127,9 @@ public class PhoneGUI extends AbstractScreen {
         }
 
         public class DestinationPane extends JPanel {
-            private JTextField sipTargetName;
-            private JTextField sipTargetAddress;
-            private JTextField sipTargetPort;
+            private final JTextField sipTargetName;
+            private final JTextField sipTargetAddress;
+            private final JTextField sipTargetPort;
 
             public DestinationPane() {
 
@@ -143,25 +146,19 @@ public class PhoneGUI extends AbstractScreen {
                 add(new JLabel("Contact Port (5060 or 5061): "), BorderLayout.WEST);
                 add((sipTargetPort = new JTextField("5060", 3)), BorderLayout.CENTER);
 
-                JButton button = new JButton("save");
-                add(button, BorderLayout.EAST);
-
-                button.addActionListener(new ActionListener() {
-
-                    SipUserProfile sipUserProfile;
-
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        sipUserProfile = new SipUserProfile(Integer.parseInt(sipTargetPort.getText()), sipTargetAddress.getText(), sipTargetName.getText());
-
-                        account.saveContact(sipUserProfile);
-
-                    }
-
-                });
-
             }
 
+            public void checkForInputs(){
+                if(sipTargetName.getText().equals("")){
+                    new AlertFrame().showAlert("Please fill in an extension to call", JOptionPane.INFORMATION_MESSAGE);
+                }
+                if(sipTargetAddress.getText().equals("")){
+                    new AlertFrame().showAlert("Please fill in a domain", JOptionPane.INFORMATION_MESSAGE);
+                }
+                if(sipTargetPort.getText().equals("")){
+                    new AlertFrame().showAlert("Please fill in a proxy port", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
 
             protected String getSipTargetName() {
                 return sipTargetName.getText().trim();
@@ -224,119 +221,9 @@ public class PhoneGUI extends AbstractScreen {
                 chooseMixerFrame.setVisible(true);
             }*/
 
-        }
+    }
 
-//        public class OptionsPane extends JPanel {
-//            public OptionsPane() {
-//                //        super(new GridLayout(1, 1));
-//
-//                JTabbedPane tabbedPane = new JTabbedPane();
-//
-//                JComponent general = makeTextPanel("General");
-//                tabbedPane.addTab("General", null, general, "General Options");
-//
-//                JComponent audio = audioTab();
-//                tabbedPane.addTab("Audio", null, audio, "Audio Options");
-//
-//                JComponent video = makeTextPanel("Video");
-//                tabbedPane.addTab("Video", null, video, "Video options");
-//
-//                add(tabbedPane);
-//
-//                tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-//            }
-//
-//            public void init() {
-//                JFrame frame = new JFrame("Please choose a mixer.");
-//
-//                frame.add(new OptionsPane(), BorderLayout.CENTER);
-//
-//                frame.pack();
-//                frame.setVisible(true);
-//            }
-//
-//            protected JComponent audioTab() {
-//                JPanel panel = new JPanel(new GridLayout(0, 2));
-//
-//                JPanel outputPanel = new JPanel(new GridLayout(0, 1));
-//                JPanel inputPanel = new JPanel(new GridLayout(0, 1));
-//
-//                outputPanel.setBorder(BorderFactory.createTitledBorder("Please choose your output mixer."));
-//                inputPanel.setBorder(BorderFactory.createTitledBorder("Please choose your input mixer."));
-///*
-//                java.util.List<String> outputNames = application.getRTPConnectionManager().getMixerNames();
-//                List<String> inputNames = application.getRTPConnectionManager().getMixerNames();
-//
-//                JScrollPane scrollPane1 = new JScrollPane(outputPanel);
-//                JScrollPane scrollPane2 = new JScrollPane(inputPanel);
-//
-//                panel.add(scrollPane1);
-//                panel.add(scrollPane2);
-//
-//                for (JRadioButton jrb : mixerList((ArrayList<String>) outputNames, outputPanel)) {
-//                    jrb.addActionListener(new ActionListener() {
-//                        @Override
-//                        public void actionPerformed(ActionEvent e) {
-//                            try {
-//                                System.out.println("    Selected output Mixer: " + jrb.getText().trim());
-//
-//                                application.getRTPConnectionManager().selectAudioOutput(jrb.getText().trim());
-//
-//                            } catch (LineUnavailableException lineUnavailableException) {
-//                                lineUnavailableException.printStackTrace();
-//                            }
-//                            JOptionPane.showMessageDialog(outputPanel, "You chose " + jrb.getText());
-//                        }
-//                    });
-//
-//                }
-//
-//                for (JRadioButton jrb : mixerList((ArrayList<String>) inputNames, inputPanel)) {
-//                    jrb.addActionListener(new ActionListener() {
-//                        @Override
-//                        public void actionPerformed(ActionEvent e) {
-//                            try {
-//                                System.out.println("    Selected input Mixer: " + jrb.getText().trim());
-//
-//                                application.getRTPConnectionManager().selectAudioInput(jrb.getText().trim());
-//
-//                            } catch (LineUnavailableException lineUnavailableException) {
-//                                lineUnavailableException.printStackTrace();
-//                            }
-//                            JOptionPane.showMessageDialog(outputPanel, "You chose " + jrb.getText());
-//                        }
-//                    });
-//                }*/
-//
-//
-//                return panel;
-//            }
-//
-//            /**
-//             * Returns a list of mixer types as radio buttons to choose from
-//             *
-//             * @return ArrayList of radio buttons
-//             */
-//            private ArrayList<JRadioButton> mixerList(ArrayList<String> list, JPanel panel) {
-//                ArrayList<JRadioButton> buttonList = new ArrayList<>();
-//                ButtonGroup bg = new ButtonGroup();
-//                for (String name : list) {
-//                    JRadioButton jrb = new JRadioButton(name);
-//                    buttonList.add(jrb);
-//                    bg.add(jrb);
-//                    panel.add(jrb);
-//                }
-//                return buttonList;
-//            }
-//
-//            private JComponent makeTextPanel(String text) {
-//                JPanel panel = new JPanel(false);
-//                JLabel filler = new JLabel(text);
-//                filler.setHorizontalAlignment(JLabel.CENTER);
-//                panel.setLayout(new GridLayout(1, 1));
-//                panel.add(filler);
-//                return panel;
-//            }
-//        }
+
+
 
 }

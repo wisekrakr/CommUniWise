@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.phone.managers;
+package com.wisekrakr.communiwise.gui;
 
 public interface FrameManagerListener {
 
@@ -10,7 +10,9 @@ public interface FrameManagerListener {
     void onUnregistering();
     void onHangUp(String callId);
     void onAcceptingCall(String callId);
-
+    void onAuthenticationFailed();
     void onRegistered();
+    void menuContactListOpen();
+    void menuPreferencesOpen();
 
 }
