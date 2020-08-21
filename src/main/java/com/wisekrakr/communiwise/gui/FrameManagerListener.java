@@ -3,7 +3,7 @@ package com.wisekrakr.communiwise.gui;
 public interface FrameManagerListener {
 
     void onOutgoingCall(String callId);
-    void onIncomingCall(String callId);
+    void onIncomingCall(String callId, String username, String rtpAddress, int rtpPort);
     void close();
     void open();
     void onRegistering();

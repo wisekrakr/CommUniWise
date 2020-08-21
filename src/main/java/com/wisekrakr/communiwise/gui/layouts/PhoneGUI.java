@@ -4,10 +4,13 @@ package com.wisekrakr.communiwise.gui.layouts;
 import com.wisekrakr.communiwise.gui.EventManager;
 import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
 import com.wisekrakr.communiwise.gui.layouts.background.AlertFrame;
+import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
 import com.wisekrakr.communiwise.gui.layouts.utils.FrameDragListener;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
+import gov.nist.javax.sdp.fields.SDPFieldList;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
@@ -16,6 +19,9 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class PhoneGUI extends AbstractScreen {
 
@@ -34,9 +40,13 @@ public class PhoneGUI extends AbstractScreen {
         this.account = account;
     }
 
+    @Override
     public void showWindow() {
         setTitle("CommUniWise Phone");
         setUndecorated(true);
+        setVisible(true);
+        setResizable(true);
+
 
         add(new PhonePane());
 
@@ -48,6 +58,7 @@ public class PhoneGUI extends AbstractScreen {
         Border compound = BorderFactory.createCompoundBorder(raised, lowered);
 
         getRootPane().setBorder(compound);
+        buildLogoPanel();
 
         FrameDragListener frameDragListener = new FrameDragListener(this);
         this.addMouseListener(frameDragListener);
@@ -57,11 +68,24 @@ public class PhoneGUI extends AbstractScreen {
         phoneGUIMenu.init();
 
 //        pack();
-        setVisible(true);
-        setResizable(true);
+
 
     }
+    public void buildLogoPanel(){
 
+        BufferedImage image = null;
+        try {
+            image = ImageIO.read(new File("src/main/resources/logo1.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        JLabel picLabel = new JLabel(new ImageIcon(image));
+        JPanel logoPanel = new JPanel();
+        logoPanel.add(picLabel);
+        logoPanel.setBackground(Constants.LIGHT_CYAN);
+
+        add(logoPanel, BorderLayout.WEST);
+    }
 
     public class PhonePane extends JPanel {
         private final DestinationPane destinationPane;

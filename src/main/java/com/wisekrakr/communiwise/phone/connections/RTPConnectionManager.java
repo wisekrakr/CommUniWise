@@ -86,6 +86,22 @@ public class RTPConnectionManager {
         System.out.println("Finished Output");
     }
 
+    public void mute(){
+        if (inputLine != null && inputLine.isRunning()) {
+            BooleanControl control = (BooleanControl) inputLine.getControl(BooleanControl.Type.MUTE);
+            control.setValue(true);
+        }
+    }
+
+    public void unmute() {
+
+        if (inputLine != null && !inputLine.isRunning()) {
+            BooleanControl control = (BooleanControl) inputLine.getControl(BooleanControl.Type.MUTE);
+            control.setValue(false);
+        }
+
+    }
+
     public DatagramSocket getSocket() {
         return socket;
     }

@@ -1,6 +1,7 @@
 package com.wisekrakr.communiwise.operations;
 
 import com.wisekrakr.communiwise.phone.audio.AudioManager;
+import com.wisekrakr.communiwise.phone.audio.LineManager;
 import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
@@ -22,7 +23,7 @@ public class DeviceImplementations {
     private final SipAccountManager accountManager;
     private final ContactManager contactManager;
 
-    public DeviceImplementations(SipManager sipManager, RTPConnectionManager rtpConnectionManager,SipAccountManager accountManager, AudioManager audioManager) {
+    public DeviceImplementations(SipManager sipManager, RTPConnectionManager rtpConnectionManager,SipAccountManager accountManager,AudioManager audioManager) {
         this.sipManager = sipManager;
         this.rtpConnectionManager = rtpConnectionManager;
         this.accountManager = accountManager;
@@ -32,8 +33,14 @@ public class DeviceImplementations {
     }
 
     public SoundAPI getSoundApi(){
+        LineManager lineManager = new LineManager();
+
+//        audioManager = new AudioManager(rtpConnectionManager.getSocket(), lineManager.createTargetDataLine(null), lineManager.createSourceDataLine(null));
+
+
         return new SoundAPI() {
-            private final AudioFormat FORMAT = new AudioFormat(16000, 16, 1, true, true);
+            public final AudioFormat FORMAT = new AudioFormat(16000, 16, 1, true, true);
+
 
             @Override
             public void startRecording() {
@@ -66,11 +73,8 @@ public class DeviceImplementations {
             }
 
             @Override
-            public void mute(boolean muted) {
-//                BooleanControl bc = (BooleanControl) rtpConnectionManager.getSocket().gt.getControl(BooleanControl.Type.MUTE);
-//                if (bc != null) {
-//                    bc.setValue(true);
-//                }
+            public void mute() {
+                rtpConnectionManager.mute();
             }
         };
     }
@@ -89,9 +93,10 @@ public class DeviceImplementations {
             }
 
             @Override
-            public void accept() {
+            public void accept(String sipAddress) {
                 sipManager.acceptCall(rtpConnectionManager.getSocket().getLocalPort());
 
+                proxyAddress = sipAddress;
             }
 
             @Override
@@ -101,9 +106,9 @@ public class DeviceImplementations {
 
 
             @Override
-            public void hangup() {
+            public void hangup(String callId) {
                 try {
-                    sipManager.hangup(proxyAddress);
+                    sipManager.hangup(proxyAddress, callId);
                 } catch (Throwable e) {
                     throw new IllegalStateException("Unable to hang up the device", e);
                 }
@@ -115,7 +120,6 @@ public class DeviceImplementations {
             public void register(String realm, String domain, String username, String password, String fromAddress) {
                 sipManager.login(realm, username, password, domain, fromAddress);
 
-//                contactManager.loadPhoneBook(accountManager.getUserInfo().get("username"));
                 try {
                     getAccountApi().getContactManager().loadPhoneBook(getAccountApi().getUserInfo().get("username"));
                 }catch (Throwable e){
@@ -157,7 +161,7 @@ public class DeviceImplementations {
             }
 
             @Override
-            public void updateContact(String username, String address, int port) {
+            public void updateContact(String username, String domain, int extension) {
 
             }
 

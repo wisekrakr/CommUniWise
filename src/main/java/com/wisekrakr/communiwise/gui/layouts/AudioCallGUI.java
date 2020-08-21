@@ -13,12 +13,12 @@ import java.awt.event.ActionListener;
 
 public class AudioCallGUI extends AbstractScreen {
     private final PhoneAPI phone;
-    private final SoundAPI audioSound;
+    private final SoundAPI sound;
     private String callId;
 
-    public AudioCallGUI(PhoneAPI phone, SoundAPI audioSound, String callId) throws HeadlessException {
+    public AudioCallGUI(PhoneAPI phone, SoundAPI sound, String callId) throws HeadlessException {
         this.phone = phone;
-        this.audioSound = audioSound;
+        this.sound = sound;
         this.callId = callId;
     }
 
@@ -48,7 +48,7 @@ public class AudioCallGUI extends AbstractScreen {
         hangUpButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                phone.hangup();
+                phone.hangup(callId);
             }
         });
     }
@@ -64,7 +64,7 @@ public class AudioCallGUI extends AbstractScreen {
         recordButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                audioSound.startRecording();
+                sound.startRecording();
 
                 recordButton.setEnabled(false);
                 stopButton.setEnabled(true);
@@ -75,7 +75,7 @@ public class AudioCallGUI extends AbstractScreen {
             stopButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    audioSound.stopRecording();
+                    sound.stopRecording();
 
                     recordButton.setEnabled(true);
                     stopButton.setEnabled(false);
@@ -95,7 +95,8 @@ public class AudioCallGUI extends AbstractScreen {
         beepButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                audioSound.playRemoteSound("src/main/resources/" + soundFileName.getText());
+//                audioSound.playRemoteSound("src/main/resources/" + soundFileName.getText());
+                sound.mute();
             }
         });
     }

@@ -10,6 +10,7 @@ public class LineManager {
 
     private Mixer.Info[] mixers = AudioSystem.getMixerInfo();
     public static final AudioFormat FORMAT = new AudioFormat(16000, 16, 1, true, true);
+    private HashMap<String, DataLine>workingLines = new HashMap<>();
 
     //todo find right mixer
     //todo create new lines for every call or remote sound play
@@ -36,24 +37,60 @@ public class LineManager {
 //
 //    };
 
-    public TargetDataLine createTargetDataLine(String inputDevice) throws LineUnavailableException {
+    public TargetDataLine createTargetDataLine(String inputDevice) {
         TargetDataLine targetDataLine = null;
 
-        for (int i = 0; i < mixers.length; i++) {
-            if (inputDevice.equals(mixers[i].getName())) {
-                targetDataLine = (TargetDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(TargetDataLine.class, FORMAT));
+        try {
+            for (int i = 0; i < mixers.length; i++) {
+                if(inputDevice != null){
+
+                    if (inputDevice.equals(mixers[i].getName())) {
+                        targetDataLine = (TargetDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(TargetDataLine.class, FORMAT));
+                    }
+                }else {
+                    if(mixers[i].getName().toLowerCase().contains("mic")){
+                        targetDataLine = (TargetDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(TargetDataLine.class, FORMAT));
+                    }else{
+                        targetDataLine = (TargetDataLine) AudioSystem.getLine(new DataLine.Info(TargetDataLine.class, FORMAT));
+
+                    }
+                }
             }
+
+            workingLines.put(inputDevice != null ? inputDevice : String.valueOf(targetDataLine.hashCode()), targetDataLine);
+        }catch (LineUnavailableException e){
+            throw new IllegalStateException(" TargetDataLine not available",e);
         }
+
+
+
         return targetDataLine;
     }
 
-    public SourceDataLine createSourceDataLine(String outputDevice) throws LineUnavailableException {
+    public SourceDataLine createSourceDataLine(String outputDevice){
         SourceDataLine sourceDataLine = null;
-        for (int i = 0; i < mixers.length; i++) {
-            if (outputDevice.equals(mixers[i].getName())) {
-                sourceDataLine = (SourceDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(SourceDataLine.class, FORMAT));
+        try {
+            for (int i = 0; i < mixers.length; i++) {
+                if(outputDevice != null){
+
+                    if (outputDevice.equals(mixers[i].getName())) {
+                        sourceDataLine = (SourceDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(SourceDataLine.class, FORMAT));
+                    }
+                }else {
+                    if(mixers[i].getName().toLowerCase().contains("speaker")){
+                        sourceDataLine = (SourceDataLine) AudioSystem.getMixer(mixers[i]).getLine(new DataLine.Info(SourceDataLine.class, FORMAT));
+                    } else {
+                        sourceDataLine = (SourceDataLine) AudioSystem.getLine(new DataLine.Info(SourceDataLine.class, FORMAT));
+
+                    }
+                }
             }
+            workingLines.put(outputDevice != null ? outputDevice : String.valueOf(sourceDataLine.hashCode()), sourceDataLine);
+
+        }catch (LineUnavailableException e){
+            throw new IllegalStateException(" SourceDataLine not available",e);
         }
+
 
         return sourceDataLine;
     }

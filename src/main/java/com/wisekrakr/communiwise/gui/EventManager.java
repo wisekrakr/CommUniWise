@@ -9,7 +9,9 @@ import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.operations.apis.SoundAPI;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -45,9 +47,9 @@ public class EventManager implements FrameManagerListener {
     }
 
     @Override
-    public void onIncomingCall(String callId) {
+    public void onIncomingCall(String callId, String username, String rtpAddress, int rtpPort) {
         SwingUtilities.invokeLater(() -> {
-            AcceptCallGUI acceptCallGUI = new AcceptCallGUI(phone, callId);
+            AcceptCallGUI acceptCallGUI = new AcceptCallGUI(phone, callId, rtpAddress);
 
             callGUIs.put(callId, acceptCallGUI);
 
@@ -60,14 +62,16 @@ public class EventManager implements FrameManagerListener {
         for(AbstractScreen s: callGUIs.entrySet().stream().filter(cc -> callId.equals(cc.getKey())).map(Map.Entry::getValue).collect(Collectors.toList())){
             s.hideWindow();
         }
-
-        if (phoneGUI != null){
-            phoneGUI.showWindow();
-        }
     }
 
     @Override
     public void onAcceptingCall(String callId) {
+        for (Map.Entry<String, AbstractScreen> c : callGUIs.entrySet()) {
+            if (c.getKey().equals(callId)) {
+                c.getValue().hideWindow();
+            }
+        }
+
         SwingUtilities.invokeLater(() -> {
             AudioCallGUI audioCallGUI = new AudioCallGUI(phone, sound, callId);
 

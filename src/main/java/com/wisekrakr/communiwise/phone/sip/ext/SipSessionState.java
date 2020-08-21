@@ -20,7 +20,7 @@ public enum SipSessionState {
     /**
      * This state is used while the call is being established.
      */
-    CALLING,
+//    CALLING,
     /**
      * This state is used when the call is established.
      */
@@ -34,6 +34,10 @@ public enum SipSessionState {
      * This state is used when a call is incoming.
      */
     INCOMING,
+    /**
+     * This state is used when a call is outgoing.
+     */
+    OUTGOING,
     /**
      * This state is used when a signalling timeout occurred.
      */

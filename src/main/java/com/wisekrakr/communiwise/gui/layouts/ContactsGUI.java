@@ -1,17 +1,17 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
 import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
+import com.wisekrakr.communiwise.gui.layouts.background.AlertFrame;
 import com.wisekrakr.communiwise.gui.layouts.utils.FrameDragListener;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.user.phonebook.PhoneBookEntry;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
+import java.util.HashMap;
 
 public class ContactsGUI extends AbstractScreen {
     private JTextField username;
@@ -27,6 +27,8 @@ public class ContactsGUI extends AbstractScreen {
     private int gridy = 0;
 
     private final AccountAPI account;
+
+    private HashMap<String, ContactLabel> contactListLabels = new HashMap<>();
 
     public ContactsGUI(AccountAPI account) {
         this.account = account;
@@ -110,20 +112,19 @@ public class ContactsGUI extends AbstractScreen {
 
             for (PhoneBookEntry contact : account.getContactManager().getPhoneBook().getEntries()) {
 
-                JLabel con = new JLabel("<html>" +
-                        ++labelCount + " " + "<strong>" + contact.getUsername().toUpperCase() + "</strong>"
-                + ": " + contact.getExtension() + "@" + contact.getDomain() + "</html>");
+                if(!contactListLabels.containsKey(contact.getUsername())){
 
-                contactPanel.add(con, gbc);
+                    ContactLabel con = new ContactLabel(contact.getUsername(),
+                            "<html>" +
+                            ++labelCount + "    " + "<strong>" + contact.getUsername().toUpperCase() + "</strong>" +
+                            ": " + contact.getExtension() + "@" + contact.getDomain() + "</html>");
 
-                con.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        System.out.println(e.getX());
-                        account.removeContact(contact.getUsername());
-                    }
-                });
-//                    contactPanel.revalidate();
+                    contactListLabels.put(contact.getUsername(), con);
+
+                    contactPanel.add(con, gbc);
+                }
+
+                contactPanel.revalidate();
             }
 
             gridy++;
@@ -144,5 +145,95 @@ public class ContactsGUI extends AbstractScreen {
         }
     };
 
+    protected class ContactLabel extends JPanel implements MouseListener {
+        private final String contact;
+        private final String text;
+
+        private boolean isHighlighted;
+        private final Border blackBorder = BorderFactory.createLineBorder(Color.BLACK);
+        private final Border redBorder = BorderFactory.createLineBorder(Color.RED,2);
+
+        private JButton edit, remove, call;
+        private final JPanel buttonPanel;
+
+        ContactLabel(String contact, String text){
+            this.contact = contact;
+            this.text = text;
+            addMouseListener(this);
+            setBorder(blackBorder);
+            setFocusable(true);
+
+            JLabel labelText = new JLabel(text);
+            add(labelText);
+
+            buttonPanel = new JPanel();
+            add(buttonPanel);
+
+        }
+
+        @Override
+        public Dimension getPreferredSize(){
+            return new Dimension(150, 70);
+        }
+
+        private void showOptions(){
+            call = new JButton("Call ");
+            call.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+
+                }
+            });
+            buttonPanel.add(call);
+
+            edit = new JButton("Edit " );
+            edit.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+
+                }
+            });
+            add(edit);
+
+            remove = new JButton("Remove " );
+            remove.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    account.removeContact(contact);
+                    contactListUpdate.run();
+                }
+            });
+            add(remove);
+        }
+
+        private void hideOptions(){
+            if(isHighlighted){
+                call.setVisible(false);
+                edit.setVisible(false);
+                remove.setVisible(false);
+            }
+
+        }
+
+        @Override public void mouseClicked(MouseEvent e){
+            if(isHighlighted) {
+                setBorder(blackBorder);
+
+                hideOptions();
+            }else{
+                setBorder(redBorder);
+
+                showOptions();
+
+            }
+            isHighlighted=!isHighlighted;
+        }
+
+        @Override public void mousePressed(MouseEvent e){}
+        @Override public void mouseReleased(MouseEvent e){}
+        @Override public void mouseEntered(MouseEvent e){}
+        @Override public void mouseExited(MouseEvent e){
+        }
+    }
 
 }

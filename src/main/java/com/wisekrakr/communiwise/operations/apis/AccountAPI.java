@@ -10,6 +10,6 @@ public interface AccountAPI {
     void addContact(String username, String domain, int extension);
     void saveContactList();
     void removeContact(String username);
-    void updateContact(String username, String address, int port);
+    void updateContact(String username, String domain, int extension);
     ContactManager getContactManager();
 }

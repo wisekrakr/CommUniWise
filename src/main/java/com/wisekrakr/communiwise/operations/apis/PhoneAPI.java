@@ -6,11 +6,11 @@ public interface PhoneAPI {
 
     void initiateCall(String sipAddress);
 
-    void accept();
+    void accept(String sipAddress);
 
     void reject();
 
-    void hangup();
+    void hangup(String callId);
 
     int callStatus();
 

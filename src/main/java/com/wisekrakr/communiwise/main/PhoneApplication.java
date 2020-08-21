@@ -2,8 +2,6 @@ package com.wisekrakr.communiwise.main;
 
 
 import com.wisekrakr.communiwise.phone.audio.AudioManager;
-import com.wisekrakr.communiwise.phone.audio.LineManager;
-import com.wisekrakr.communiwise.phone.calling.CallInstance;
 import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
 import com.wisekrakr.communiwise.operations.DeviceImplementations;
 import com.wisekrakr.communiwise.gui.EventManager;
@@ -11,12 +9,9 @@ import com.wisekrakr.communiwise.phone.sip.SipManager;
 import com.wisekrakr.communiwise.phone.sip.SipManagerListener;
 import com.wisekrakr.communiwise.user.SipAccountManager;
 
-import javax.sip.address.Address;
 import javax.sound.sampled.*;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
 
 public class PhoneApplication implements Serializable {
 
@@ -24,9 +19,6 @@ public class PhoneApplication implements Serializable {
 
     private RTPConnectionManager rtpConnectionManager;
     private EventManager eventManager;
-
-    private final Map<String, CallInstance> callInstances = new HashMap<>();
-
 
     private static void printHelp(String message) {
         System.out.println(message);
@@ -110,7 +102,6 @@ public class PhoneApplication implements Serializable {
 
     private void initialize(TargetDataLine inputLine, SourceDataLine outputLine, String localAddress, int localPort, String transport, String proxyHost, int proxyPort) throws Exception {
 
-
         SipManager sipManager = new SipManager(proxyHost, proxyPort, localAddress, localPort, transport).
                 logging("server.log", "debug.log", 16).
                 listener(new SipManagerListener() {
@@ -121,10 +112,10 @@ public class PhoneApplication implements Serializable {
                     }
 
                     @Override
-                    public void onBye() {
+                    public void onRemoteBye(String callId) {
                         rtpConnectionManager.stopStreamingAudio();
 
-//                        audioCallGUI.hideWindow();
+                        eventManager.onHangUp(callId);
                     }
 
                     @Override
@@ -139,7 +130,6 @@ public class PhoneApplication implements Serializable {
                     @Override
                     public void callConfirmed(String rtpHost, int rtpPort, String codec, String callId) {
                         //todo codec?
-                        CallInstance callInstance = null;
                         InetSocketAddress proxyAddress = new InetSocketAddress(rtpHost, rtpPort);
 
                         try {
@@ -150,19 +140,8 @@ public class PhoneApplication implements Serializable {
                             e.printStackTrace();
                         }
 
+                        eventManager.onOutgoingCall(callId);
 
-                        try {
-                            callInstance = new CallInstance(callId, "bla", proxyAddress);
-                            callInstances.put(callId, callInstance);
-                        } catch (Throwable e) {
-                            System.out.println("Unable to create call instance: " + e);
-
-                            e.printStackTrace();
-                        }
-
-                        if (callInstance != null) {
-                            eventManager.onOutgoingCall(callId);
-                        }
 
                     }
 
@@ -172,17 +151,42 @@ public class PhoneApplication implements Serializable {
                     }
 
                     @Override
-                    public void onRinging(String callId, Address address) {
-                        CallInstance callInstance = null;
+                    public void onRinging(String callId, String username, String rtpAddress, int rtpPort) {
+                        System.out.println("   GETTING INCOMING CALL    " + rtpAddress + ":" + rtpPort);
+
+//                        InetSocketAddress proxyAddress = new InetSocketAddress(rtpAddress, rtpPort);
+//                        try {
+//                            rtpConnectionManager.connectRTPAudio(proxyAddress, "g722");
+//                        } catch (Throwable e) {
+//                            System.out.println("Unable to connect: " + e);
+//
+//                            e.printStackTrace();
+//                        }
+
+                        eventManager.onIncomingCall(callId, username, rtpAddress, rtpPort);
+
+
+                    }
+
+                    @Override
+                    public void onAccepted(String callId, String rtpProxy, int rtpPort, String codec) {
+
+                        String proxy = rtpProxy.substring(rtpProxy.lastIndexOf("@") + 1);
+
+                        InetSocketAddress proxyAddress = new InetSocketAddress(proxy, rtpPort);
                         try {
-                            callInstance = new CallInstance(callId, "bla", (InetSocketAddress) address);
-                            callInstances.put(callId, callInstance);
+                            rtpConnectionManager.connectRTPAudio(proxyAddress, codec);
                         } catch (Throwable e) {
-                            System.out.println("Unable to create call instance: " + e);
+                            System.out.println("Unable to connect: " + e);
 
                             e.printStackTrace();
                         }
-                        eventManager.onIncomingCall(callId);
+
+                        eventManager.onAcceptingCall(callId);
+                    }
+
+                    @Override
+                    public void onDeclined() {
 
                     }
 
@@ -201,7 +205,7 @@ public class PhoneApplication implements Serializable {
                     }
 
                     @Override
-                    public void onHangup(String callId) {
+                    public void onBye(String callId) {
                         eventManager.onHangUp(callId);
                     }
 
@@ -217,8 +221,6 @@ public class PhoneApplication implements Serializable {
                     }
                 });
 
-        LineManager lineManager = new LineManager();
-
         rtpConnectionManager = new RTPConnectionManager(inputLine, outputLine);
         rtpConnectionManager.init();
 
@@ -228,7 +230,7 @@ public class PhoneApplication implements Serializable {
 
         sipManager.initialize(accountManager);
 
-        DeviceImplementations impl = new DeviceImplementations(sipManager, rtpConnectionManager, accountManager, audioManager);
+        DeviceImplementations impl = new DeviceImplementations(sipManager, rtpConnectionManager, accountManager,audioManager);
 
         eventManager = new EventManager(impl);
         eventManager.open();

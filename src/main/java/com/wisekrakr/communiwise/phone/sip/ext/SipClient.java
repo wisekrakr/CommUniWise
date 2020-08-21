@@ -7,7 +7,7 @@ public interface SipClient {
 
     void initiateCall(String recipient, int localRtpPort);
 
-    void hangup(String recipient);
+    void hangup(String recipient, String callId);
     void reject();
 
     void acceptCall(final int port);

@@ -12,17 +12,20 @@ import java.awt.event.ActionListener;
 public class AcceptCallGUI extends AbstractScreen {
 
     private final PhoneAPI phone;
+    private final String callId;
+    private final String rtpAddress;
 
     private JPanel panel;
 
-
-    public AcceptCallGUI(PhoneAPI phone, String callId) throws HeadlessException {
+    public AcceptCallGUI(PhoneAPI phone, String callId, String rtpAddress) throws HeadlessException {
         this.phone = phone;
+        this.callId = callId;
+        this.rtpAddress = rtpAddress;
     }
 
     public void showWindow() {
 //        setLayout(new BorderLayout());
-        setTitle("Login to CommUniWise");
+        setTitle(callId + " is calling!");
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width - 288) / 2, (screenSize.height - 310) / 2, 400, 150);
@@ -48,8 +51,7 @@ public class AcceptCallGUI extends AbstractScreen {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                phone.accept();
-
+                phone.accept(rtpAddress);
             }
         });
     }
@@ -63,7 +65,6 @@ public class AcceptCallGUI extends AbstractScreen {
             public void actionPerformed(ActionEvent e) {
 
                 phone.reject();
-
             }
         });
     }
