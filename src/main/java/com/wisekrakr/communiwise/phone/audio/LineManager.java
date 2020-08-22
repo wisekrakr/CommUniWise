@@ -8,9 +8,12 @@ import java.util.HashMap;
 
 public class LineManager {
 
-    private Mixer.Info[] mixers = AudioSystem.getMixerInfo();
+    private final Mixer.Info[] mixers = AudioSystem.getMixerInfo();
+    private Mixer mixer;
+
     public static final AudioFormat FORMAT = new AudioFormat(16000, 16, 1, true, true);
-    private HashMap<String, DataLine>workingLines = new HashMap<>();
+
+    private final HashMap<String, DataLine>workingLines = new HashMap<>();
 
     //todo find right mixer
     //todo create new lines for every call or remote sound play
@@ -18,13 +21,17 @@ public class LineManager {
 
     public void initMixer(){
 
-
-
     }
 
+    public Mixer getMixer() {
+        return mixer;
+    }
 
+    public void setMixer(Mixer mixer) {
+        this.mixer = mixer;
+    }
 
-//    MouseListener handler = new MouseAdapter() {
+    //    MouseListener handler = new MouseAdapter() {
 //
 //        @Override
 //        public void mouseClicked(MouseEvent e) {

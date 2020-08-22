@@ -2,15 +2,12 @@ package com.wisekrakr.communiwise.gui.layouts;
 
 
 import com.wisekrakr.communiwise.gui.EventManager;
-import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
+import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
 import com.wisekrakr.communiwise.gui.layouts.background.AlertFrame;
 import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
-import com.wisekrakr.communiwise.gui.layouts.utils.FrameDragListener;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
-import gov.nist.javax.sdp.fields.SDPFieldList;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
@@ -19,11 +16,9 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.net.URL;
 
-public class PhoneGUI extends AbstractScreen {
+public class PhoneGUI extends AbstractGUI {
 
     private final EventManager eventManager;
     private final PhoneAPI phone;
@@ -32,52 +27,54 @@ public class PhoneGUI extends AbstractScreen {
     private static final int DESIRED_HEIGHT = 300;
     private static final int DESIRED_WIDTH = 700;
 
-    private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
     public PhoneGUI(EventManager eventManager, PhoneAPI phone, AccountAPI account) {
         this.eventManager = eventManager;
         this.phone = phone;
         this.account = account;
+
+        prepareGUI();
     }
 
+
     @Override
-    public void showWindow() {
-        setTitle("CommUniWise Phone");
+    public void prepareGUI() {
+        setTitle("CommUniWise Sip Phone");
         setUndecorated(true);
         setVisible(true);
         setResizable(true);
 
-
         add(new PhonePane());
 
+        showLogoPanel();
+
         setMinimumSize(new Dimension(DESIRED_WIDTH, DESIRED_HEIGHT));
-        setBounds((screenSize.width - DESIRED_WIDTH) / 2, (screenSize.height - DESIRED_HEIGHT) / 2, DESIRED_WIDTH, DESIRED_HEIGHT);
+        setBounds((getScreenSize().width - DESIRED_WIDTH) / 2, (getScreenSize().height - DESIRED_HEIGHT) / 2, DESIRED_WIDTH, DESIRED_HEIGHT);
 
         Border raised = BorderFactory.createRaisedBevelBorder();
         Border lowered = BorderFactory.createLoweredBevelBorder();
         Border compound = BorderFactory.createCompoundBorder(raised, lowered);
 
         getRootPane().setBorder(compound);
-        buildLogoPanel();
+    }
 
-        FrameDragListener frameDragListener = new FrameDragListener(this);
-        this.addMouseListener(frameDragListener);
-        this.addMouseMotionListener(frameDragListener);
+    @Override
+    public void showWindow() {
+
+        addFrameDragAbility();
 
         PhoneGUIMenu phoneGUIMenu = new PhoneGUIMenu(this, eventManager, phone, account);
         phoneGUIMenu.init();
 
-//        pack();
-
+        setVisible(true);
 
     }
-    public void buildLogoPanel(){
 
-        BufferedImage image = null;
+    private void showLogoPanel(){
+        URL image = null;
         try {
-            image = ImageIO.read(new File("src/main/resources/logo1.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
+            image = getClass().getResource("/images/logo1.png");
+        } catch (Throwable e) {
+            System.out.println("Could not find the image");
         }
         JLabel picLabel = new JLabel(new ImageIcon(image));
         JPanel logoPanel = new JPanel();
@@ -99,7 +96,6 @@ public class PhoneGUI extends AbstractScreen {
 
             add((destinationPane = new DestinationPane()), BorderLayout.CENTER);
             add((controlsPane = new ControlsPane()), BorderLayout.CENTER);
-
         }
 
         public class ControlsPane extends JPanel {
@@ -115,8 +111,8 @@ public class PhoneGUI extends AbstractScreen {
                 panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Controls"));
 
                 initComponents();
-                makeAudioCall();
-                startChatMessaging();
+                audioCallComponent();
+                chatMessagingComponent();
             }
 
             void initComponents() {
@@ -126,27 +122,32 @@ public class PhoneGUI extends AbstractScreen {
                 add((unregisterButton = new JButton("Unregister")), BorderLayout.CENTER);
             }
 
-            void makeAudioCall() {
+            void audioCallComponent() {
                 audioCallButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        phone.initiateCall("sip:" + (destinationPane.getSipTargetName().trim() + "@" + destinationPane.getSipTargetAddress().trim()));
-
-                        destinationPane.checkForInputs();
+                        if(account.isAuthenticated()){
+                            phone.initiateCall("sip:" + (destinationPane.getSipTargetName().trim() + "@" + destinationPane.getSipTargetAddress().trim()));
+                            destinationPane.checkForInputs();
+                        }else {
+                            eventManager.onError("You have to register first, go to: File -> Login ");
+                        }
                     }
                 });
             }
 
-            void startChatMessaging() {
+            void chatMessagingComponent() {
                 messageButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-
-                        ChatFrame chatFrame = new ChatFrame("bla");
-                        chatFrame.setVisible(true);
+                        if(account.isAuthenticated()){
+                            ChatFrame chatFrame = new ChatFrame("bla");
+                            chatFrame.setVisible(true);
+                        }else {
+                            eventManager.onError("You have to register first, go to: File -> Login ");
+                        }
                     }
                 });
-
             }
         }
 
@@ -174,13 +175,13 @@ public class PhoneGUI extends AbstractScreen {
 
             public void checkForInputs(){
                 if(sipTargetName.getText().equals("")){
-                    new AlertFrame().showAlert("Please fill in an extension to call", JOptionPane.INFORMATION_MESSAGE);
+                    new AlertFrame().showAlert(this,"Please fill in an extension to call", JOptionPane.INFORMATION_MESSAGE);
                 }
                 if(sipTargetAddress.getText().equals("")){
-                    new AlertFrame().showAlert("Please fill in a domain", JOptionPane.INFORMATION_MESSAGE);
+                    new AlertFrame().showAlert(this,"Please fill in a domain", JOptionPane.INFORMATION_MESSAGE);
                 }
                 if(sipTargetPort.getText().equals("")){
-                    new AlertFrame().showAlert("Please fill in a proxy port", JOptionPane.INFORMATION_MESSAGE);
+                    new AlertFrame().showAlert(this,"Please fill in a proxy port", JOptionPane.INFORMATION_MESSAGE);
                 }
             }
 
@@ -196,58 +197,5 @@ public class PhoneGUI extends AbstractScreen {
                 return sipTargetPort.getText().trim();
             }
         }
-
-
-/*
-            private void audioOptions() {
-                JFrame chooseMixerFrame = new JFrame("Sound Mixer");
-
-                java.util.List<String> names = application.getRTPConnectionManager().getMixerNames();
-
-                JPanel mainPanel = new JPanel(new GridLayout(2, 0));
-                JPanel teamPanel = new JPanel(new GridLayout(0, 1));
-
-                java.util.List<JRadioButton> list = new ArrayList<>();
-                ButtonGroup bg = new ButtonGroup();
-                for (String name : names) {
-                    JRadioButton jrb = new JRadioButton(name);
-                    list.add(jrb);
-                    bg.add(jrb);
-                    teamPanel.add(jrb);
-                }
-                teamPanel.setBorder(BorderFactory.createTitledBorder("Please choose a mixer."));
-                mainPanel.add(new JScrollPane(teamPanel));
-                JPanel okPanel = new JPanel(new GridBagLayout());
-
-                JButton okButton = new JButton(new AbstractAction("OK") {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        for (JRadioButton jrb : list) {
-                            if (jrb.isSelected()) {
-                                try {
-                                    System.out.println("    Selected Mixer: " + jrb.getText().trim());
-                                    application.getRTPConnectionManager().selectAudioOutput(jrb.getText().trim());
-                                } catch (LineUnavailableException lineUnavailableException) {
-                                    lineUnavailableException.printStackTrace();
-                                }
-                                JOptionPane.showMessageDialog(chooseMixerFrame, "You chose " + jrb.getText());
-                            }
-                        }
-                    }
-                });
-                okButton.setFont(okButton.getFont().deriveFont(36f));
-                okPanel.add(okButton);
-                mainPanel.add(okPanel);
-                chooseMixerFrame.add(mainPanel);
-                chooseMixerFrame.pack();
-                chooseMixerFrame.setSize(400, list.get(0).getHeight() * 16);
-                chooseMixerFrame.setLocationRelativeTo(null);
-                chooseMixerFrame.setVisible(true);
-            }*/
-
     }
-
-
-
-
 }

@@ -94,7 +94,6 @@ public class RemoteAudioPlayThread {
 
             @Override
             public void run() {
-                // TODO: research meaning of all fields
                 RTPPacket rtpPacket = new RTPPacket();
                 //This field identifies the version of RTP. The version defined by this specification is two (2).
                 rtpPacket.setVersion(2);

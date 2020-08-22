@@ -1,20 +1,24 @@
 package com.wisekrakr.communiwise.gui.layouts.background;
 
 import javax.swing.*;
+import java.awt.*;
 
-public class AlertFrame extends JFrame {
 
-    public AlertFrame showAlert(String errorMessage, int errorCode){
-        setUndecorated(true);
+public class AlertFrame  {
+
+    public AlertFrame showAlert(Component component,String errorMessage, int errorCode){
+
 
         JOptionPane.showMessageDialog(
-                this,
+                component,
                 "<html><body><p style='width: 200px;'>"+errorMessage+"</p></body></html>",
                 "Error",
                 errorCode);
 
-        setVisible(true);
+
 
         return this;
     }
+
+
 }

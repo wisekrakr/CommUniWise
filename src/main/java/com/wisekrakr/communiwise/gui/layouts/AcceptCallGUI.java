@@ -1,51 +1,60 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
+import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
-import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
-import com.wisekrakr.communiwise.gui.layouts.objects.Button;
+import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class AcceptCallGUI extends AbstractScreen {
+public class AcceptCallGUI extends AbstractGUI {
 
     private final PhoneAPI phone;
     private final String callId;
+    private final String displayName;
     private final String rtpAddress;
 
-    private JPanel panel;
+    private JPanel controlPanel;
+    private JLabel headerLabel;
 
-    public AcceptCallGUI(PhoneAPI phone, String callId, String rtpAddress) throws HeadlessException {
+    private static final int DESIRED_HEIGHT = 200;
+    private static final int DESIRED_WIDTH = 250;
+
+    public AcceptCallGUI(PhoneAPI phone, String callId, String displayName, String rtpAddress) throws HeadlessException {
         this.phone = phone;
         this.callId = callId;
+        this.displayName = displayName;
         this.rtpAddress = rtpAddress;
+
+        prepareGUI();
     }
 
+    @Override
+    public void prepareGUI() {
+        setUndecorated(true);
+        setBounds(getScreenSize().width, getScreenSize().height + DESIRED_HEIGHT, DESIRED_WIDTH, DESIRED_HEIGHT);
+        setLayout(new GridLayout(2, 1));
+
+        addFrameDragAbility();
+
+        headerLabel = new JLabel("<html><p>" + displayName + " is calling!</p></html>", JLabel.CENTER);
+
+        controlPanel = new JPanel();
+//        controlPanel.setLayout(new BorderLayout());
+        controlPanel.setBackground(Constants.LIGHT_CYAN);
+
+
+        add(headerLabel);
+        add(controlPanel);
+    }
+
+    @Override
     public void showWindow() {
-//        setLayout(new BorderLayout());
-        setTitle(callId + " is calling!");
 
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width - 288) / 2, (screenSize.height - 310) / 2, 400, 150);
-
-        panel = new JPanel();
-        panel.setBackground(new Color(176, 228, 234));
-        panel.setForeground(Color.WHITE);
-
-        add(panel);
-        panel.setLayout(null);
-
-        handleAccepting();
-        handleDeclining();
-
-        setVisible(true);
-    }
-
-    private void handleAccepting() {
-        Button acceptBtn = new Button("Accept", 10, 80);
-        panel.add(acceptBtn);
+        JButton acceptBtn = new JButton("Accept");
+        controlPanel.add(acceptBtn);
 
         acceptBtn.addActionListener(new ActionListener() {
             @Override
@@ -54,11 +63,9 @@ public class AcceptCallGUI extends AbstractScreen {
                 phone.accept(rtpAddress);
             }
         });
-    }
 
-    private void handleDeclining() {
-        Button declineBtn = new Button("Decline", 120, 80);
-        panel.add(declineBtn);
+        JButton declineBtn = new JButton("Decline");
+        controlPanel.add(declineBtn);
 
         declineBtn.addActionListener(new ActionListener() {
             @Override
@@ -67,6 +74,18 @@ public class AcceptCallGUI extends AbstractScreen {
                 phone.reject();
             }
         });
+
+        new Timer(1, new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                setLocation(0, getY() - 1);
+                if (getY() == getScreenSize().height - DESIRED_HEIGHT) {
+                    ((Timer) e.getSource()).stop();
+                }
+            }
+        }).start();
+
+        setVisible(true);
     }
+
 
 }

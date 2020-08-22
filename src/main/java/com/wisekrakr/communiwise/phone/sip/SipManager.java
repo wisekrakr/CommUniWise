@@ -12,7 +12,6 @@ import gov.nist.javax.sdp.parser.SDPAnnounceParser;
 import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
 import gov.nist.javax.sip.message.SIPMessage;
-import jdk.nashorn.internal.ir.annotations.Ignore;
 
 import javax.sdp.MediaDescription;
 import javax.sip.*;
@@ -178,7 +177,7 @@ public class SipManager implements SipClient {
 
                             switch (request.getMethod()) {
                                 case Request.MESSAGE:
-                                    sendOk(requestEvent);
+                                    sendResponse(transaction, Response.OK);
 
                                     String message = null;
                                     try {
@@ -227,7 +226,7 @@ public class SipManager implements SipClient {
                                             && sipSessionState != SipSessionState.READY
                                             && sipSessionState != SipSessionState.INCOMING
                                     ) {
-                                        sendDecline(requestEvent.getServerTransaction());// Already in a call
+                                        sendResponse(transaction, Response.DECLINE);// Already in a call, tells the other party the user is busy
                                     } else {
                                         sipSessionState = SipSessionState.INCOMING;
 
@@ -356,12 +355,13 @@ public class SipManager implements SipClient {
                                         throw new IllegalStateException("Unknown request type in response: " + responseEvent);
                                 }
 
-                            } else if (processedResponse.getStatusCode() == Response.DECLINE || processedResponse.getStatusCode() == Response.TEMPORARILY_UNAVAILABLE) {
+                            } else if (processedResponse.getStatusCode() == Response.DECLINE /*|| processedResponse.getStatusCode() == Response.TEMPORARILY_UNAVAILABLE*/) {
                                 System.out.println("CALL DECLINED");
                                 listener.onRemoteDeclined();
 
                             } else if (processedResponse.getStatusCode() == Response.NOT_FOUND) {
                                 System.out.println("NOT FOUND");
+                                listener.onNotFound(responseEvent.getDialog().getRemoteParty() );
                             } else if (processedResponse.getStatusCode() == Response.ACCEPTED) {
                                 System.out.println("ACCEPTED");
                                 listener.onRemoteAccepted();
@@ -528,10 +528,12 @@ public class SipManager implements SipClient {
 
     @Override
     public void initiateCall(String recipient, int localRtpPort) {
+
         try {
             this.sipProvider.getNewClientTransaction(makeInviteRequest(recipient, localRtpPort)).sendRequest();
         } catch (Throwable e) {
-            sipSessionState = SipSessionState.READY;
+//            sipSessionState = SipSessionState.READY;
+            sipSessionState = SipSessionState.IDLE;
 
             throw new IllegalStateException("Call failed " , e);
         }
@@ -626,28 +628,26 @@ public class SipManager implements SipClient {
         }
 
         try {
-            sendDecline(waitingCall);
+            sendResponse(waitingCall, Response.DECLINE);
+
         } catch (Throwable e) {
             throw new IllegalStateException("Unable to send decline", e);
         }
         sipSessionState = SipSessionState.IDLE;
     }
 
-    private void sendDecline(ServerTransaction request) throws ParseException, SipException, InvalidArgumentException {
-        request.sendResponse(messageFactory.createResponse(Response.DECLINE, request.getRequest()));
-    }
-
-    private void sendOk(RequestEvent requestEvt) throws ParseException, SipException, InvalidArgumentException {
-        requestEvt.getServerTransaction().sendResponse(messageFactory.createResponse(Response.OK, requestEvt.getRequest()));
+    private void sendResponse(ServerTransaction serverTransaction, int status) throws ParseException, SipException, InvalidArgumentException {
+        System.out.println("  Client response send  " + status);
+        serverTransaction.sendResponse(messageFactory.createResponse(status, serverTransaction.getRequest()));
     }
 
 
     private Address createContactAddress() {
         try {
             return this.addressFactory.createAddress("sip:"
-                    + accountManager.getUserInfo().get("username") + "@"
+                    + accountManager.getUserInfo().get(SipAccountManager.UserInfoPart.USERNAME.getInfoPart()) + "@"
                     + localSipAddress + ":"+ localSipPort + ";transport=udp"
-                    + ";registering_acc=" + accountManager.getUserInfo().get("domain"));
+                    + ";registering_acc=" + accountManager.getUserInfo().get(SipAccountManager.UserInfoPart.DOMAIN.getInfoPart()));
         } catch (ParseException e) {
             return null;
         }
@@ -658,7 +658,6 @@ public class SipManager implements SipClient {
     }
 
     @Deprecated
-    @Ignore
     private Request makeByeRequest(String to) throws ParseException, InvalidArgumentException{
         return createRequest(addressFactory.createURI(to), clientAddress, addressFactory.createAddress(to), Request.BYE, null);
     }
@@ -670,12 +669,12 @@ public class SipManager implements SipClient {
         ContentTypeHeader contentTypeHeader = headerFactory.createContentTypeHeader("application", "sdp");
 
         // Create the contact name address.
-        SipURI contactURI = addressFactory.createSipURI(accountManager.getUserInfo().get("username"), localSipAddress); //todo right user name/extension
+        SipURI contactURI = addressFactory.createSipURI(accountManager.getUserInfo().get(SipAccountManager.UserInfoPart.USERNAME.getInfoPart()), localSipAddress);
         contactURI.setPort(localSipPort);
 
         callRequest.addHeader(headerFactory.createContactHeader(addressFactory.createAddress(contactURI)));
 
-        //TODO: PCMA/8000 was PCMU/8000
+
 //            String sdpData= "v=0\r\n" +
 //                    "o=- 13760799956958020 13760799956958020" + " IN IP4 " + sipProfile.getLocalIp() +"\r\n" +
 //                    "s=mysession session\r\n" +

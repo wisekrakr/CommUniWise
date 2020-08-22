@@ -1,10 +1,11 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
 
-import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
+import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.gui.EventManager;
+import com.wisekrakr.communiwise.user.SipAccountManager;
 
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Line;
@@ -79,10 +80,10 @@ public class PhoneGUIMenu {
         menuFile.add(menuItemExit);
         menuBar.add(menuFile);
 
-        JMenu menuAccount = new JMenu("Account");
-        menuAccount.setMnemonic('A');
+        JMenu menuEdit = new JMenu("Edit");
+        menuEdit.setMnemonic('A');
 
-        menuAccount.add(addMenuItemAndSetVisible("Edit", accountFrame));
+        menuEdit.add(addMenuItemAndSetVisible("Account", accountFrame));
 
         JMenuItem menuItemContacts = new JMenuItem("Contacts");
         menuItemContacts.setMnemonic('C');
@@ -92,15 +93,19 @@ public class PhoneGUIMenu {
                 eventManager.menuContactListOpen();
             }
         });
-        menuAccount.add(menuItemContacts);
-        menuBar.add(menuAccount);
+        menuEdit.add(menuItemContacts);
 
-        JMenu menuPrefs = new JMenu("Preferences");
-        menuPrefs.setMnemonic('P');
+        JMenuItem menuItemPrefs = new JMenuItem("Preferences");
+        menuItemPrefs.setMnemonic('P');
+        menuItemPrefs.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                eventManager.menuPreferencesOpen();
+            }
+        });
+        menuEdit.add(menuItemPrefs);
+        menuBar.add(menuEdit);
 
-        menuPrefs.add(addMenuItemAndSetVisible("Audio", optionsPane));
-        menuPrefs.add(addMenuItemAndSetVisible("Video", optionsPane));
-        menuBar.add(menuPrefs);
 
         JMenu menuAbout = new JMenu("About");
         menuAbout.setMnemonic('B');
@@ -124,9 +129,15 @@ public class PhoneGUIMenu {
     }
 
 
-    protected class AboutFrame extends JFrame implements ActionListener, HyperlinkListener {
+    protected class AboutFrame extends AbstractGUI implements ActionListener, HyperlinkListener {
 
         private AboutFrame() {
+            prepareGUI();
+
+        }
+
+        @Override
+        public void prepareGUI() {
             setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
             setTitle("About");
             setUndecorated(true);
@@ -153,9 +164,13 @@ public class PhoneGUIMenu {
             JButton button = new JButton("Close");
             button.addActionListener(this);
             panel.add(button);
-            add(panel, BorderLayout.PAGE_END);
+            add(panel, BorderLayout.PAGE_END);;
+        }
 
+        @Override
+        public void showWindow() {
             pack();
+            setVisible(true);
         }
 
         @Override
@@ -177,15 +192,20 @@ public class PhoneGUIMenu {
     }
 
 
-    protected class AccountFrame extends JFrame implements ActionListener {
+    protected class AccountFrame extends AbstractGUI implements ActionListener {
 
         private AccountFrame() {
+           prepareGUI();
+        }
+
+        @Override
+        public void prepareGUI() {
             setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
             setTitle("Account Details");
             setUndecorated(true);
 
-            String domain = account.getUserInfo().get("domain");
-            String username = account.getUserInfo().get("username");
+            String domain = account.getUserInfo().get(SipAccountManager.UserInfoPart.DOMAIN.getInfoPart());
+            String username = account.getUserInfo().get(SipAccountManager.UserInfoPart.USERNAME.getInfoPart());
 
             String message = "Account logged in: <br>"
                     + username + "<br>" + "<br>"
@@ -205,15 +225,21 @@ public class PhoneGUIMenu {
             font = new Font(font.getName(), font.getStyle(), font.getSize() - 2);
             textArea.setFont(font);
 
-
             JPanel panel = new JPanel();
             JButton button = new JButton("Close");
             button.addActionListener(this);
             panel.add(button);
             add(panel, BorderLayout.PAGE_END);
 
-            pack();
         }
+
+        @Override
+        public void showWindow() {
+            pack();
+            setVisible(true);
+        }
+
+
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -224,7 +250,7 @@ public class PhoneGUIMenu {
 
     }
 
-    protected class OptionsPane extends AbstractScreen {
+    protected class OptionsPane extends AbstractGUI {
         private static final long serialVersionUID = 1L;
 
         Mixer mixer = null;

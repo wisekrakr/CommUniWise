@@ -8,6 +8,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SipAccountManager implements AccountManager {
+    public enum UserInfoPart {USERNAME("username"), DOMAIN("domain");
+
+        private String infoPart;
+
+        UserInfoPart(String infoPart) {
+            this.infoPart = infoPart;
+        }
+
+        public String getInfoPart() {
+            return infoPart;
+        }
+    }
+
     private final Map<String, UserCredentials> credentials = new HashMap<>();
     private final Map<String, String> userInfo = new HashMap<>();
 
@@ -18,8 +31,8 @@ public class SipAccountManager implements AccountManager {
     public void addCredentials(String realm, String username, String password, String domain) {
         credentials.put(realm, new SipUserCredentials(username, domain, password));
 
-        userInfo.put("username", username);
-        userInfo.put("domain", domain);
+        userInfo.put(UserInfoPart.USERNAME.infoPart, username);
+        userInfo.put(UserInfoPart.DOMAIN.infoPart, domain);
     }
 
     public UserCredentials getCredentials(ClientTransaction challengedTransaction, String realm) {

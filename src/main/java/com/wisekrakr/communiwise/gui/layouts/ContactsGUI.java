@@ -1,8 +1,6 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
-import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
-import com.wisekrakr.communiwise.gui.layouts.background.AlertFrame;
-import com.wisekrakr.communiwise.gui.layouts.utils.FrameDragListener;
+import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.user.phonebook.PhoneBookEntry;
 
@@ -10,14 +8,18 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.HashMap;
 
-public class ContactsGUI extends AbstractScreen {
+public class ContactsGUI extends AbstractGUI {
     private JTextField username;
     private JTextField domain;
     private JTextField extension;
-
+    private JButton addContact;
+    private JPanel controlPanel;
     private JPanel contactPanel;
 
     private final GridBagConstraints gbc = new GridBagConstraints();
@@ -28,30 +30,29 @@ public class ContactsGUI extends AbstractScreen {
 
     private final AccountAPI account;
 
-    private HashMap<String, ContactLabel> contactListLabels = new HashMap<>();
+    private final HashMap<String, ContactLabel> contactListLabels = new HashMap<>();
+
 
     public ContactsGUI(AccountAPI account) {
         this.account = account;
+
+        prepareGUI();
     }
 
     @Override
-    public void showWindow() {
+    public void prepareGUI() {
         setUndecorated(true);
         GridLayout gridLayout = new GridLayout();
         setLayout(gridLayout);
-//        setMaximumSize(new Dimension(200, 300));
 
-
-        FrameDragListener frameDragListener = new FrameDragListener(this);
-        this.addMouseListener(frameDragListener);
-        this.addMouseMotionListener(frameDragListener);
+        addFrameDragAbility();
 
         JPanel mainPanel = new JPanel(new GridLayout(2, 1));
         mainPanel.setBorder(new TitledBorder("Contact List"));
         mainPanel.setMaximumSize(new Dimension(200, 300));
 
         contactPanel = new JPanel(new GridLayout(0, 1));
-        JPanel controlPanel = new JPanel(new GridLayout(4, 2));
+        controlPanel = new JPanel(new GridLayout(4, 2));
 
         add(mainPanel, BorderLayout.CENTER);
 
@@ -68,8 +69,13 @@ public class ContactsGUI extends AbstractScreen {
         controlPanel.add(new JLabel("Extension/Phone Number: "), BorderLayout.WEST);
         controlPanel.add((extension = new JTextField(3)), BorderLayout.CENTER);
 
-        JButton addContact = new JButton("Add Contact");
+        addContact = new JButton("Add Contact");
         controlPanel.add(addContact, BorderLayout.SOUTH);
+
+    }
+
+    @Override
+    public void showWindow() {
 
         //run when first opening this frame
         contactListUpdate.run();

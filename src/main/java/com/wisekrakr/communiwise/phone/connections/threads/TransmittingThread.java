@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class TransmittingThread {
-    private static final int PIPE_SIZE = 4096; // todo what size should it be? same as buffer size for the datagram packet?
+    private static final int PIPE_SIZE = 4096;
     private final DatagramSocket socket;
     private final TargetDataLine targetDataLine;
     private final String codec;

@@ -18,6 +18,7 @@ public class AudioManager {
     static AudioFormat WAV_FORMAT = new AudioFormat(16000, 8,2, true, true);
     static AudioFormat MP3_FORMAT = new AudioFormat(44100, 16,2, true, true);
     private File wavFile;
+    private Clip ringingClip;
 
     public AudioManager(DatagramSocket socket, TargetDataLine targetDataLine, SourceDataLine sourceDataLine) {
         this.socket = socket;
@@ -28,6 +29,27 @@ public class AudioManager {
     public void startSendingAudio(AudioInputStream audioStream) throws IOException{
         remoteAudioPlayThread = new RemoteAudioPlayThread(socket);
         remoteAudioPlayThread.startSending(audioStream);
+    }
+
+    public void ringing(boolean isRinging){
+        try{
+            if (isRinging){
+                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("src/main/resources/sounds/ring.wav").getAbsoluteFile());
+
+                ringingClip = AudioSystem.getClip();
+
+                ringingClip.open(audioInputStream);
+
+                ringingClip.loop(Clip.LOOP_CONTINUOUSLY);
+
+                ringingClip.start();
+            }else {
+                ringingClip.stop();
+            }
+
+        }catch (Throwable e){
+            throw new IllegalArgumentException("Could not start ringing sound", e);
+        }
     }
 
     public void stopSendingAudio(){

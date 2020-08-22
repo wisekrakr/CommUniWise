@@ -2,7 +2,7 @@ package com.wisekrakr.communiwise.gui.layouts;
 
 import com.wisekrakr.communiwise.operations.apis.SoundAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
-import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
+import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
 import com.wisekrakr.communiwise.gui.layouts.objects.Button;
 
 import javax.swing.*;
@@ -11,7 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 
-public class AudioCallGUI extends AbstractScreen {
+public class AudioCallGUI extends AbstractGUI {
     private final PhoneAPI phone;
     private final SoundAPI sound;
     private String callId;
@@ -20,17 +20,24 @@ public class AudioCallGUI extends AbstractScreen {
         this.phone = phone;
         this.sound = sound;
         this.callId = callId;
+
+        prepareGUI();
     }
 
-    public void showWindow() {
+    @Override
+    public void prepareGUI() {
         setTitle("Call with someone");
         getContentPane().setLayout(null);
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width - 288) / 2, (screenSize.height - 310) / 2, 500, 700);
+        setBounds((getScreenSize().width - 288) / 2, (getScreenSize().height - 310) / 2, 500, 700);
 
 //        showStatus();
+        addFrameDragAbility();
+    }
 
-        JLabel image = new JLabel(new ImageIcon("src/main/resources/person.png"));
+    @Override
+    public void showWindow() {
+
+        JLabel image = new JLabel(new ImageIcon("src/main/resources/images/person.png"));
         image.setBounds(10, 10, 480, 480);
         getContentPane().add(image);
 
@@ -88,15 +95,14 @@ public class AudioCallGUI extends AbstractScreen {
         Button beepButton = new Button("play sound", 210, 520, new Color(15, 135, 172));
         getContentPane().add(beepButton);
 
-        JTextField soundFileName = new JTextField("shake_bake.wav",3);
+        JTextField soundFileName = new JTextField("sounds/shake_bake.wav",3);
         soundFileName.setBounds(100,520,100,20);
         getContentPane().add(soundFileName);
 
         beepButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-//                audioSound.playRemoteSound("src/main/resources/" + soundFileName.getText());
-                sound.mute();
+                sound.playRemoteSound("src/main/resources/sounds/" + soundFileName.getText());
             }
         });
     }

@@ -41,6 +41,10 @@ public class DeviceImplementations {
         return new SoundAPI() {
             public final AudioFormat FORMAT = new AudioFormat(16000, 16, 1, true, true);
 
+            @Override
+            public LineManager getLineManager() {
+                return lineManager;
+            }
 
             @Override
             public void startRecording() {
@@ -73,6 +77,11 @@ public class DeviceImplementations {
             }
 
             @Override
+            public void ringing(boolean isRinging) {
+                audioManager.ringing(isRinging);
+            }
+
+            @Override
             public void mute() {
                 rtpConnectionManager.mute();
             }
@@ -86,7 +95,7 @@ public class DeviceImplementations {
 
             @Override
             public void initiateCall(String sipAddress) {
-                //todo codec
+
                 sipManager.initiateCall(sipAddress, rtpConnectionManager.getSocket().getLocalPort());
 
                 proxyAddress = sipAddress;
@@ -121,7 +130,7 @@ public class DeviceImplementations {
                 sipManager.login(realm, username, password, domain, fromAddress);
 
                 try {
-                    getAccountApi().getContactManager().loadPhoneBook(getAccountApi().getUserInfo().get("username"));
+                    getAccountApi().getContactManager().loadPhoneBook(getAccountApi().getUserInfo().get(SipAccountManager.UserInfoPart.USERNAME.getInfoPart()));
                 }catch (Throwable e){
                     throw new IllegalArgumentException("Phonebook could not be loaded", e);
                 }
@@ -137,6 +146,18 @@ public class DeviceImplementations {
     public AccountAPI getAccountApi(){
 
         return new AccountAPI() {
+
+            public boolean isAuthenticated = false;
+
+            @Override
+            public boolean isAuthenticated() {
+                return isAuthenticated;
+            }
+
+            @Override
+            public void userIsOnline() {
+                isAuthenticated = true;
+            }
 
             @Override
             public Map<String, String> getUserInfo() {

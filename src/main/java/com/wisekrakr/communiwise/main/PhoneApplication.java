@@ -9,6 +9,7 @@ import com.wisekrakr.communiwise.phone.sip.SipManager;
 import com.wisekrakr.communiwise.phone.sip.SipManagerListener;
 import com.wisekrakr.communiwise.user.SipAccountManager;
 
+import javax.sip.address.Address;
 import javax.sound.sampled.*;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
@@ -106,6 +107,7 @@ public class PhoneApplication implements Serializable {
                 logging("server.log", "debug.log", 16).
                 listener(new SipManagerListener() {
 
+
                     @Override
                     public void onTextMessage(String message, String from) {
                         System.out.println("Received message from " + from + " :" + message);
@@ -129,15 +131,12 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void callConfirmed(String rtpHost, int rtpPort, String codec, String callId) {
-                        //todo codec?
                         InetSocketAddress proxyAddress = new InetSocketAddress(rtpHost, rtpPort);
-
                         try {
                             rtpConnectionManager.connectRTPAudio(proxyAddress, codec);
-                        } catch (Throwable e) {
-                            System.out.println("Unable to connect: " + e);
 
-                            e.printStackTrace();
+                        } catch (Throwable e) {
+                            throw new IllegalStateException("Unable to connect call", e);
                         }
 
                         eventManager.onOutgoingCall(callId);
@@ -152,20 +151,7 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void onRinging(String callId, String username, String rtpAddress, int rtpPort) {
-                        System.out.println("   GETTING INCOMING CALL    " + rtpAddress + ":" + rtpPort);
-
-//                        InetSocketAddress proxyAddress = new InetSocketAddress(rtpAddress, rtpPort);
-//                        try {
-//                            rtpConnectionManager.connectRTPAudio(proxyAddress, "g722");
-//                        } catch (Throwable e) {
-//                            System.out.println("Unable to connect: " + e);
-//
-//                            e.printStackTrace();
-//                        }
-
                         eventManager.onIncomingCall(callId, username, rtpAddress, rtpPort);
-
-
                     }
 
                     @Override
@@ -188,6 +174,11 @@ public class PhoneApplication implements Serializable {
                     @Override
                     public void onDeclined() {
 
+                    }
+
+                    @Override
+                    public void onNotFound(Address proxyAddress) {
+                        eventManager.onNotFound(proxyAddress);
                     }
 
                     @Override
@@ -217,7 +208,6 @@ public class PhoneApplication implements Serializable {
                     public void authenticationFailed() {
                         System.out.println("Authentication failed :-(");
                         eventManager.onAuthenticationFailed();
-
                     }
                 });
 

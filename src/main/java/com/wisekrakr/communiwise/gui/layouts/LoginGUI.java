@@ -1,33 +1,23 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
+import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
 import com.wisekrakr.communiwise.gui.layouts.background.AlertFrame;
 import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
-import com.wisekrakr.communiwise.gui.ext.AbstractScreen;
-import com.wisekrakr.communiwise.gui.layouts.utils.FrameDragListener;
-import com.wisekrakr.communiwise.gui.layouts.utils.InputValidator;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
-import javafx.event.Event;
-import javafx.event.EventHandler;
-import javafx.scene.control.Alert;
 
-import javax.imageio.ImageIO;
-import javax.sip.message.Response;
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
 
-public class LoginGUI extends AbstractScreen {
+public class LoginGUI extends AbstractGUI {
+
     private final PhoneAPI phone;
 
     private final JPanel textPanel = new JPanel();
     private final JPanel buttonPanel = new JPanel();
-    private final JPanel logoPanel = new JPanel();
 
     private JTextField domainInput;
     private JTextField usernameInput;
@@ -35,50 +25,43 @@ public class LoginGUI extends AbstractScreen {
     private JTextField fromInput;
     private JTextField realmInput;
 
-    private final JLabel fromAddress = new JLabel("address");
-    private final JLabel domain = new JLabel("domain");
-    private final JLabel realm = new JLabel("realm");
-    private final JLabel username = new JLabel("username");
-    private final JLabel password = new JLabel("password");
-
-    private Image image;
+    private final JLabel fromAddress = new JLabel("Address");
+    private final JLabel domain = new JLabel("Domain");
+    private final JLabel realm = new JLabel("Realm");
+    private final JLabel username = new JLabel("Username");
+    private final JLabel password = new JLabel("Password");
 
     public LoginGUI(PhoneAPI phone) throws HeadlessException {
         this.phone = phone;
+
+        prepareGUI();
     }
 
-    private static final int DESIRED_HEIGHT = 300;
-    private static final int DESIRED_WIDTH = 600;
-
-
+    private static final int DESIRED_HEIGHT = 200;
+    private static final int DESIRED_WIDTH = 400;
 
     @Override
-    public void showWindow() {
-        setTitle("Login to CommUniWise");
+    public void prepareGUI() {
         setUndecorated(true);
-        setBackground(Color.lightGray);
 
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width - DESIRED_WIDTH) / 2, (screenSize.height - DESIRED_HEIGHT) / 2, DESIRED_WIDTH, DESIRED_HEIGHT);
-        getRootPane().setBorder(BorderFactory.createEtchedBorder(Constants.DARK_CYAN, Color.darkGray));
-
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-
-        initComponents();
-        buildLogoPanel();
-        buildTextPanel();
-        buildButtonPanel();
+        setBounds((getScreenSize().width - DESIRED_WIDTH) / 2, (getScreenSize().height - DESIRED_HEIGHT) / 2, DESIRED_WIDTH, DESIRED_HEIGHT);
 
         setLayout(new BorderLayout());
 
-        add(logoPanel,BorderLayout.WEST);
+        initComponents();
+
         add(textPanel,BorderLayout.CENTER);
         add(buttonPanel,BorderLayout.SOUTH);
 
-        FrameDragListener frameDragListener = new FrameDragListener(this);
-        this.addMouseListener(frameDragListener);
-        this.addMouseMotionListener(frameDragListener);
+        addFrameDragAbility();
+
+    }
+
+    @Override
+    public void showWindow() {
+
+        showTextPanel();
+        showButtonPanel();
 
         setVisible(true);
         setResizable(true);
@@ -128,19 +111,7 @@ public class LoginGUI extends AbstractScreen {
         });
     }
 
-    public void buildLogoPanel(){
-
-        try {
-            image = ImageIO.read(new File("src/main/resources/logo1.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        JLabel picLabel = new JLabel(new ImageIcon(image));
-        logoPanel.add(picLabel);
-        logoPanel.setBackground(Constants.LIGHT_CYAN);
-    }
-
-    public void buildTextPanel () {
+    public void showTextPanel() {
 
         GridLayout gridLayout = new GridLayout(6, 2);
         gridLayout.setVgap(5);
@@ -163,7 +134,7 @@ public class LoginGUI extends AbstractScreen {
         textPanel.setBackground(Constants.LIGHT_CYAN);
     }
 
-    public void buildButtonPanel () {
+    public void showButtonPanel() {
         buttonPanel.setLayout(new FlowLayout());
 
         java.awt.Button loginButton = new java.awt.Button("Register");
@@ -198,7 +169,7 @@ public class LoginGUI extends AbstractScreen {
 
     @Override
     public void showErrorStatus(){
-        new AlertFrame().showAlert("Wrong credentials received....Please try again.", JOptionPane.ERROR_MESSAGE);
+        new AlertFrame().showAlert(this, "Wrong credentials received....Please try again.", JOptionPane.ERROR_MESSAGE);
     }
 
 }

@@ -6,6 +6,10 @@ import java.util.Map;
 
 public interface AccountAPI {
 
+    boolean isAuthenticated();
+
+    void userIsOnline();
+
     Map<String, String> getUserInfo();
     void addContact(String username, String domain, int extension);
     void saveContactList();
