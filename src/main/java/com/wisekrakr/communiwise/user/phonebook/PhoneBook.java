@@ -65,13 +65,13 @@ public class PhoneBook {
      * Attempts to add a new entry to the map of phone book entriesMap by name
      * after validating the name and number.
      * @param username The name of the contact
-     * @param proxyHost The phone number of the contact
-     * @param extension
+     * @param domain
+     * @param extension The phone number of the contact
      * @return the result of the action.
      * ADDED or UPDATED means the contact was successfully added
      */
-    public void addContact(String username, String proxyHost,int extension/*, boolean isNew*/) {
-        if(isValidName(username) && isValidName(proxyHost)){
+    public void addContact(String username, String domain, int extension/*, boolean isNew*/) {
+        if(isValidName(username) && isValidName(domain)){
 
             //make the name lowercase for consistency
             username = username.toLowerCase();
@@ -79,14 +79,14 @@ public class PhoneBook {
             PhoneBookEntry existingEntryByName = entriesMap.get(username);
             //check if the contact already exists in the map by name
             if(existingEntryByName != null){
-                existingEntryByName.setDomain(proxyHost);
+                existingEntryByName.setDomain(domain);
                 existingEntryByName.setExtension(extension);
 
                 //mark this contact as unsaved because its been changed
                 existingEntryByName.setIsNew(false);
             } else {
                 //if not, create the new contact and add it to the map by name
-                entriesMap.put(username, new PhoneBookEntry(username, proxyHost, extension/*, isNew*/));
+                entriesMap.put(username, new PhoneBookEntry(username, domain, extension/*, isNew*/));
             }
             //increment the number of unsaved changes
             numUnsavedChanges++;

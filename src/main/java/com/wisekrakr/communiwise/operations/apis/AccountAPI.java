@@ -11,9 +11,8 @@ public interface AccountAPI {
     void userIsOnline();
 
     Map<String, String> getUserInfo();
-    void addContact(String username, String domain, int extension);
-    void saveContactList();
-    void removeContact(String username);
+    boolean phoneBookHandler(ContactManager.UserOption userOption, String username, String domain, int extension);
+
     void updateContact(String username, String domain, int extension);
     ContactManager getContactManager();
 }

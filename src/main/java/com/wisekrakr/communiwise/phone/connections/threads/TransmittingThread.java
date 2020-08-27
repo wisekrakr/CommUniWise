@@ -1,7 +1,6 @@
 package com.wisekrakr.communiwise.phone.connections.threads;
 
 import com.wisekrakr.communiwise.phone.audio.processing.g722.G722Encoder;
-import com.wisekrakr.communiwise.phone.audio.processing.utils.CodecUtil;
 import com.wisekrakr.communiwise.rtp.RTPPacket;
 import com.wisekrakr.communiwise.rtp.RTPParser;
 
@@ -18,7 +17,6 @@ public class TransmittingThread {
     private static final int PIPE_SIZE = 4096;
     private final DatagramSocket socket;
     private final TargetDataLine targetDataLine;
-    private final String codec;
 
     private Thread captureThread;
     private Thread encoderThread;
@@ -26,10 +24,9 @@ public class TransmittingThread {
 
     private final G722Encoder g722Encoder = new G722Encoder(2000);
 
-    public TransmittingThread(DatagramSocket socket, TargetDataLine targetDataLine, String codec) {
+    public TransmittingThread(DatagramSocket socket, TargetDataLine targetDataLine) {
         this.socket = socket;
         this.targetDataLine = targetDataLine;
-        this.codec = codec;
     }
 
     public void start() throws IOException {

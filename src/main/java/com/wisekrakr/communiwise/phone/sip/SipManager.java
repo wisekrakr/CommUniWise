@@ -12,8 +12,11 @@ import gov.nist.javax.sdp.parser.SDPAnnounceParser;
 import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.clientauthutils.AuthenticationHelper;
 import gov.nist.javax.sip.message.SIPMessage;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.sdp.MediaDescription;
+import javax.sdp.SdpFactory;
+import javax.sdp.SessionDescription;
 import javax.sip.*;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
@@ -28,7 +31,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -207,6 +213,9 @@ public class SipManager implements SipClient {
                                     }
 
                                     listener.onRemoteBye(callId.getCallId());
+
+                                    removeFromCallInstances(callId.getCallId());
+
                                     break;
 
                                 case Request.ACK:
@@ -219,6 +228,8 @@ public class SipManager implements SipClient {
                                         System.out.println("Dialog Created = " + dialog.getDialogId() + " Dialog State = " + dialog.getState());
                                         System.out.println("Waiting for INFO");
                                     }
+
+
 
                                     break;
                                 case Request.INVITE:
@@ -234,10 +245,11 @@ public class SipManager implements SipClient {
 
                                         waitingCall = transaction;
 
-                                        listener.onRinging(callId.getCallId(),sp.getFrom().getAddress().getDisplayName() , sp.getRemoteAddress().getHostAddress(), sp.getRemotePort());
-
                                         InetSocketAddress proxyAddress = new InetSocketAddress(sp.getRemoteAddress().getHostAddress(), sp.getRemotePort());
+
                                         CallInstance callInstance = new CallInstance(callId.getCallId(), sp.getFrom().getAddress().getDisplayName(),proxyAddress);
+
+                                        listener.onRinging(callInstance);
 
                                         callInstances.put(callId.getCallId(), callInstance);
                                     }
@@ -261,7 +273,9 @@ public class SipManager implements SipClient {
 
                                     }
 
-                                    listener.onRemoteCancel();
+                                    listener.onRemoteCancel(callId.getCallId());
+
+                                    removeFromCallInstances(callId.getCallId());
 
                                     break;
 
@@ -321,15 +335,20 @@ public class SipManager implements SipClient {
                                             System.out.println("number of media descriptions != 1, will take the first anyway");
                                         }
 
-                                        MediaDescription incomingMediaDescriptor = (MediaDescription) sessionDescription.getMediaDescriptions(false).get(0);
+                                        MediaDescription incomingMediaDescriptor = (MediaDescription) sessionDescription.getMediaDescriptions(false);
 
-                                        String codec = parseAttribute((AttributeField) incomingMediaDescriptor.getAttributes(false).get(0));
-                                        listener.callConfirmed(
-                                                sessionDescription.getConnection().getAddress(),
-                                                incomingMediaDescriptor.getMedia().getMediaPort(),
-                                                codec,
-                                                callId.getCallId()
-                                        );
+//                                        String codec = parseAttribute((AttributeField) incomingMediaDescriptor.getAttributes(false).get(0));
+
+
+                                        ToHeader toHeader = (ToHeader) processedResponse.getHeader(ToHeader.NAME);
+
+                                        CallInstance callInstance = new CallInstance(callId.getCallId(), toHeader.getAddress().getDisplayName(),
+                                                new InetSocketAddress(sessionDescription.getConnection().getAddress(),incomingMediaDescriptor.getMedia().getMediaPort()));
+
+                                        callInstances.put(callId.getCallId(), callInstance);
+
+                                        listener.callConfirmed(callInstance);
+
                                         break;
 
                                     case Request.CANCEL:
@@ -348,6 +367,8 @@ public class SipManager implements SipClient {
                                         System.out.println("--- Got 200 OK in UAC outgoing BYE from host");
 
                                         listener.onBye(callId.getCallId());
+
+                                        removeFromCallInstances(callId.getCallId());
                                         break;
 
 
@@ -389,8 +410,7 @@ public class SipManager implements SipClient {
                             }
 
                         } catch (Throwable t) {
-                            System.out.println("Error while processing response " + responseEvent);
-                            t.printStackTrace();
+                            throw new IllegalStateException("Error while processing response " + responseEvent, t);
                         }
                     }
 
@@ -556,6 +576,18 @@ public class SipManager implements SipClient {
         }
     }
 
+    private void removeFromCallInstances(String callId){
+        try {
+            for (Map.Entry<String, CallInstance> c : callInstances.entrySet()) {
+                if (c.getValue().getId().equals(callId)) {
+                    callInstances.remove(callId);
+                }
+            }
+        }catch (Throwable t){
+            throw new IllegalArgumentException("Could not remove from CallInstances",t);
+        }
+    }
+
     private void makeByeRequest(Transaction transaction){
         final Dialog dialog = transaction.getDialog();
 
@@ -609,9 +641,15 @@ public class SipManager implements SipClient {
 
             waitingCall.sendResponse(responseOK);
 
+            String sdpContent =  new String(waitingCall.getRequest().getRawContent());
+            SessionDescription requestSDP = SdpFactory.getInstance().createSessionDescription(sdpContent);
+
+            String rtpPort = StringUtils.substring(requestSDP.toString(),requestSDP.toString().lastIndexOf("m=audio") + 8, requestSDP.toString().lastIndexOf("m=audio") + 13);
+
             for (Map.Entry<String, CallInstance> c : callInstances.entrySet()) {
                 if (c.getValue().getProxy().contains(fromHeader.getAddress().getDisplayName())) {
-                    listener.onAccepted(c.getKey(), c.getValue().getProxyAddress().getAddress().getHostAddress(),c.getValue().getProxyAddress().getPort(),null);
+
+                    listener.onAccepted(c.getValue(), Integer.parseInt(rtpPort));
                 }
             }
 
@@ -627,6 +665,7 @@ public class SipManager implements SipClient {
             throw new IllegalStateException("No call waiting to be accepted");
         }
 
+        listener.onDeclined(callId.getCallId());
         try {
             sendResponse(waitingCall, Response.DECLINE);
 

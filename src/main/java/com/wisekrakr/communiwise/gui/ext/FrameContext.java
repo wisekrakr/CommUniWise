@@ -7,7 +7,5 @@ public interface FrameContext {
 
     void showWindow();
 
-    void showErrorStatus();
-
     void addFrameDragAbility();
 }

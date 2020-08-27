@@ -2,6 +2,7 @@ package com.wisekrakr.communiwise.main;
 
 
 import com.wisekrakr.communiwise.phone.audio.AudioManager;
+import com.wisekrakr.communiwise.phone.calling.CallInstance;
 import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
 import com.wisekrakr.communiwise.operations.DeviceImplementations;
 import com.wisekrakr.communiwise.gui.EventManager;
@@ -13,6 +14,7 @@ import javax.sip.address.Address;
 import javax.sound.sampled.*;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 
 public class PhoneApplication implements Serializable {
 
@@ -20,6 +22,8 @@ public class PhoneApplication implements Serializable {
 
     private RTPConnectionManager rtpConnectionManager;
     private EventManager eventManager;
+
+    private HashMap<String, CallInstance> callInstances = new HashMap<>();
 
     private static void printHelp(String message) {
         System.out.println(message);
@@ -39,6 +43,7 @@ public class PhoneApplication implements Serializable {
 
             System.exit(1);
         }
+
 
         PhoneApplication application = new PhoneApplication();
 
@@ -121,7 +126,8 @@ public class PhoneApplication implements Serializable {
                     }
 
                     @Override
-                    public void onRemoteCancel() {
+                    public void onRemoteCancel(String callId) {
+                        eventManager.onHangUp(callId);
                     }
 
                     @Override
@@ -130,16 +136,15 @@ public class PhoneApplication implements Serializable {
                     }
 
                     @Override
-                    public void callConfirmed(String rtpHost, int rtpPort, String codec, String callId) {
-                        InetSocketAddress proxyAddress = new InetSocketAddress(rtpHost, rtpPort);
+                    public void callConfirmed(CallInstance callInstance) {
                         try {
-                            rtpConnectionManager.connectRTPAudio(proxyAddress, codec);
+                            rtpConnectionManager.connectRTPAudio(callInstance.getProxyAddress());
 
                         } catch (Throwable e) {
                             throw new IllegalStateException("Unable to connect call", e);
                         }
 
-                        eventManager.onOutgoingCall(callId);
+                        eventManager.onOutgoingCall(callInstance.getId());
 
 
                     }
@@ -150,30 +155,30 @@ public class PhoneApplication implements Serializable {
                     }
 
                     @Override
-                    public void onRinging(String callId, String username, String rtpAddress, int rtpPort) {
-                        eventManager.onIncomingCall(callId, username, rtpAddress, rtpPort);
+                    public void onRinging(CallInstance callInstance) {
+
+                        eventManager.onIncomingCall(callInstance);
+
                     }
 
                     @Override
-                    public void onAccepted(String callId, String rtpProxy, int rtpPort, String codec) {
+                    public void onAccepted(CallInstance callInstance, int remoteRtpPort) {
 
-                        String proxy = rtpProxy.substring(rtpProxy.lastIndexOf("@") + 1);
-
-                        InetSocketAddress proxyAddress = new InetSocketAddress(proxy, rtpPort);
+                        InetSocketAddress address = new InetSocketAddress(callInstance.getProxyAddress().getAddress(), remoteRtpPort);
                         try {
-                            rtpConnectionManager.connectRTPAudio(proxyAddress, codec);
+                            rtpConnectionManager.connectRTPAudio(address);
                         } catch (Throwable e) {
                             System.out.println("Unable to connect: " + e);
 
                             e.printStackTrace();
                         }
 
-                        eventManager.onAcceptingCall(callId);
+                        eventManager.onAcceptingCall(callInstance.getId());
                     }
 
                     @Override
-                    public void onDeclined() {
-
+                    public void onDeclined(String callId) {
+                        eventManager.onDecliningCall(callId);
                     }
 
                     @Override

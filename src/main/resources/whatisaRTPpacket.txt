@@ -12,9 +12,9 @@ Marker Bit:
     bit is normally used to indicate the last packet part of a frame. This enables a decoder to finish decoding the picture, where it
     otherwise may need to wait for the next packet to explicitly know that the frame is finished.
 Timestamp:
-    The RTP timestamp indicates the time instant the media sample belongs to. For discrete media like video, it normally indicates
+    The RTP timestamp indicates the time instant the media main belongs to. For discrete media like video, it normally indicates
     when the media (frame) was sampled. For continuous media it normally indicates the first time instance the media present in the payload represents.
-    For audio this is the sampling time of the first sample. All RTP payload formats must specify the meaning of the timestamp value
+    For audio this is the sampling time of the first main. All RTP payload formats must specify the meaning of the timestamp value
     and the clock rates allowed. Selecting timestamp rate is an active design choice and is further discussed in Section 5.2.
     Discontinuous transmissions (DTX) that is common among speech codecs, typically results in gaps or jumps in the timestamp values due
     to that there is no media payload to transmit and the next used timestamp value represent the actual sampling time of the data transmitted.

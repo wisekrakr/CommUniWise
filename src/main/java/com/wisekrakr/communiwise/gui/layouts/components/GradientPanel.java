@@ -1,4 +1,4 @@
-package com.wisekrakr.communiwise.gui.layouts.background;
+package com.wisekrakr.communiwise.gui.layouts.components;
 
 import javax.swing.*;
 import java.awt.*;

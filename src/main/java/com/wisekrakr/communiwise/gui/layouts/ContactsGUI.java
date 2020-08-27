@@ -1,7 +1,9 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
+import com.wisekrakr.communiwise.gui.EventManager;
 import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
+import com.wisekrakr.communiwise.user.ContactManager;
 import com.wisekrakr.communiwise.user.phonebook.PhoneBookEntry;
 
 import javax.swing.*;
@@ -28,12 +30,13 @@ public class ContactsGUI extends AbstractGUI {
     private int gridx = 0;
     private int gridy = 0;
 
+    private final EventManager eventManager;
     private final AccountAPI account;
 
     private final HashMap<String, ContactLabel> contactListLabels = new HashMap<>();
 
-
-    public ContactsGUI(AccountAPI account) {
+    public ContactsGUI(EventManager eventManager,AccountAPI account) {
+        this.eventManager = eventManager;
         this.account = account;
 
         prepareGUI();
@@ -82,7 +85,16 @@ public class ContactsGUI extends AbstractGUI {
         addContact.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                account.addContact(username.getText(), domain.getText(), Integer.parseInt(extension.getText()));
+
+                if (account.phoneBookHandler(ContactManager.UserOption.ADD_CONTACT, username.getText(), domain.getText(), Integer.parseInt(extension.getText()))){
+                    eventManager.onAlert(ContactsGUI.this,
+                            "Successfully added new contact: " + username.getText(),
+                            JOptionPane.INFORMATION_MESSAGE);
+                }else{
+                    eventManager.onAlert(ContactsGUI.this,
+                            "Failed adding contact: " + username.getText(),
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
 
                 //run again every time we add a new contact to the list
                 contactListUpdate.run();
@@ -95,7 +107,16 @@ public class ContactsGUI extends AbstractGUI {
         saveAndClose.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                account.saveContactList();
+
+                if(account.phoneBookHandler(ContactManager.UserOption.SAVE,null,null,0)){
+                    eventManager.onAlert(ContactsGUI.this,
+                            "Successfully saved contact list",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }else{
+                    eventManager.onAlert(ContactsGUI.this,
+                            "Failed saving contact list",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
 
                 hideWindow();
             }
@@ -129,8 +150,6 @@ public class ContactsGUI extends AbstractGUI {
 
                     contactPanel.add(con, gbc);
                 }
-
-                contactPanel.revalidate();
             }
 
             gridy++;
@@ -139,15 +158,8 @@ public class ContactsGUI extends AbstractGUI {
                 gridx++;
             }
 
-//                pack();
-//                setLocationRelativeTo(null);
-
-            try {
-                setLocationByPlatform(true);
-                setMinimumSize(getSize());
-            } catch (Throwable e) {
-                System.out.println("Could not add to contact list");
-            }
+            contactPanel.revalidate();
+            pack();
         }
     };
 
@@ -205,7 +217,16 @@ public class ContactsGUI extends AbstractGUI {
             remove.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    account.removeContact(contact);
+                    if(account.phoneBookHandler(ContactManager.UserOption.DELETE_CONTACT, contact,null,0)){
+                        eventManager.onAlert(ContactsGUI.this,
+                                "Successfully removed contact: " + contact,
+                                JOptionPane.INFORMATION_MESSAGE);
+                    }else{
+                        eventManager.onAlert(ContactsGUI.this,
+                                "Failed removing contact list",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    }
+
                     contactListUpdate.run();
                 }
             });

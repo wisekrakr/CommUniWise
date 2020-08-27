@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="207.0" prefWidth="209.0" style="-fx-background-color: #125f65;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.wisekrakr.communiwise.gui.layouts.gui.menu.AboutController">
+   <children>
+      <ImageView fitHeight="207.0" fitWidth="207.0" opacity="0.14" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../images/logo.png" />
+         </image>
+      </ImageView>
+      <Label layoutX="25.0" layoutY="14.0" text="CommUniWise" textFill="WHITE">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
+      <Label layoutX="3.0" layoutY="69.0" prefHeight="25.0" prefWidth="207.0" text="the java SIP push-to-talk softphone" textFill="WHITE">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+      <Label layoutX="73.0" layoutY="185.0" text="Copyright 2020 Wisekrakr" textFill="WHITE" />
+      <Hyperlink layoutX="28.0" layoutY="117.0" text="www.github.com/wisekrakr" textFill="#c3faff" />
+      <Label fx:id="close" layoutX="196.0" layoutY="-3.0" onMouseClicked="#close" text="X" textFill="#c6feff">
+         <font>
+            <Font size="17.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Label>
+   </children>
+</AnchorPane>

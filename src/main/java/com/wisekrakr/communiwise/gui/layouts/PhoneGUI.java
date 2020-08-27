@@ -3,7 +3,7 @@ package com.wisekrakr.communiwise.gui.layouts;
 
 import com.wisekrakr.communiwise.gui.EventManager;
 import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.background.AlertFrame;
+import com.wisekrakr.communiwise.gui.layouts.gui.menu.PhoneGUIMenuBar;
 import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
@@ -16,7 +16,8 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URL;
+
+import static com.wisekrakr.communiwise.gui.layouts.components.ImageIconCreator.addImageIcon;
 
 public class PhoneGUI extends AbstractGUI {
 
@@ -62,21 +63,16 @@ public class PhoneGUI extends AbstractGUI {
 
         addFrameDragAbility();
 
-        PhoneGUIMenu phoneGUIMenu = new PhoneGUIMenu(this, eventManager, phone, account);
-        phoneGUIMenu.init();
+        PhoneGUIMenuBar phoneGUIMenuBar = new PhoneGUIMenuBar(eventManager);
+        setJMenuBar(phoneGUIMenuBar);
 
         setVisible(true);
 
     }
 
     private void showLogoPanel(){
-        URL image = null;
-        try {
-            image = getClass().getResource("/images/logo1.png");
-        } catch (Throwable e) {
-            System.out.println("Could not find the image");
-        }
-        JLabel picLabel = new JLabel(new ImageIcon(image));
+
+        JLabel picLabel = new JLabel(addImageIcon("/images/logo1.png", false));
         JPanel logoPanel = new JPanel();
         logoPanel.add(picLabel);
         logoPanel.setBackground(Constants.LIGHT_CYAN);
@@ -105,10 +101,7 @@ public class PhoneGUI extends AbstractGUI {
             public ControlsPane() {
 
                 setLayout(new GridLayout());
-                setBorder(new CompoundBorder(new TitledBorder("Controls"), new EmptyBorder(12, 0, 0, 0)));
-
-                JPanel panel = new JPanel(new GridLayout());
-                panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Controls"));
+                setBorder(new CompoundBorder(new TitledBorder("Controls"), new EmptyBorder(12, 12, 12, 12)));
 
                 initComponents();
                 audioCallComponent();
@@ -116,10 +109,13 @@ public class PhoneGUI extends AbstractGUI {
             }
 
             void initComponents() {
-                add((messageButton = new JButton("Message")), BorderLayout.CENTER);
-                add((audioCallButton = new JButton("Audio Call")), BorderLayout.CENTER);
-                add((videoCallButton = new JButton("Video Call")), BorderLayout.CENTER);
-                add((unregisterButton = new JButton("Unregister")), BorderLayout.CENTER);
+                JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+                panel.add((messageButton = new JButton("Messenger",addImageIcon("/images/chat.png", true))), BorderLayout.CENTER);
+                panel.add((audioCallButton = new JButton("Audio Call",addImageIcon("/images/mic.png", true))), BorderLayout.CENTER);
+                panel.add((videoCallButton = new JButton("Video Call",addImageIcon("/images/webcam.png",true ))), BorderLayout.CENTER);
+//                panel.add((unregisterButton = new JButton("Unregister")), BorderLayout.CENTER);
+
+                add(panel);
             }
 
             void audioCallComponent() {
@@ -130,7 +126,7 @@ public class PhoneGUI extends AbstractGUI {
                             phone.initiateCall("sip:" + (destinationPane.getSipTargetName().trim() + "@" + destinationPane.getSipTargetAddress().trim()));
                             destinationPane.checkForInputs();
                         }else {
-                            eventManager.onError("You have to register first, go to: File -> Login ");
+                            eventManager.onAlert(PhoneGUI.this, "You have to register first, go to: File -> Login ", JOptionPane.INFORMATION_MESSAGE);
                         }
                     }
                 });
@@ -144,7 +140,7 @@ public class PhoneGUI extends AbstractGUI {
                             ChatFrame chatFrame = new ChatFrame("bla");
                             chatFrame.setVisible(true);
                         }else {
-                            eventManager.onError("You have to register first, go to: File -> Login ");
+                            eventManager.onAlert(PhoneGUI.this, "You have to register first, go to: File -> Login ", JOptionPane.INFORMATION_MESSAGE);
                         }
                     }
                 });
@@ -175,13 +171,13 @@ public class PhoneGUI extends AbstractGUI {
 
             public void checkForInputs(){
                 if(sipTargetName.getText().equals("")){
-                    new AlertFrame().showAlert(this,"Please fill in an extension to call", JOptionPane.INFORMATION_MESSAGE);
+                    eventManager.onAlert(PhoneGUI.this, "Please fill in an extension to call", JOptionPane.INFORMATION_MESSAGE);
                 }
                 if(sipTargetAddress.getText().equals("")){
-                    new AlertFrame().showAlert(this,"Please fill in a domain", JOptionPane.INFORMATION_MESSAGE);
+                    eventManager.onAlert(PhoneGUI.this, "Please fill in a domain", JOptionPane.INFORMATION_MESSAGE);
                 }
                 if(sipTargetPort.getText().equals("")){
-                    new AlertFrame().showAlert(this,"Please fill in a proxy port", JOptionPane.INFORMATION_MESSAGE);
+                    eventManager.onAlert(PhoneGUI.this, "Please fill in a proxy port", JOptionPane.INFORMATION_MESSAGE);
                 }
             }
 
@@ -198,4 +194,6 @@ public class PhoneGUI extends AbstractGUI {
             }
         }
     }
+
+
 }

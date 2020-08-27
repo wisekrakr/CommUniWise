@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseMoved="#showInfo" prefHeight="250.0" prefWidth="200.0" style="-fx-background-color: #125f65;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.wisekrakr.communiwise.gui.layouts.gui.call.IncomingCallController">
+   <children>
+      <Label fx:id="close" layoutX="188.0" layoutY="-1.0" onMouseClicked="#close" text="X" textFill="#b0e4ea">
+         <font>
+            <Font size="15.0" />
+         </font>
+      </Label>
+      <Label fx:id="username" alignment="CENTER" layoutX="47.0" layoutY="23.0" textAlignment="CENTER" textFill="WHITE" underline="true" wrapText="true">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
+      <Label alignment="CENTER" layoutX="47.0" layoutY="58.0" prefHeight="25.0" prefWidth="107.0" text="is calling!" textAlignment="CENTER" textFill="WHITE" wrapText="true">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+      <AnchorPane layoutY="125.0" prefHeight="125.0" prefWidth="200.0" style="-fx-background-color: #b0e4ea;">
+         <children>
+            <Button fx:id="accept" alignment="CENTER" layoutX="41.0" layoutY="50.0" mnemonicParsing="false" onMouseClicked="#accept" style="-fx-background-color: #125f65;" text="Accept" textAlignment="CENTER" textFill="#b0e4ea">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </Button>
+            <Button fx:id="reject" alignment="CENTER" layoutX="112.0" layoutY="50.0" mnemonicParsing="false" onMouseClicked="#reject" style="-fx-background-color: #125f65;" text="Reject" textAlignment="CENTER" textFill="#b0e4ea">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </Button>
+         </children>
+      </AnchorPane>
+   </children>
+</AnchorPane>

@@ -1,11 +1,14 @@
 package com.wisekrakr.communiwise.gui;
 
+import com.wisekrakr.communiwise.phone.calling.CallInstance;
+
 import javax.sip.address.Address;
+import java.awt.*;
 
 public interface FrameManagerListener {
 
     void onOutgoingCall(String callId);
-    void onIncomingCall(String callId, String displayName, String rtpAddress, int rtpPort);
+    void onIncomingCall(CallInstance callInstance);
     void close();
     void open();
     void onRegistering();
@@ -17,6 +20,8 @@ public interface FrameManagerListener {
     void onRegistered();
     void menuContactListOpen();
     void menuPreferencesOpen();
+    void menuAboutOpen();
+    void menuAccountOpen();
     void onNotFound(Address proxyAddress);
-    void onError(String text);
+    void onAlert(Component component, String text, int messageCode);
 }

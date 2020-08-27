@@ -15,17 +15,12 @@ public abstract class AbstractGUI extends JFrame implements FrameContext {
     @Override
     public void hideWindow() {
         this.setVisible(false);
-        this.dispose();
     }
 
     @Override
     public void showWindow() {
     }
 
-    @Override
-    public void showErrorStatus() {
-
-    }
 
     @Override
     public void prepareGUI() {

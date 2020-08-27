@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="442.0" prefWidth="676.0" style="-fx-background-color: #125f65;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.wisekrakr.communiwise.gui.layouts.gui.login.LoginController">
+   <children>
+      <ImageView fitHeight="465.0" fitWidth="676.0" layoutY="-9.0" opacity="0.76" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@/images/connect.jpg" />
+         </image></ImageView>
+      <AnchorPane layoutX="312.0" layoutY="60.0" prefHeight="330.0" prefWidth="317.0" style="-fx-background-color: #b0e4ea;">
+         <children>
+            <TextField id="address" fx:id="address" disable="true" editable="false" layoutX="140.0" layoutY="63.0" promptText="This fills automatically" style="-fx-background-color: #d9f0f2;" />
+            <TextField id="username" fx:id="username" layoutX="140.0" layoutY="100.0" onKeyPressed="#textFieldHandler" style="-fx-background-color: #d9f0f2;" />
+            <TextField id="realm" fx:id="realm" disable="true" editable="false" layoutX="140.0" layoutY="182.0" promptText="This fills automatically" style="-fx-background-color: #d9f0f2;" />
+            <TextField id="domain" fx:id="domain" layoutX="140.0" layoutY="226.0" onKeyPressed="#textFieldHandler" style="-fx-background-color: #d9f0f2;" />
+            <Label layoutX="29.0" layoutY="67.0" text="Address" textFill="WHITE" />
+            <Label layoutX="29.0" layoutY="104.0" text="Username" textFill="WHITE" />
+            <Label layoutX="29.0" layoutY="146.0" text="Password" textFill="WHITE" />
+            <Label layoutX="29.0" layoutY="186.0" text="Realm" textFill="WHITE" />
+            <Label layoutX="30.0" layoutY="230.0" text="Domain" textFill="WHITE" />
+            <PasswordField id="password" fx:id="password" layoutX="140.0" layoutY="142.0" style="-fx-background-color: #d9f0f2;" />
+            <Button id="loginButton" fx:id="loginButton" layoutX="26.0" layoutY="281.0" mnemonicParsing="false" onMouseClicked="#login" prefHeight="35.0" prefWidth="265.0" style="-fx-background-color: #125f65;" text="Register/Login" textFill="WHITE" underline="true">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+               <effect>
+                  <Glow level="0.76" />
+               </effect></Button>
+            <Label layoutX="92.0" layoutY="14.0" text="Registration" textFill="WHITE">
+               <font>
+                  <Font size="25.0" />
+               </font>
+            </Label>
+         </children></AnchorPane>
+      <Label layoutX="15.0" layoutY="184.0" prefHeight="32.0" prefWidth="303.0" text="Welcome to CommUniWise" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="22.0" />
+         </font>
+      </Label>
+      <Label layoutX="63.0" layoutY="227.0" text="A Push-To-Talk Sip Phone" textFill="WHITE">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label id="exit" fx:id="exit" layoutX="658.0" layoutY="2.0" onMouseClicked="#close" opacity="0.62" text="X" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Label>
+   </children>
+</AnchorPane>

@@ -165,20 +165,8 @@ public class DeviceImplementations {
             }
 
             @Override
-            public void addContact(String username, String domain, int extension) {
-                contactManager.handleUserMenuSelection(ContactManager.UserOption.ADD_CONTACT,username,domain, extension);
-
-            }
-
-            @Override
-            public void saveContactList() {
-                contactManager.handleUserMenuSelection(ContactManager.UserOption.SAVE,null,null, 0);
-            }
-
-            @Override
-            public void removeContact(String username) {
-                contactManager.handleUserMenuSelection(ContactManager.UserOption.DELETE_CONTACT, username,null, 0);
-
+            public boolean phoneBookHandler(ContactManager.UserOption userOption, String username, String domain, int extension) {
+                return contactManager.handleUserMenuSelection(userOption,username,domain, extension);
             }
 
             @Override

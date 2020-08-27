@@ -40,15 +40,15 @@ public class RTPConnectionManager {
 //
 //    }
 
-    public void connectRTPAudio(InetSocketAddress remoteAddress, String codec) throws IOException{
+    public void connectRTPAudio(InetSocketAddress remoteAddress) throws IOException{
         socket.connect(remoteAddress);
 
-        receptionThread = new Thread(new ReceptionThread(outputLine, socket, codec));
+        receptionThread = new Thread(new ReceptionThread(outputLine, socket));
         receptionThread.setName("Reception thread");
         receptionThread.setDaemon(true);
         receptionThread.start();
 
-        transmittingThread = new TransmittingThread(socket, inputLine, codec);
+        transmittingThread = new TransmittingThread(socket, inputLine);
         transmittingThread.start();
 
         System.out.println(" RTP Connection Audio Client: " + socket.isConnected());

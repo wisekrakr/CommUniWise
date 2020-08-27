@@ -1,9 +1,9 @@
-package com.wisekrakr.communiwise.gui.layouts;
+package com.wisekrakr.communiwise.gui.layouts.gui.call;
 
 import com.wisekrakr.communiwise.operations.apis.SoundAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.objects.Button;
+import com.wisekrakr.communiwise.gui.layouts.components.ButtonSpecial;
 
 import javax.swing.*;
 import java.awt.*;
@@ -49,10 +49,10 @@ public class AudioCallGUI extends AbstractGUI {
     }
 
     private void hangUpComponent() {
-        Button hangUpButton = new Button("hang up", 10, 520, new Color(172, 15, 15));
-        getContentPane().add(hangUpButton);
+        ButtonSpecial hangUpButtonSpecial = new ButtonSpecial("hang up", 10, 520, new Color(172, 15, 15));
+        getContentPane().add(hangUpButtonSpecial);
 
-        hangUpButton.addActionListener(new ActionListener() {
+        hangUpButtonSpecial.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 phone.hangup(callId);
@@ -61,45 +61,45 @@ public class AudioCallGUI extends AbstractGUI {
     }
 
     private void recordComponent() {
-        Button recordButton = new Button("record", 300, 620, new Color(170, 159, 198));
-        getContentPane().add(recordButton);
+        ButtonSpecial recordButtonSpecial = new ButtonSpecial("record", 300, 620, new Color(170, 159, 198));
+        getContentPane().add(recordButtonSpecial);
 
-        Button stopButton = new Button("stop", 400, 620, new Color(163, 155, 180));
-        getContentPane().add(stopButton);
-        stopButton.setEnabled(false);
+        ButtonSpecial stopButtonSpecial = new ButtonSpecial("stop", 400, 620, new Color(163, 155, 180));
+        getContentPane().add(stopButtonSpecial);
+        stopButtonSpecial.setEnabled(false);
 
-        recordButton.addActionListener(new ActionListener() {
+        recordButtonSpecial.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 sound.startRecording();
 
-                recordButton.setEnabled(false);
-                stopButton.setEnabled(true);
+                recordButtonSpecial.setEnabled(false);
+                stopButtonSpecial.setEnabled(true);
             }
         });
 
-        if(stopButton.isEnabled()){
-            stopButton.addActionListener(new ActionListener() {
+        if(stopButtonSpecial.isEnabled()){
+            stopButtonSpecial.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     sound.stopRecording();
 
-                    recordButton.setEnabled(true);
-                    stopButton.setEnabled(false);
+                    recordButtonSpecial.setEnabled(true);
+                    stopButtonSpecial.setEnabled(false);
                 }
             });
         }
     }
 
     private void sendBeepSoundComponent(){
-        Button beepButton = new Button("play sound", 210, 520, new Color(15, 135, 172));
-        getContentPane().add(beepButton);
+        ButtonSpecial beepButtonSpecial = new ButtonSpecial("play sound", 210, 520, new Color(15, 135, 172));
+        getContentPane().add(beepButtonSpecial);
 
         JTextField soundFileName = new JTextField("sounds/shake_bake.wav",3);
         soundFileName.setBounds(100,520,100,20);
         getContentPane().add(soundFileName);
 
-        beepButton.addActionListener(new ActionListener() {
+        beepButtonSpecial.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 sound.playRemoteSound("src/main/resources/sounds/" + soundFileName.getText());

@@ -27,45 +27,50 @@ public class ContactManager {
             //no phone book loaded. create new one
             phoneBook = new PhoneBook(filename);
         }
-
     }
 
     /**
      * Handles the user's last menu selection.
+     * @return true if the phone book method worked otherwise returns false
      */
-    public void handleUserMenuSelection(UserOption userOption, String username, String domain, int extension) {
+    public boolean handleUserMenuSelection(UserOption userOption, String username, String domain, int extension) {
 
         switch (userOption) {
             case VIEW_CONTACTS:
                 phoneBook.display();
-                break;
+                return true;
+
             case ADD_CONTACT:
                 try {
                     phoneBook.addContact(username, domain, extension/*, false*/);
+                    return true;
+
                 }catch (Throwable e){
                     throw new IllegalStateException("Could not add contact",e);
                 }
 
-                break;
             case DELETE_CONTACT:
 
                 try {
                     phoneBook.deleteContact(username);
+                    return true;
+
                 }catch (Throwable e){
                     throw new IllegalStateException("Could not delete contact",e);
                 }
 
-                break;
             case SAVE:
                 try {
                     phoneBook.save();
+                    return true;
+
                 }catch (Throwable e){
                     throw new IllegalStateException("Could not save phonebook",e);
                 }
-                break;
             default:
-                throw new IllegalStateException("No action performed in phonebook");
+                return false;
         }
+
     }
 
     /**
@@ -80,6 +85,7 @@ public class ContactManager {
 
         private final String description;
         private String key;
+
 
         UserOption(String key, String s) {
             this.key = key;

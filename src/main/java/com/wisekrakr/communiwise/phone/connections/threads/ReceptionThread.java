@@ -13,15 +13,14 @@ import java.net.DatagramSocket;
 public class ReceptionThread implements Runnable {
     private final SourceDataLine output;
     private final DatagramSocket socket;
-    private String codec;
+
     private G722Decoder g722Decoder = new G722Decoder();
     private PcmuDecoder pcmuDecoder = new PcmuDecoder();
 
 
-    public ReceptionThread(SourceDataLine output, DatagramSocket socket, String codec) {
+    public ReceptionThread(SourceDataLine output, DatagramSocket socket) {
         this.output = output;
         this.socket = socket;
-        this.codec = codec;
     }
 
     @Override
@@ -57,14 +56,18 @@ public class ReceptionThread implements Runnable {
     }
 
     private void receivedRtpPacket(RTPPacket rtpPacket) {
-        if (codec.contains("PCMU")) {
-            byte[] rawBuf = pcmuDecoder.process(rtpPacket.getData());
-            output.write(rawBuf, 0, rawBuf.length);
 
-        } else if (codec.contains("G722")) {
-            byte[] rawBuf = g722Decoder.decode(rtpPacket.getData(), rtpPacket.getData().length);
-            output.write(rawBuf, 0, rawBuf.length);
-        }
+        byte[] rawBuf = g722Decoder.decode(rtpPacket.getData(), rtpPacket.getData().length);
+        output.write(rawBuf, 0, rawBuf.length);
+
+//        if (codec.contains("PCMU")) {
+//            byte[] rawBuf = pcmuDecoder.process(rtpPacket.getData());
+//            output.write(rawBuf, 0, rawBuf.length);
+//
+//        } else if (codec.contains("G722")) {
+//            byte[] rawBuf = g722Decoder.decode(rtpPacket.getData(), rtpPacket.getData().length);
+//            output.write(rawBuf, 0, rawBuf.length);
+//        }
 
     }
 }

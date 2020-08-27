@@ -1,7 +1,6 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
 import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.background.AlertFrame;
 import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 
@@ -12,6 +11,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+@Deprecated
 public class LoginGUI extends AbstractGUI {
 
     private final PhoneAPI phone;
@@ -167,9 +167,5 @@ public class LoginGUI extends AbstractGUI {
         buttonPanel.setBackground(Constants.LIGHT_CYAN);
     }
 
-    @Override
-    public void showErrorStatus(){
-        new AlertFrame().showAlert(this, "Wrong credentials received....Please try again.", JOptionPane.ERROR_MESSAGE);
-    }
 
 }
