@@ -1,44 +1,35 @@
 package com.wisekrakr.communiwise.phone.calling;
 
 
+import javax.sip.address.Address;
 import java.net.InetSocketAddress;
 
 public class CallInstance {
-    private long timestampRecStart = 0;
-    private String id;
-    private String proxy;
-    private InetSocketAddress proxyAddress;
+    private final String id;
+    private final String displayName;
+    private final InetSocketAddress proxyAddress;
+    private final Address sipAddress;
 
-    public CallInstance(String id, String proxy, InetSocketAddress proxyAddress) {
+    public CallInstance(String id, String displayName, InetSocketAddress proxyAddress, Address sipAddress) {
         this.id = id;
-        this.proxy = proxy;
+        this.displayName = displayName;
         this.proxyAddress = proxyAddress;
+        this.sipAddress = sipAddress;
     }
 
     public String getId() {
         return id;
     }
 
-    public String getProxy() {
-        return proxy;
+    public String getDisplayName() {
+        return displayName;
     }
 
     public InetSocketAddress getProxyAddress() {
         return proxyAddress;
     }
 
-    public long getTime() {
-        long time = 0;
-        time = System.currentTimeMillis();
-        return time;
+    public Address getSipAddress() {
+        return sipAddress;
     }
-    public int getOutboundTimestamp() {
-        return (int) (this.getTime() - timestampRecStart);
-    }
-
-    public void resetTimestampRecStart() {
-        timestampRecStart = getTime();
-    }
-
-
 }

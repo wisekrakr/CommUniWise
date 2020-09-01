@@ -1,17 +1,19 @@
-package com.wisekrakr.communiwise.gui.layouts.gui.menu;
+package com.wisekrakr.communiwise.gui.layouts.fx.menu;
 
-import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.gui.GUIContext;
+import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 
 import java.awt.*;
 
-public class AboutFXFrame extends AbstractGUI {
+public class AboutFrame extends AbstractGUI {
 
     private JFXPanel jfxPanel;
 
-    public AboutFXFrame() {
+    public AboutFrame() {
+
+        new AboutController().initialize(this);
+
         prepareGUI();
     }
 
@@ -32,9 +34,7 @@ public class AboutFXFrame extends AbstractGUI {
         pack();
         setVisible(true);
 
-        new AboutController().initImplementations(null, this);
-
-        Platform.runLater(() -> GUIContext.initFX(jfxPanel, "/about.fxml", this));
+        initializeJFXPanel(jfxPanel, "/about.fxml");
     }
 
 }

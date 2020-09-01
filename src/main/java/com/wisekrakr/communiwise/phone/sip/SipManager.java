@@ -212,7 +212,7 @@ public class SipManager implements SipClient {
                                         System.out.println("Dialog State = " + dialog.getState());
                                     }
 
-                                    listener.onRemoteBye(callId.getCallId());
+                                    listener.onRemoteBye(getCurrentCallInstance(callId.getCallId()));
 
                                     removeFromCallInstances(callId.getCallId());
 
@@ -247,7 +247,8 @@ public class SipManager implements SipClient {
 
                                         InetSocketAddress proxyAddress = new InetSocketAddress(sp.getRemoteAddress().getHostAddress(), sp.getRemotePort());
 
-                                        CallInstance callInstance = new CallInstance(callId.getCallId(), sp.getFrom().getAddress().getDisplayName(),proxyAddress);
+                                        CallInstance callInstance = new CallInstance(callId.getCallId(), sp.getFrom().getAddress().getDisplayName(),proxyAddress,
+                                                addressFactory.createAddress(sp.getFromHeader().getAddress().getURI()));
 
                                         listener.onRinging(callInstance);
 
@@ -273,7 +274,7 @@ public class SipManager implements SipClient {
 
                                     }
 
-                                    listener.onRemoteCancel(callId.getCallId());
+                                    listener.onRemoteCancel(getCurrentCallInstance(callId.getCallId()));
 
                                     removeFromCallInstances(callId.getCallId());
 
@@ -335,15 +336,15 @@ public class SipManager implements SipClient {
                                             System.out.println("number of media descriptions != 1, will take the first anyway");
                                         }
 
-                                        MediaDescription incomingMediaDescriptor = (MediaDescription) sessionDescription.getMediaDescriptions(false);
-
-//                                        String codec = parseAttribute((AttributeField) incomingMediaDescriptor.getAttributes(false).get(0));
-
+                                        MediaDescription incomingMediaDescriptor = (MediaDescription) sessionDescription.getMediaDescriptions(false).get(0);
 
                                         ToHeader toHeader = (ToHeader) processedResponse.getHeader(ToHeader.NAME);
 
+
+
                                         CallInstance callInstance = new CallInstance(callId.getCallId(), toHeader.getAddress().getDisplayName(),
-                                                new InetSocketAddress(sessionDescription.getConnection().getAddress(),incomingMediaDescriptor.getMedia().getMediaPort()));
+                                                new InetSocketAddress(sessionDescription.getConnection().getAddress(),incomingMediaDescriptor.getMedia().getMediaPort()),
+                                                toHeader.getAddress());
 
                                         callInstances.put(callId.getCallId(), callInstance);
 
@@ -366,7 +367,7 @@ public class SipManager implements SipClient {
                                         sipSessionState = SipSessionState.IDLE;
                                         System.out.println("--- Got 200 OK in UAC outgoing BYE from host");
 
-                                        listener.onBye(callId.getCallId());
+                                        listener.onBye(getCurrentCallInstance(callId.getCallId()));
 
                                         removeFromCallInstances(callId.getCallId());
                                         break;
@@ -456,6 +457,18 @@ public class SipManager implements SipClient {
 
         sipSessionState = SipSessionState.IDLE;
 
+    }
+
+    private CallInstance getCurrentCallInstance(String callId){
+        CallInstance callInstance = null;
+
+        for(CallInstance c: callInstances.values()){
+            if(c.getId().equals(callId)){
+                callInstance = c;
+            }
+        }
+
+        return callInstance;
     }
 
     private String parseAttribute(AttributeField attribute) {
@@ -647,7 +660,7 @@ public class SipManager implements SipClient {
             String rtpPort = StringUtils.substring(requestSDP.toString(),requestSDP.toString().lastIndexOf("m=audio") + 8, requestSDP.toString().lastIndexOf("m=audio") + 13);
 
             for (Map.Entry<String, CallInstance> c : callInstances.entrySet()) {
-                if (c.getValue().getProxy().contains(fromHeader.getAddress().getDisplayName())) {
+                if (c.getValue().getDisplayName().contains(fromHeader.getAddress().getDisplayName())) {
 
                     listener.onAccepted(c.getValue(), Integer.parseInt(rtpPort));
                 }

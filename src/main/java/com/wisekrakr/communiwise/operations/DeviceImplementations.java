@@ -9,10 +9,11 @@ import com.wisekrakr.communiwise.operations.apis.SoundAPI;
 import com.wisekrakr.communiwise.phone.sip.SipManager;
 import com.wisekrakr.communiwise.user.ContactManager;
 import com.wisekrakr.communiwise.user.SipAccountManager;
+import com.wisekrakr.communiwise.user.phonebook.PhoneBookEntry;
 
 import javax.sound.sampled.*;
-import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 
 public class DeviceImplementations {
@@ -53,11 +54,10 @@ public class DeviceImplementations {
             }
 
             @Override
-            public void playRemoteSound(String file) {
-                File audioFile = new File(file);
+            public void playRemoteSound(String resource) {
                 try {
 
-                    AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+                    AudioInputStream audioStream = AudioSystem.getAudioInputStream(getClass().getResource(resource));
                     AudioInputStream lowResAudioStream = AudioSystem.getAudioInputStream(FORMAT, audioStream);
 
                     audioManager.startSendingAudio(lowResAudioStream);
@@ -88,17 +88,21 @@ public class DeviceImplementations {
         };
     }
 
+    private String sipAddressMaker(String extension, String domain){
+        return "sip:" + (extension + "@" + domain);
+    }
+
     public PhoneAPI getPhoneApi(){
         return new PhoneAPI() {
 
             private String proxyAddress;
 
             @Override
-            public void initiateCall(String sipAddress) {
+            public void initiateCall(String extension, String domain) {
 
-                sipManager.initiateCall(sipAddress, rtpConnectionManager.getSocket().getLocalPort());
+                sipManager.initiateCall(sipAddressMaker(extension, domain), rtpConnectionManager.getSocket().getLocalPort());
 
-                proxyAddress = sipAddress;
+                proxyAddress = extension;
             }
 
             @Override
@@ -130,7 +134,7 @@ public class DeviceImplementations {
                 sipManager.login(realm, username, password, domain, fromAddress);
 
                 try {
-                    getAccountApi().getContactManager().loadPhoneBook(getAccountApi().getUserInfo().get(SipAccountManager.UserInfoPart.USERNAME.getInfoPart()));
+                    contactManager.loadPhoneBook(username);
                 }catch (Throwable e){
                     throw new IllegalArgumentException("Phonebook could not be loaded", e);
                 }
@@ -165,20 +169,24 @@ public class DeviceImplementations {
             }
 
             @Override
-            public boolean phoneBookHandler(ContactManager.UserOption userOption, String username, String domain, int extension) {
-                return contactManager.handleUserMenuSelection(userOption,username,domain, extension);
+            public PhoneBookEntry addContact(String username, String domain, int extension) {
+                return contactManager.addContact(username, domain, extension);
             }
 
             @Override
-            public void updateContact(String username, String domain, int extension) {
-
+            public boolean deleteContact(String username) {
+                return contactManager.deleteContact(username);
             }
 
             @Override
-            public ContactManager getContactManager() {
-                return contactManager;
+            public boolean savePhoneBook() {
+                return contactManager.savePhoneBook();
             }
 
+            @Override
+            public Collection<PhoneBookEntry> getContacts() {
+                return contactManager.getPhoneBook().getEntries();
+            }
         };
     }
 }

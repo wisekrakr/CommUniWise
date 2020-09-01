@@ -1,6 +1,5 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
-import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
 import com.wisekrakr.communiwise.operations.apis.SoundAPI;
 
 import javax.sound.sampled.*;
@@ -9,7 +8,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.net.URL;
 
 import static com.wisekrakr.communiwise.gui.layouts.utils.TabbedPaneUtils.createImageIcon;
 import static com.wisekrakr.communiwise.gui.layouts.utils.TabbedPaneUtils.makeTextPanel;

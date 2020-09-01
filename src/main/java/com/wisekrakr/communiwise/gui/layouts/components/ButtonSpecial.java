@@ -45,23 +45,6 @@ public class ButtonSpecial extends JButton{
         this.text = text;
     }
 
-    public static JButton closeButton(){
-
-        ImageIcon icon=new ImageIcon("/images/cross1.png");
-        ImageIcon icon2=new ImageIcon("/images/cross.png");
-
-        JButton button = new JButton();
-        button.setBorderPainted(false);
-        button.setBorder(null);
-        button.setMargin(new Insets(0, 0, 0, 0));
-        button.setContentAreaFilled(false);
-        button.setIcon(icon2);
-        button.setRolloverIcon(icon);
-        button.setPressedIcon(icon);
-        button.setDisabledIcon(icon);
-
-        return button;
-    }
 
     public static JButton loginButton(){
         ImageIcon icon=new ImageIcon("/images/login.png");

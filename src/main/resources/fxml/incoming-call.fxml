@@ -5,14 +5,14 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseMoved="#showInfo" prefHeight="250.0" prefWidth="200.0" style="-fx-background-color: #125f65;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.wisekrakr.communiwise.gui.layouts.gui.call.IncomingCallController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="250.0" prefWidth="200.0" style="-fx-background-color: #125f65;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.wisekrakr.communiwise.gui.layouts.fx.call.IncomingCallController">
    <children>
       <Label fx:id="close" layoutX="188.0" layoutY="-1.0" onMouseClicked="#close" text="X" textFill="#b0e4ea">
          <font>
             <Font size="15.0" />
          </font>
       </Label>
-      <Label fx:id="username" alignment="CENTER" layoutX="47.0" layoutY="23.0" textAlignment="CENTER" textFill="WHITE" underline="true" wrapText="true">
+      <Label fx:id="username" alignment="CENTER" contentDisplay="CENTER" layoutX="21.0" layoutY="20.0" prefHeight="35.0" prefWidth="158.0" textAlignment="CENTER" textFill="WHITE" underline="true" wrapText="true">
          <font>
             <Font size="24.0" />
          </font>

@@ -119,15 +119,15 @@ public class PhoneApplication implements Serializable {
                     }
 
                     @Override
-                    public void onRemoteBye(String callId) {
+                    public void onRemoteBye(CallInstance callInstance) {
                         rtpConnectionManager.stopStreamingAudio();
 
-                        eventManager.onHangUp(callId);
+                        eventManager.onHangUp(callInstance);
                     }
 
                     @Override
-                    public void onRemoteCancel(String callId) {
-                        eventManager.onHangUp(callId);
+                    public void onRemoteCancel(CallInstance callInstance) {
+                        eventManager.onHangUp(callInstance);
                     }
 
                     @Override
@@ -137,6 +137,7 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void callConfirmed(CallInstance callInstance) {
+                        System.out.println("THIS IS A NEW CALL ======== >" +callInstance.getProxyAddress() + "  name:  " + callInstance.getDisplayName());
                         try {
                             rtpConnectionManager.connectRTPAudio(callInstance.getProxyAddress());
 
@@ -144,7 +145,7 @@ public class PhoneApplication implements Serializable {
                             throw new IllegalStateException("Unable to connect call", e);
                         }
 
-                        eventManager.onOutgoingCall(callInstance.getId());
+                        eventManager.onOutgoingCall(callInstance);
 
 
                     }
@@ -173,7 +174,7 @@ public class PhoneApplication implements Serializable {
                             e.printStackTrace();
                         }
 
-                        eventManager.onAcceptingCall(callInstance.getId());
+                        eventManager.onAcceptingCall(callInstance);
                     }
 
                     @Override
@@ -201,8 +202,8 @@ public class PhoneApplication implements Serializable {
                     }
 
                     @Override
-                    public void onBye(String callId) {
-                        eventManager.onHangUp(callId);
+                    public void onBye(CallInstance callInstance) {
+                        eventManager.onHangUp(callInstance);
                     }
 
                     @Override

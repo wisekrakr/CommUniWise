@@ -1,8 +1,8 @@
-package com.wisekrakr.communiwise.gui.layouts.gui.menu;
+package com.wisekrakr.communiwise.gui.layouts.fx.menu;
 
-import com.wisekrakr.communiwise.gui.EventManager;
-import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.gui.ControllerContext;
+import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
+import com.wisekrakr.communiwise.gui.layouts.fx.ControllerContext;
+import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.user.SipAccountManager;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -12,15 +12,15 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class AccountController implements ControllerContext, Initializable {
-    private static EventManager eventManager;
+    private static AccountAPI account;
     private static AbstractGUI gui;
 
     @FXML
     private Label username,domain;
 
     private void showInfo(){
-        String dom = eventManager.getAccount().getUserInfo().get(SipAccountManager.UserInfoPart.DOMAIN.getInfoPart());
-        String name = eventManager.getAccount().getUserInfo().get(SipAccountManager.UserInfoPart.USERNAME.getInfoPart());
+        String dom = account.getUserInfo().get(SipAccountManager.UserInfoPart.DOMAIN.getInfoPart());
+        String name = account.getUserInfo().get(SipAccountManager.UserInfoPart.USERNAME.getInfoPart());
 
         username.setText(name);
         domain.setText(dom);
@@ -32,11 +32,10 @@ public class AccountController implements ControllerContext, Initializable {
         gui.hideWindow();
     }
 
-    @Override
-    public ControllerContext initImplementations(EventManager eventManager, AbstractGUI gui) {
-        AccountController.eventManager = eventManager;
+
+    public void initialize(AccountAPI account, AbstractGUI gui) {
+        AccountController.account = account;
         AccountController.gui = gui;
-        return this;
     }
 
     @Override

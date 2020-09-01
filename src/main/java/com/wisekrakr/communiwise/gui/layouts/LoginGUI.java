@@ -1,6 +1,5 @@
 package com.wisekrakr.communiwise.gui.layouts;
 
-import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
 import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 

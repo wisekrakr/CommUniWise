@@ -7,14 +7,14 @@ import java.awt.*;
 
 public interface FrameManagerListener {
 
-    void onOutgoingCall(String callId);
+    void onOutgoingCall(CallInstance callInstance);
     void onIncomingCall(CallInstance callInstance);
     void close();
     void open();
     void onRegistering();
     void onUnregistering();
-    void onHangUp(String callId);
-    void onAcceptingCall(String callId);
+    void onHangUp(CallInstance callInstance);
+    void onAcceptingCall(CallInstance callInstance);
     void onDecliningCall(String callId);
     void onAuthenticationFailed();
     void onRegistered();

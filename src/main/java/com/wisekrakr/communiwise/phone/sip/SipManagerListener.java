@@ -8,9 +8,9 @@ public interface SipManagerListener {
 
     void onTextMessage(String message, String from);
 
-    void onRemoteBye(String callId);
+    void onRemoteBye(CallInstance callInstance);
 
-    void onRemoteCancel(String callId);
+    void onRemoteCancel(CallInstance callInstance);
 
     void onRemoteDeclined();
 
@@ -26,7 +26,7 @@ public interface SipManagerListener {
 
     void onRegistered();
 
-    void onBye(String callId);
+    void onBye(CallInstance callInstance);
 
     void onTrying();
 

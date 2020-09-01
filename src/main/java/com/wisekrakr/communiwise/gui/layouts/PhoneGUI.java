@@ -2,8 +2,7 @@ package com.wisekrakr.communiwise.gui.layouts;
 
 
 import com.wisekrakr.communiwise.gui.EventManager;
-import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.gui.menu.PhoneGUIMenuBar;
+import com.wisekrakr.communiwise.gui.layouts.fx.menu.PhoneGUIMenuBar;
 import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
@@ -17,7 +16,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import static com.wisekrakr.communiwise.gui.layouts.components.ImageIconCreator.addImageIcon;
+import static com.wisekrakr.communiwise.gui.layouts.components.ImageCreator.addImageIcon;
 
 public class PhoneGUI extends AbstractGUI {
 
@@ -123,7 +122,7 @@ public class PhoneGUI extends AbstractGUI {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         if(account.isAuthenticated()){
-                            phone.initiateCall("sip:" + (destinationPane.getSipTargetName().trim() + "@" + destinationPane.getSipTargetAddress().trim()));
+                            phone.initiateCall(destinationPane.getSipTargetName().trim() , destinationPane.getSipTargetAddress().trim());
                             destinationPane.checkForInputs();
                         }else {
                             eventManager.onAlert(PhoneGUI.this, "You have to register first, go to: File -> Login ", JOptionPane.INFORMATION_MESSAGE);

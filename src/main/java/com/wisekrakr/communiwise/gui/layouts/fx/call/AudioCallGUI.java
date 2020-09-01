@@ -1,9 +1,13 @@
-package com.wisekrakr.communiwise.gui.layouts.gui.call;
+package com.wisekrakr.communiwise.gui.layouts.fx.call;
 
+import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
 import com.wisekrakr.communiwise.operations.apis.SoundAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
-import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
+import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.gui.layouts.components.ButtonSpecial;
+import com.wisekrakr.communiwise.phone.calling.CallInstance;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.control.Label;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,41 +16,44 @@ import java.awt.event.ActionListener;
 
 
 public class AudioCallGUI extends AbstractGUI {
+    private static final int DESIRED_HEIGHT = 440;
+    private static final int DESIRED_WIDTH = 320;
+
     private final PhoneAPI phone;
     private final SoundAPI sound;
-    private String callId;
+    private final CallInstance callInstance;
+    private JFXPanel jfxPanel;
 
-    public AudioCallGUI(PhoneAPI phone, SoundAPI sound, String callId) throws HeadlessException {
+    public AudioCallGUI(PhoneAPI phone, SoundAPI sound, CallInstance callInstance) throws HeadlessException {
         this.phone = phone;
         this.sound = sound;
-        this.callId = callId;
+        this.callInstance = callInstance;
+
+        new AudioCallController().initialize(phone, sound, this, callInstance);
 
         prepareGUI();
     }
 
     @Override
     public void prepareGUI() {
-        setTitle("Call with someone");
-        getContentPane().setLayout(null);
-        setBounds((getScreenSize().width - 288) / 2, (getScreenSize().height - 310) / 2, 500, 700);
+        setUndecorated(true);
+        setBounds((getScreenSize().width - DESIRED_WIDTH) / 2, (getScreenSize().height - DESIRED_HEIGHT) / 2, DESIRED_WIDTH, DESIRED_HEIGHT);
 
-//        showStatus();
-        addFrameDragAbility();
+
+        jfxPanel = new JFXPanel();
+        add(jfxPanel, BorderLayout.CENTER);
     }
 
     @Override
     public void showWindow() {
 
-        JLabel image = new JLabel(new ImageIcon("src/main/resources/images/person.png"));
-        image.setBounds(10, 10, 480, 480);
-        getContentPane().add(image);
-
-        hangUpComponent();
-        sendBeepSoundComponent();
-        recordComponent();
-
         setVisible(true);
+
+
+        initializeJFXPanel(jfxPanel, "/audio-call.fxml");
+
     }
+
 
     private void hangUpComponent() {
         ButtonSpecial hangUpButtonSpecial = new ButtonSpecial("hang up", 10, 520, new Color(172, 15, 15));
@@ -55,7 +62,7 @@ public class AudioCallGUI extends AbstractGUI {
         hangUpButtonSpecial.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                phone.hangup(callId);
+                phone.hangup(callInstance.getId());
             }
         });
     }
@@ -108,66 +115,5 @@ public class AudioCallGUI extends AbstractGUI {
     }
 
 
-    public void showStatus() {
-        JLabel status = new JLabel();
-        status.setBounds(20, 620, 150, 30);
-        add(status);
 
-        switch (phone.callStatus()){
-            case 603:
-                status.setText("Decline");
-                status.setForeground(Color.ORANGE);
-                break;
-            case 486:
-                status.setText("Busy");
-                status.setForeground(Color.ORANGE);
-
-                break;
-            case 408:
-                status.setText("Request Timeout");
-                status.setForeground(Color.RED);
-
-                break;
-            case 403:
-                status.setText("Forbidden");
-                status.setForeground(Color.RED);
-
-                break;
-            case 401:
-                status.setText("Unauthorized");
-                status.setForeground(Color.RED);
-
-                break;
-            case 400:
-                status.setText("Bad Request");
-                status.setForeground(Color.RED);
-
-                break;
-            case 200:
-                status.setText("OK");
-                status.setForeground(Color.GREEN);
-
-                break;
-            case 100:
-                status.setText("Trying");
-                status.setForeground(Color.ORANGE);
-
-                break;
-            case 180:
-                status.setText("Ringing");
-                status.setForeground(Color.BLUE);
-
-                break;
-            case 183:
-                status.setText("Session Progress");
-                status.setForeground(Color.YELLOW);
-
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + phone.callStatus());
-        }
-
-
-
-    }
 }

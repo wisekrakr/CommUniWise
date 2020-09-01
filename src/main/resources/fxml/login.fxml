@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="442.0" prefWidth="676.0" style="-fx-background-color: #125f65;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.wisekrakr.communiwise.gui.layouts.gui.login.LoginController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="442.0" prefWidth="676.0" style="-fx-background-color: #125f65;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.wisekrakr.communiwise.gui.layouts.fx.login.LoginController">
    <children>
       <ImageView fitHeight="465.0" fitWidth="676.0" layoutY="-9.0" opacity="0.76" pickOnBounds="true" preserveRatio="true">
          <image>

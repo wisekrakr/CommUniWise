@@ -1,7 +1,9 @@
 package com.wisekrakr.communiwise.operations.apis;
 
 import com.wisekrakr.communiwise.user.ContactManager;
+import com.wisekrakr.communiwise.user.phonebook.PhoneBookEntry;
 
+import java.util.Collection;
 import java.util.Map;
 
 public interface AccountAPI {
@@ -11,8 +13,9 @@ public interface AccountAPI {
     void userIsOnline();
 
     Map<String, String> getUserInfo();
-    boolean phoneBookHandler(ContactManager.UserOption userOption, String username, String domain, int extension);
 
-    void updateContact(String username, String domain, int extension);
-    ContactManager getContactManager();
+    PhoneBookEntry addContact(String username, String domain, int extension);
+    boolean deleteContact(String username);
+    boolean savePhoneBook();
+    Collection<PhoneBookEntry>getContacts();
 }

@@ -1,6 +1,7 @@
 package com.wisekrakr.communiwise.user.phonebook;
 
 import java.io.Serializable;
+import java.util.Random;
 
 import static java.lang.String.format;
 
@@ -10,19 +11,23 @@ public class PhoneBookEntry implements Serializable {
     private final String username;
     private String domain;
     private int extension;
+    private double contactId;
     //whether or not this contact is new and unsaved. Won't be serialized.
     private transient boolean isNew;
+
 
     /**
      * Constructs a new contact with the provided name, domain and number.
      * @param username The name of this contact.
      * @param domain The domain of this contact.
      * @param extension The extension number for this contact
+     * @param contactId The contactId for easy access
      */
-    public PhoneBookEntry(String username, String domain,int extension/*, boolean isNew*/) {
+    public PhoneBookEntry(String username, String domain,int extension, double contactId/*, boolean isNew*/) {
         this.username = username;
         this.domain = domain;
         this.extension = extension;
+        this.contactId = contactId;
         this.isNew = true;
     }
 
@@ -72,7 +77,7 @@ public class PhoneBookEntry implements Serializable {
      */
     @Override
     public String toString() {
-        return format("< %s: %s %s %s >", username, domain, extension, isNew ? "| new": "");
+        return format("< %s: %s %s %s %s >", username, domain, extension,contactId, isNew ? "| new": "");
     }
 
     /**
@@ -81,5 +86,21 @@ public class PhoneBookEntry implements Serializable {
      */
     public void setExtension(int extension) {
         this.extension = extension;
+    }
+
+    /**
+     *
+     * @return Returns the id of this contact
+     */
+    public double getContactId() {
+        return contactId;
+    }
+
+    /**
+     * Sets the id of this contact
+     * @param contactId
+     */
+    public void setContactId(double contactId) {
+        this.contactId = contactId;
     }
 }

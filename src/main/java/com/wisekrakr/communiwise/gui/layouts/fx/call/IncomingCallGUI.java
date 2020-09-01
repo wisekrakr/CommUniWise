@@ -1,10 +1,7 @@
-package com.wisekrakr.communiwise.gui.layouts.gui.call;
+package com.wisekrakr.communiwise.gui.layouts.fx.call;
 
-import com.wisekrakr.communiwise.gui.EventManager;
-import com.wisekrakr.communiwise.gui.layouts.gui.GUIContext;
-import com.wisekrakr.communiwise.gui.layouts.gui.login.LoginController;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
-import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
+import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.phone.calling.CallInstance;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
@@ -14,19 +11,22 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class IncomingCallFXGUI extends AbstractGUI {
+public class IncomingCallGUI extends AbstractGUI {
 
-    private final EventManager eventManager;
+    private final PhoneAPI phone;
     private final CallInstance callInstance;
 
     private JFXPanel jfxPanel;
 
+
     private static final int DESIRED_HEIGHT = 250;
     private static final int DESIRED_WIDTH = 200;
 
-    public IncomingCallFXGUI(EventManager eventManager, CallInstance callInstance) throws HeadlessException {
-        this.eventManager = eventManager;
+    public IncomingCallGUI(PhoneAPI phone, CallInstance callInstance) throws HeadlessException {
+        this.phone = phone;
         this.callInstance = callInstance;
+
+        new IncomingCallController().initialize(phone, this, callInstance);
 
         prepareGUI();
     }
@@ -46,17 +46,14 @@ public class IncomingCallFXGUI extends AbstractGUI {
 
         new Timer(1, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                setLocation(0, getY() - 1);
+                setLocation(getScreenSize().width - DESIRED_WIDTH, getY() - 1);
                 if (getY() == getScreenSize().height - DESIRED_HEIGHT) {
                     ((Timer) e.getSource()).stop();
                 }
             }
         }).start();
 
-        IncomingCallController controller = (IncomingCallController) new IncomingCallController().initImplementations(eventManager, this );
-        controller.setCallInstance(callInstance);
-
-        Platform.runLater(() -> GUIContext.initFX(jfxPanel, "/incoming-call.fxml", this));
+        initializeJFXPanel(jfxPanel, "/incoming-call.fxml");
 
     }
 

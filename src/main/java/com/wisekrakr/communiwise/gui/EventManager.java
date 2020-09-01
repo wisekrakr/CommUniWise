@@ -1,14 +1,15 @@
 package com.wisekrakr.communiwise.gui;
 
-import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
+import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.gui.layouts.*;
 import com.wisekrakr.communiwise.gui.layouts.components.AlertFrame;
-import com.wisekrakr.communiwise.gui.layouts.gui.call.IncomingCallFXGUI;
-import com.wisekrakr.communiwise.gui.layouts.gui.call.AudioCallGUI;
-import com.wisekrakr.communiwise.gui.layouts.gui.login.LoginFXGUI;
-import com.wisekrakr.communiwise.gui.layouts.gui.menu.AboutFXFrame;
-import com.wisekrakr.communiwise.gui.layouts.gui.menu.AccountFXFrame;
-import com.wisekrakr.communiwise.gui.layouts.gui.menu.PhoneGUIMenuBar;
+import com.wisekrakr.communiwise.gui.layouts.fx.call.IncomingCallGUI;
+import com.wisekrakr.communiwise.gui.layouts.fx.call.AudioCallGUI;
+import com.wisekrakr.communiwise.gui.layouts.fx.login.LoginGUI;
+import com.wisekrakr.communiwise.gui.layouts.fx.menu.AboutFrame;
+import com.wisekrakr.communiwise.gui.layouts.fx.menu.AccountFrame;
+import com.wisekrakr.communiwise.gui.layouts.fx.menu.ContactListGUI;
+import com.wisekrakr.communiwise.gui.layouts.fx.menu.PhoneGUIMenuBar;
 import com.wisekrakr.communiwise.operations.DeviceImplementations;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
@@ -38,13 +39,11 @@ import java.util.stream.Collectors;
 public class EventManager implements FrameManagerListener {
 
     private PhoneGUI phoneGUI;
-//    private LoginGUI loginGUI;
-    private ContactsGUI contactsGUI;
+    private ContactListGUI contactListGUI;
     private PreferencesGUI preferencesGUI;
-    private LoginFXGUI loginFXGUI;
+    private LoginGUI loginGUI;
 
-    //todo instead of String(callId) use a CallInstance
-    private final Map<String, AbstractGUI> callGUIs = new HashMap<>();
+    private final Map<CallInstance, AbstractGUI> callGUIs = new HashMap<>();
 
     private final PhoneAPI phone;
     private final AccountAPI account;
@@ -60,47 +59,36 @@ public class EventManager implements FrameManagerListener {
         account = impl.getAccountApi();
         sound = impl.getSoundApi();
 
-    }
 
-    public PhoneAPI getPhone() {
-        return phone;
-    }
-
-    public AccountAPI getAccount() {
-        return account;
-    }
-
-    public SoundAPI getSound() {
-        return sound;
     }
 
     /**
      * When the user makes a call a AudioCallGUI will show.
-     * @param callId the id of the call
+     * @param callInstance the id of the call
      */
     @Override
-    public void onOutgoingCall(String callId) {
+    public void onOutgoingCall(CallInstance callInstance) {
         SwingUtilities.invokeLater(() -> {
-            AudioCallGUI audioCallGUI = new AudioCallGUI(phone, sound, callId);
+            AudioCallGUI audioCallGUI = new AudioCallGUI(phone, sound, callInstance);
 
-            callGUIs.put(callId, audioCallGUI);
+            callGUIs.put(callInstance, audioCallGUI);
 
             audioCallGUI.showWindow();
         });
     }
 
     /**
-     * When the user get an incoming call. A new {@link IncomingCallFXGUI}gets created and put into a HashMap of  {@link AbstractGUI}
+     * When the user get an incoming call. A new {@link IncomingCallGUI}gets created and put into a HashMap of  {@link AbstractGUI}
      * @param callInstance has an id, user and an InetSocketAddress
      */
     @Override
     public void onIncomingCall(CallInstance callInstance) {
         SwingUtilities.invokeLater(() -> {
-            IncomingCallFXGUI incomingCallFXGUI = new IncomingCallFXGUI(this, callInstance);
+            IncomingCallGUI incomingCallGUI = new IncomingCallGUI(phone, callInstance);
 
-            callGUIs.put(callInstance.getId(), incomingCallFXGUI);
+            callGUIs.put(callInstance, incomingCallGUI);
 
-            incomingCallFXGUI.showWindow();
+            incomingCallGUI.showWindow();
         });
 
         sound.ringing(true);
@@ -109,11 +97,11 @@ public class EventManager implements FrameManagerListener {
     /**
      * When the user hangs up or on remote cancel or bye.
      * From the GUI that are shown, we find the right one through its callId and we hide it.
-     * @param callId the id of the call
+     * @param callInstance
      */
     @Override
-    public void onHangUp(String callId) {
-        for(AbstractGUI s: callGUIs.entrySet().stream().filter(cc -> callId.equals(cc.getKey())).map(Map.Entry::getValue).collect(Collectors.toList())){
+    public void onHangUp(CallInstance callInstance) {
+        for(AbstractGUI s: callGUIs.entrySet().stream().filter(cc -> callInstance.getId().equals(cc.getKey().getId())).map(Map.Entry::getValue).collect(Collectors.toList())){
             s.hideWindow();
 
             sound.ringing(false);
@@ -121,14 +109,13 @@ public class EventManager implements FrameManagerListener {
     }
 
     /**
-     * A method to find the right {@link IncomingCallFXGUI} by its callId key and hide it.
+     * A method to find the right {@link IncomingCallGUI} by its callId key and hide it.
      * @param callId the id of the call.
      */
     private void hideAcceptCallGUI(String callId){
 
-        for (Map.Entry<String, AbstractGUI> c : callGUIs.entrySet()) {
-            if (c.getKey().equals(callId)) {
-//                c.getValue().setTitle("A call with " + );
+        for (Map.Entry<CallInstance, AbstractGUI> c : callGUIs.entrySet()) {
+            if (c.getKey().getId().equals(callId)) {
 
                 c.getValue().hideWindow();
             }
@@ -136,18 +123,18 @@ public class EventManager implements FrameManagerListener {
     }
 
     /**
-     * When the user accepts a call. The {@link IncomingCallFXGUI} gets hidden and a new {@link AudioCallGUI} gets created and put in a HashMap of {@link AbstractGUI}
+     * When the user accepts a call. The {@link IncomingCallGUI} gets hidden and a new {@link AudioCallGUI} gets created and put in a HashMap of {@link AbstractGUI}
      * We also stop the phone ringing sound.
-     * @param callId the id of the call
+     * @param callInstance
      */
     @Override
-    public void onAcceptingCall(String callId) {
-        hideAcceptCallGUI(callId);
+    public void onAcceptingCall(CallInstance callInstance) {
+        hideAcceptCallGUI(callInstance.getId());
 
         SwingUtilities.invokeLater(() -> {
-            AudioCallGUI audioCallGUI = new AudioCallGUI(phone, sound, callId);
+            AudioCallGUI audioCallGUI = new AudioCallGUI(phone, sound, callInstance);
 
-            callGUIs.put(callId, audioCallGUI);
+            callGUIs.put(callInstance, audioCallGUI);
 
             audioCallGUI.showWindow();
         });
@@ -158,7 +145,7 @@ public class EventManager implements FrameManagerListener {
 
 
     /**
-     * When the user declines a call the {@link IncomingCallFXGUI} gets hidden.
+     * When the user declines a call the {@link IncomingCallGUI} gets hidden.
      * @param callId the id of the call
      */
     @Override
@@ -198,15 +185,16 @@ public class EventManager implements FrameManagerListener {
     }
 
     /**
-     * When the user wants to register/login a new {@link LoginGUI} gets created
+     * When the user wants to register/login a new {@link com.wisekrakr.communiwise.gui.layouts.LoginGUI} gets created
      */
     @Override
     public void onRegistering() {
 
         SwingUtilities.invokeLater(() -> {
             try {
-                loginFXGUI = new LoginFXGUI(this);
-                loginFXGUI.showWindow();
+                loginGUI = new LoginGUI(phone);
+
+                loginGUI.showWindow();
 
             } catch (Exception e) {
                 System.out.println("Login GUI Could not be displayed " + e);
@@ -216,7 +204,7 @@ public class EventManager implements FrameManagerListener {
     }
 
     /**
-     * When the user clicked the register button, the {@link LoginGUI} gets hidden
+     * When the user clicked the register button, the {@link com.wisekrakr.communiwise.gui.layouts.LoginGUI} gets hidden
      */
     @Override
     public void onRegistered() {
@@ -224,18 +212,11 @@ public class EventManager implements FrameManagerListener {
         account.userIsOnline();
 
         try {
-            loginFXGUI.hideWindow();
+            loginGUI.hideWindow();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-//        try{
-//            if(loginGUI.isActive()){
-//                loginGUI.hideWindow();
-//            }
-//        }catch (Throwable e){
-//            System.out.println("Login GUI Could not be displayed " + e);
-//        }
     }
 
     /**
@@ -244,8 +225,8 @@ public class EventManager implements FrameManagerListener {
     @Override
     public void onAuthenticationFailed() {
         try{
-            if(loginFXGUI.isActive()){
-                onAlert(loginFXGUI, "Wrong credentials received....Please try again.", JOptionPane.ERROR_MESSAGE);
+            if(loginGUI.isActive()){
+                onAlert(loginGUI, "Wrong credentials received....Please try again.", JOptionPane.ERROR_MESSAGE);
             }
         }catch (Throwable e){
             System.out.println("Login GUI Could not be displayed " + e);
@@ -263,15 +244,15 @@ public class EventManager implements FrameManagerListener {
 
     /**
      * When the user clicks on the menu item contact in the {@link PhoneGUIMenuBar}
-     * Opens up a new {@link ContactsGUI}, only if the user is registered, else opens an {@link AlertFrame}
+     * Opens up a new {@link ContactListGUI}, only if the user is registered, else opens an {@link AlertFrame}
      */
     @Override
     public void menuContactListOpen() {
         SwingUtilities.invokeLater(() -> {
             try {
                 if(account.isAuthenticated()){
-                    contactsGUI = new ContactsGUI(this,account);
-                    contactsGUI.showWindow();
+                    contactListGUI = new ContactListGUI(phone, account);
+                    contactListGUI.showWindow();
                 }else{
                     onAlert(phoneGUI, "You have to be logged in to see your contacts, go to File --> Login", JOptionPane.INFORMATION_MESSAGE);
                 }
@@ -304,14 +285,14 @@ public class EventManager implements FrameManagerListener {
 
     /**
      * When the user clicks on the menu item preferences in the {@link PhoneGUIMenuBar}
-     * Opens up a new {@link AboutFXFrame}.
+     * Opens up a new {@link AboutFrame}.
      */
     @Override
     public void menuAboutOpen() {
         SwingUtilities.invokeLater(() -> {
             try {
-                AboutFXFrame aboutFXFrame = new AboutFXFrame();
-                aboutFXFrame.showWindow();
+                AboutFrame aboutFrame = new AboutFrame();
+                aboutFrame.showWindow();
 
             }catch (Throwable e){
                 System.out.println("Preferences GUI could not be displayed " + e);
@@ -322,15 +303,15 @@ public class EventManager implements FrameManagerListener {
 
     /**
      * When the user clicks on the menu item preferences in the {@link PhoneGUIMenuBar}
-     * Opens up a new {@link AccountFXFrame}.
+     * Opens up a new {@link AccountFrame}.
      */
     @Override
     public void menuAccountOpen() {
         SwingUtilities.invokeLater(() -> {
             try {
                 if(account.isAuthenticated()){
-                    AccountFXFrame accountFXFrame = new AccountFXFrame(this);
-                    accountFXFrame.showWindow();
+                    AccountFrame accountFrame = new AccountFrame(account);
+                    accountFrame.showWindow();
                 }else{
                     new AlertFrame().showAlert(phoneGUI,"You have to be logged in to see your account information, go to File --> Login", JOptionPane.INFORMATION_MESSAGE);
                 }

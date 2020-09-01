@@ -1,6 +1,6 @@
-package com.wisekrakr.communiwise.gui.layouts.gui.menu;
+package com.wisekrakr.communiwise.gui.layouts.fx.menu;
 
-import com.wisekrakr.communiwise.gui.ext.AbstractGUI;
+import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Line;

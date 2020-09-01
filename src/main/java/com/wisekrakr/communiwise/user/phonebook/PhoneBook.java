@@ -65,28 +65,32 @@ public class PhoneBook {
      * Attempts to add a new entry to the map of phone book entriesMap by name
      * after validating the name and number.
      * @param username The name of the contact
-     * @param domain
+     * @param domain The domain of the contact
      * @param extension The phone number of the contact
      * @return the result of the action.
      * ADDED or UPDATED means the contact was successfully added
      */
-    public void addContact(String username, String domain, int extension/*, boolean isNew*/) {
+    public PhoneBookEntry addContact(String username, String domain, int extension ) {
+        PhoneBookEntry entry;
+
         if(isValidName(username) && isValidName(domain)){
 
             //make the name lowercase for consistency
             username = username.toLowerCase();
 
-            PhoneBookEntry existingEntryByName = entriesMap.get(username);
+            entry = entriesMap.get(username);
             //check if the contact already exists in the map by name
-            if(existingEntryByName != null){
-                existingEntryByName.setDomain(domain);
-                existingEntryByName.setExtension(extension);
+            if(entry != null){
+                entry.setDomain(domain);
+                entry.setExtension(extension);
 
                 //mark this contact as unsaved because its been changed
-                existingEntryByName.setIsNew(false);
+                entry.setIsNew(false);
             } else {
                 //if not, create the new contact and add it to the map by name
-                entriesMap.put(username, new PhoneBookEntry(username, domain, extension/*, isNew*/));
+                entry = new PhoneBookEntry(username, domain, extension, Math.random() * 100000000);
+
+                entriesMap.put(username, entry);
             }
             //increment the number of unsaved changes
             numUnsavedChanges++;
@@ -94,6 +98,8 @@ public class PhoneBook {
             //fail
             throw new IllegalStateException(PhoneBook.class.getName() + ": Could not add to phonebook");
         }
+
+        return entry;
 
     }
 

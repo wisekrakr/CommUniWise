@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane fx:id="container" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="440.0" prefWidth="325.0" style="-fx-background-color: #125f65;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.wisekrakr.communiwise.gui.layouts.fx.call.AudioCallController">
+   <children>
+      <ImageView fitHeight="166.0" fitWidth="152.0" layoutX="84.0" layoutY="68.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../images/person.png" />
+         </image></ImageView>
+      <Label fx:id="username" alignment="CENTER" contentDisplay="CENTER" layoutX="19.0" layoutY="23.0" prefHeight="18.0" prefWidth="282.0" text="username" textAlignment="CENTER" textFill="#b0e4ea" wrapText="true">
+         <font>
+            <Font name="FilmotypeMeredith-Regular" size="15.0" />
+         </font>
+      </Label>
+      <Label fx:id="address" alignment="CENTER" contentDisplay="CENTER" layoutX="19.0" layoutY="45.0" prefHeight="18.0" prefWidth="282.0" text="address" textAlignment="CENTER" textFill="#b0e4ea" wrapText="true">
+         <font>
+            <Font name="FilmotypeMeredith-Regular" size="15.0" />
+         </font></Label>
+      <Label layoutX="84.0" layoutY="238.0" prefHeight="17.0" prefWidth="152.0" text="time" textFill="WHITE">
+         <font>
+            <Font name="FilmotypeMeredith-Regular" size="12.0" />
+         </font>
+      </Label>
+      <Text fx:id="status" layoutX="228.0" layoutY="19.0" strokeType="OUTSIDE" strokeWidth="0.0" text="status" wrappingWidth="96.212890625" />
+      <AnchorPane layoutY="255.0" prefHeight="187.0" prefWidth="325.0">
+         <children>
+            <Button fx:id="muteButton" layoutY="7.0" mnemonicParsing="false" onMouseClicked="#mute" prefHeight="89.0" prefWidth="80.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" wrapText="true" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="7.0">
+               <tooltip>
+                  <Tooltip style="-fx-background-color: #115358;" text="Mute">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Tooltip>
+               </tooltip>
+               <graphic>
+                  <ImageView id="muteImage" fx:id="muteImage" fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/unmute.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+               <font>
+                  <Font size="1.0" />
+               </font>
+            </Button>
+            <Button fx:id="recordButton" layoutX="80.0" layoutY="7.0" mnemonicParsing="false" onMouseClicked="#record" prefHeight="89.0" prefWidth="80.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="7.0">
+               <tooltip>
+                  <Tooltip style="-fx-background-color: #115358;" text="Record">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Tooltip>
+               </tooltip>
+               <graphic>
+                  <ImageView id="recordImage" fx:id="recordImage" fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/not-record.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+            <Button fx:id="inviteButton" layoutY="96.0" mnemonicParsing="false" onMouseClicked="#invite" prefHeight="89.0" prefWidth="80.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" wrapText="true">
+               <tooltip>
+                  <Tooltip style="-fx-background-color: #115358;" text="Invite contact to call">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Tooltip>
+               </tooltip>
+               <graphic>
+                  <ImageView fx:id="inviteImage" fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/add-contact.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+               <font>
+                  <Font size="1.0" />
+               </font>
+            </Button>
+            <Button fx:id="contactListButton" layoutX="80.0" layoutY="96.0" mnemonicParsing="false" onMouseClicked="#openContactList" prefHeight="89.0" prefWidth="80.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css">
+               <tooltip>
+                  <Tooltip style="-fx-background-color: #115358;" text="Contact List">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Tooltip>
+               </tooltip>
+               <graphic>
+                  <ImageView fx:id="contactListImage" fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/contact-list-call.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+            <Button fx:id="muteButton2" layoutX="162.0" layoutY="7.0" mnemonicParsing="false" onMouseClicked="#mute" prefHeight="89.0" prefWidth="80.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" wrapText="true">
+               <tooltip>
+                  <Tooltip style="-fx-background-color: #115358;">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Tooltip>
+               </tooltip>
+               <graphic>
+                  <ImageView fx:id="muteImage2" fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true" />
+               </graphic>
+               <font>
+                  <Font size="1.0" />
+               </font>
+            </Button>
+            <Button fx:id="playButton" layoutX="242.0" layoutY="7.0" mnemonicParsing="false" onMouseClicked="#play" prefHeight="89.0" prefWidth="80.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css">
+               <tooltip>
+                  <Tooltip style="-fx-background-color: #115358;" text="Play Remote Sound">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Tooltip>
+               </tooltip>
+               <graphic>
+                  <ImageView id="playImage" fx:id="playImage" fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/play.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+            <Button fx:id="muteButton11" layoutX="162.0" layoutY="96.0" mnemonicParsing="false" onMouseClicked="#mute" prefHeight="89.0" prefWidth="80.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" wrapText="true">
+               <tooltip>
+                  <Tooltip style="-fx-background-color: #115358;">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Tooltip>
+               </tooltip>
+               <graphic>
+                  <ImageView fx:id="muteImage11" fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true" />
+               </graphic>
+               <font>
+                  <Font size="1.0" />
+               </font>
+            </Button>
+            <Button fx:id="hangUpButton" layoutX="242.0" layoutY="96.0" mnemonicParsing="false" onMouseClicked="#close" prefHeight="89.0" prefWidth="80.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css">
+               <tooltip>
+                  <Tooltip style="-fx-background-color: #115358;" text="Hang Up">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Tooltip>
+               </tooltip>
+               <graphic>
+                  <ImageView fx:id="hangUpImage" fitHeight="60.0" fitWidth="60.0" opacity="0.66" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/hang-up.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+         </children>
+      </AnchorPane>
+   </children>
+</AnchorPane>

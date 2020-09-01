@@ -1,11 +1,12 @@
 package com.wisekrakr.communiwise.gui.layouts.components;
 
 import com.wisekrakr.communiwise.gui.layouts.PhoneGUI;
+import javafx.scene.image.ImageView;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class ImageIconCreator {
+public class ImageCreator {
     /**
      * Creates an ImageIcon, either for a button or not.
      *
@@ -34,4 +35,5 @@ public class ImageIconCreator {
             throw new IllegalArgumentException("Could not find path to image " + path,t);
         }
     }
+
 }

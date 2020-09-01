@@ -1,6 +1,7 @@
 package com.wisekrakr.communiwise.user;
 
 import com.wisekrakr.communiwise.user.phonebook.PhoneBook;
+import com.wisekrakr.communiwise.user.phonebook.PhoneBookEntry;
 
 public class ContactManager {
     private PhoneBook phoneBook;
@@ -30,83 +31,49 @@ public class ContactManager {
     }
 
     /**
-     * Handles the user's last menu selection.
-     * @return true if the phone book method worked otherwise returns false
+     * A method for adding PhoneBookEntries, this differs from the method below so that we can also return that entry
+     * @param username name of the contact
+     * @param domain domain of the contact
+     * @param extension extension number of the contact
+     * @return a new phonebook entry
      */
-    public boolean handleUserMenuSelection(UserOption userOption, String username, String domain, int extension) {
+    public PhoneBookEntry addContact(String username, String domain, int extension){
+        try {
+            return phoneBook.addContact(username, domain, extension);
 
-        switch (userOption) {
-            case VIEW_CONTACTS:
-                phoneBook.display();
-                return true;
-
-            case ADD_CONTACT:
-                try {
-                    phoneBook.addContact(username, domain, extension/*, false*/);
-                    return true;
-
-                }catch (Throwable e){
-                    throw new IllegalStateException("Could not add contact",e);
-                }
-
-            case DELETE_CONTACT:
-
-                try {
-                    phoneBook.deleteContact(username);
-                    return true;
-
-                }catch (Throwable e){
-                    throw new IllegalStateException("Could not delete contact",e);
-                }
-
-            case SAVE:
-                try {
-                    phoneBook.save();
-                    return true;
-
-                }catch (Throwable e){
-                    throw new IllegalStateException("Could not save phonebook",e);
-                }
-            default:
-                return false;
+        }catch (Throwable e){
+            throw new IllegalStateException("Could not add contact",e);
         }
-
     }
 
     /**
-     * An enum representing the types of options
-     * the user can choose from in the menu to perform actions.
+     * A method to delete an entry out of the user's phonebook. The entry is searched on an unique username.
+     * @param username the contact's username
+     * @return true if there is no exception
      */
-    public enum UserOption {
-        VIEW_CONTACTS("1","View Contacts"),
-        ADD_CONTACT("2", "Add Contact"),
-        DELETE_CONTACT("3", "Delete Contact"),
-        SAVE("4", "Save");
+    public boolean deleteContact(String username){
+        try {
+            phoneBook.deleteContact(username);
+            return true;
 
-        private final String description;
-        private String key;
-
-
-        UserOption(String key, String s) {
-            this.key = key;
-            this.description = s;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public String getKey() {
-            return key;
-        }
-
-        public static UserOption getByKey(String key){
-            for(UserOption userOption : values()){
-                if( userOption.getKey().equals(key)){
-                    return userOption;
-                }
-            }
-            return null;
+        }catch (Throwable e){
+            throw new IllegalStateException("Could not delete contact",e);
         }
     }
+
+    /**
+     * Saves all entries in the phonebook.
+     * @return true if there is no exception
+     */
+    public boolean savePhoneBook(){
+        try {
+            phoneBook.save();
+            return true;
+
+        }catch (Throwable e){
+            throw new IllegalStateException("Could not save phonebook",e);
+        }
+    }
+
+
 }

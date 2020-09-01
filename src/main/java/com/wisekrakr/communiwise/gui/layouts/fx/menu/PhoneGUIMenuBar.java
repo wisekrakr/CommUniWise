@@ -1,11 +1,11 @@
-package com.wisekrakr.communiwise.gui.layouts.gui.menu;
+package com.wisekrakr.communiwise.gui.layouts.fx.menu;
 
 
 import com.wisekrakr.communiwise.gui.EventManager;
 
 import javax.swing.*;
 
-import static com.wisekrakr.communiwise.gui.layouts.components.ImageIconCreator.addImageIcon;
+import static com.wisekrakr.communiwise.gui.layouts.components.ImageCreator.addImageIcon;
 
 /**
  * A simple menu bar. With three option menus with various items.

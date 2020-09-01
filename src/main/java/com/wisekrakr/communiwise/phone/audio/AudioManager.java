@@ -57,25 +57,25 @@ public class AudioManager {
     }
 
     public void startRecordingWavFile(){
+
+
         wavFile = new File("src/main/resources/" + Math.random() * 1000 + ".wav");
 
-        if(!Thread.currentThread().isInterrupted()){
-            recorder = new Thread(()->{
-                try {
-//                    DataLine.Info info = new DataLine.Info(TargetDataLine.class, WAV_FORMAT);
-//                    targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
-//                    targetDataLine.open(WAV_FORMAT);
-//                    targetDataLine.start();
+        recorder = new Thread(()->{
+            AudioInputStream ais = null;
+            try {
+                while(!Thread.currentThread().isInterrupted()) {
 
-                    AudioInputStream ais = new AudioInputStream(targetDataLine);
+                    ais = new AudioInputStream(targetDataLine);
 
                     AudioSystem.write(ais, AudioFileFormat.Type.WAVE, wavFile);
-
-                } catch (Throwable e) {
-                    System.out.println("Recording thread has stopped unexpectedly " + e.getMessage());
                 }
-            });
-        }
+                ais.close();
+            } catch (Throwable e) {
+                System.out.println("Recording thread has stopped unexpectedly " + e.getMessage());
+            }
+        });
+
 
         recorder.setDaemon(true);
 
