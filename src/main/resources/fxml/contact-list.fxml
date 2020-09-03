@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="577.0" prefWidth="443.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.wisekrakr.communiwise.gui.layouts.fx.menu.ContactListController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="577.0" prefWidth="443.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" >
    <children>
       <AnchorPane prefHeight="258.0" prefWidth="442.0">
          <children>
@@ -32,6 +32,9 @@
                <cursor>
                   <Cursor fx:constant="OPEN_HAND" />
                </cursor>
+               <font>
+                  <Font name="FilmotypeMeredith-Regular" size="12.0" />
+               </font>
             </Button>
          </children>
       </AnchorPane>

@@ -1,45 +1,37 @@
-package com.wisekrakr.communiwise.gui.layouts.fx.menu;
+package com.wisekrakr.communiwise.gui.layouts.fx.app.menu;
 
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
-import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
 
 import java.awt.*;
 
 public class AccountFrame extends AbstractGUI {
 
-    private JFXPanel jfxPanel;
-    private final AccountAPI account;
+    private static final int DESIRED_HEIGHT = 207;
+    private static final int DESIRED_WIDTH = 375;
 
+    private final AccountAPI account;
 
     public AccountFrame(AccountAPI account) {
         this.account = account;
-
-        new AccountController().initialize(account, this);
-
-        prepareGUI();
     }
 
     @Override
     public void prepareGUI() {
         setUndecorated(true);
 
-        jfxPanel = new JFXPanel();
-        add(jfxPanel, BorderLayout.CENTER);
-
-        setPreferredSize(new Dimension(375, 207));
-
+        setPreferredSize(new Dimension(DESIRED_WIDTH, DESIRED_HEIGHT));
         setLocationRelativeTo(null);
 
+        AccountController controller = (AccountController) new AccountController(account.getUserInfo(), this).initialize("/account.fxml");
+        controller.initComponents();
+
+        add(controller,BorderLayout.CENTER);
     }
 
     @Override
     public void showWindow() {
         pack();
         setVisible(true);
-
-        initializeJFXPanel(jfxPanel, "/account.fxml");
-
     }
 }

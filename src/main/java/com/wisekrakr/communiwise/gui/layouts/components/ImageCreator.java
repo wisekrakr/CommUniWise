@@ -1,7 +1,6 @@
 package com.wisekrakr.communiwise.gui.layouts.components;
 
-import com.wisekrakr.communiwise.gui.layouts.PhoneGUI;
-import javafx.scene.image.ImageView;
+import com.wisekrakr.communiwise.gui.layouts.fx.app.PhoneGUI;
 
 import javax.swing.*;
 import java.awt.*;

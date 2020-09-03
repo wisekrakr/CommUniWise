@@ -1,16 +1,15 @@
-package com.wisekrakr.communiwise.gui.layouts.fx.menu;
+package com.wisekrakr.communiwise.gui.layouts.fx.app.menu;
 
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.gui.layouts.components.AlertFrame;
 import com.wisekrakr.communiwise.gui.layouts.components.Contact;
-import com.wisekrakr.communiwise.gui.layouts.fx.ControllerContext;
+import com.wisekrakr.communiwise.gui.layouts.fx.ControllerJFXPanel;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.user.phonebook.PhoneBookEntry;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -19,17 +18,16 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 
 import javax.swing.*;
-import java.net.URL;
-import java.util.ResourceBundle;
 
-public class ContactListController implements ControllerContext, Initializable {
+public class ContactListController extends ControllerJFXPanel {
 
-    private static PhoneAPI phone;
-    private static AccountAPI account;
-    private static AbstractGUI gui;
+    private final PhoneAPI phone;
+    private final AccountAPI account;
+    private final AbstractGUI gui;
 
     private ObservableList<Contact> contactList;
     private Contact selectedContact;
+
 
     @FXML
     private TableView<Contact> table;
@@ -41,10 +39,10 @@ public class ContactListController implements ControllerContext, Initializable {
     private TextField nameField, extensionField, domainField;
 
 
-    public void initialize(PhoneAPI phone, AccountAPI account, AbstractGUI gui) {
-        ContactListController.phone = phone;
-        ContactListController.account = account;
-        ContactListController.gui = gui;
+    public ContactListController(PhoneAPI phone, AccountAPI account, AbstractGUI gui) {
+        this.phone = phone;
+        this.account = account;
+        this.gui = gui;
     }
 
     @FXML
@@ -115,13 +113,15 @@ public class ContactListController implements ControllerContext, Initializable {
         }
     }
 
-    @Override
-    public void close() {
+
+    @FXML
+    private void close() {
         gui.hideWindow();
     }
 
+
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    public void initComponents() {
         colName.setCellValueFactory(new PropertyValueFactory<>("Name"));
         colExtension.setCellValueFactory(new PropertyValueFactory<>("Extension"));
         colDomain.setCellValueFactory(new PropertyValueFactory<>("Domain"));
@@ -129,13 +129,11 @@ public class ContactListController implements ControllerContext, Initializable {
         contactList = FXCollections.observableArrayList();
 
         for (PhoneBookEntry contact : account.getContacts()) {
-            System.out.println(contact.getUsername());
-
             contactList.add(new Contact(contact.getUsername(),contact.getDomain(), String.valueOf(contact.getExtension()), contact.getContactId()));
-
         }
         table.setItems(contactList);
 
         onSelectedTableItem();
     }
+
 }

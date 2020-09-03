@@ -1,40 +1,32 @@
 package com.wisekrakr.communiwise.gui.layouts.fx.call;
 
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.fx.ControllerContext;
+import com.wisekrakr.communiwise.gui.layouts.fx.ControllerJFXPanel;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.phone.calling.CallInstance;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 
-import java.net.URL;
-import java.util.ResourceBundle;
+import javax.swing.*;
+import java.security.SecureRandom;
+import java.util.stream.Collectors;
 
-public class IncomingCallController implements ControllerContext, Initializable {
-    private static AbstractGUI gui;
-    private static CallInstance callInstance;
-    private static PhoneAPI phone;
+public class IncomingCallController extends ControllerJFXPanel {
+    private AbstractGUI gui;
+    private CallInstance callInstance;
+    private PhoneAPI phone;
+    private Timer timer;
 
     @FXML
     private Label username;
 
-
-    public void initialize(PhoneAPI phone, AbstractGUI gui, CallInstance callInstance) {
-        IncomingCallController.phone = phone;
-        IncomingCallController.gui = gui;
-        IncomingCallController.callInstance = callInstance;
-
-    }
-
-    private void showInfo(){
-        username.setText(callInstance.getDisplayName());
-
-//        username.setVisible(true);
+    public IncomingCallController(PhoneAPI phone, AbstractGUI gui, CallInstance callInstance) {
+        this.phone = phone;
+        this.gui = gui;
+        this.callInstance = callInstance;
     }
 
     @FXML
-    @Override
     public void close() {
         phone.reject();
 
@@ -51,9 +43,38 @@ public class IncomingCallController implements ControllerContext, Initializable 
         phone.reject();
     }
 
-
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        showInfo();
+    public void initComponents() {
+        if(callInstance != null){
+            username.setText(callInstance.getDisplayName());
+        }
+    }
+
+    @FXML
+    private void showInfo(){
+//        Platform.runLater(()->{
+//            timer = new Timer(1, new ActionListener() {
+//                public void actionPerformed(ActionEvent e) {
+//                    String randomCode = createRandomCode(8, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+//
+//                    username.setText(randomCode);
+//
+//                }
+//            });
+//            timer.start();
+//        });
+
+//        if(callInstance != null){
+//            username.setText(callInstance.getDisplayName());
+//        }
+//        timer.stop();
+    }
+
+    private static String createRandomCode(int codeLength, String id) {
+        return new SecureRandom()
+                .ints(codeLength, 0, id.length())
+                .mapToObj(id::charAt)
+                .map(Object::toString)
+                .collect(Collectors.joining());
     }
 }

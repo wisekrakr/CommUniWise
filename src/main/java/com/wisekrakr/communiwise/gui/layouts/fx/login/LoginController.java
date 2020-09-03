@@ -1,29 +1,26 @@
 package com.wisekrakr.communiwise.gui.layouts.fx.login;
 
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.fx.ControllerContext;
+import com.wisekrakr.communiwise.gui.layouts.fx.ControllerJFXPanel;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
-import java.net.URL;
-import java.util.ResourceBundle;
 
-
-public class LoginController implements ControllerContext, Initializable {
-    private static PhoneAPI phone;
-    private static AbstractGUI gui;
+public class LoginController extends ControllerJFXPanel {
+    private final PhoneAPI phone;
+    private final AbstractGUI gui;
 
     @FXML
     private TextField username, address, domain, realm;
     @FXML
     private PasswordField password;
 
-    public void initialize(PhoneAPI phone, AbstractGUI gui) {
-        LoginController.phone = phone;
-        LoginController.gui = gui;
+    public LoginController(PhoneAPI phone, AbstractGUI gui) {
+        this.phone = phone;
+        this.gui = gui;
+
     }
 
     @FXML
@@ -59,9 +56,8 @@ public class LoginController implements ControllerContext, Initializable {
         gui.hideWindow();
     }
 
-
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    public void initComponents() {
         username.setText("damian2");
         domain.setText("asterisk.interzone");
         password.setText("45jf83f");

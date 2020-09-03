@@ -1,15 +1,16 @@
 package com.wisekrakr.communiwise.gui;
 
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.*;
 import com.wisekrakr.communiwise.gui.layouts.components.AlertFrame;
+import com.wisekrakr.communiwise.gui.layouts.fx.app.PhoneGUI;
+import com.wisekrakr.communiwise.gui.layouts.fx.app.PhoneGUIController;
 import com.wisekrakr.communiwise.gui.layouts.fx.call.IncomingCallGUI;
 import com.wisekrakr.communiwise.gui.layouts.fx.call.AudioCallGUI;
 import com.wisekrakr.communiwise.gui.layouts.fx.login.LoginGUI;
-import com.wisekrakr.communiwise.gui.layouts.fx.menu.AboutFrame;
-import com.wisekrakr.communiwise.gui.layouts.fx.menu.AccountFrame;
-import com.wisekrakr.communiwise.gui.layouts.fx.menu.ContactListGUI;
-import com.wisekrakr.communiwise.gui.layouts.fx.menu.PhoneGUIMenuBar;
+import com.wisekrakr.communiwise.gui.layouts.fx.app.menu.AboutFrame;
+import com.wisekrakr.communiwise.gui.layouts.fx.app.menu.AccountFrame;
+import com.wisekrakr.communiwise.gui.layouts.fx.app.menu.ContactListGUI;
+import com.wisekrakr.communiwise.gui.layouts.fx.app.menu.PreferencesGUI;
 import com.wisekrakr.communiwise.operations.DeviceImplementations;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
@@ -25,14 +26,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * This class will hold all GUI's and opens and closes them when the user call for it. It also handles showing error screens/frames when it is needed.
+ * This class will hold all GUI's and opens and closes them. It also handles showing error screens/frames when it is needed.
  *
  * The EventManager is used in in the SipManagerListener for the most part, to keep everything in one place.
  * However, it also is used in some GUI's for easy access from one GUI to another.
  *
- * We also keep track of multiple Call GUI's, if there are multiple calls, so that when we want to close a call screen/frame, we close the right one, bases of the call-id
+ * We also keep track of multiple Call GUI's, if there are multiple calls, so that when we want to close a call screen/frame, we close the right one, based on the CallInstance
  *
- * We also initialize the phone, account and sound api here, so that we can pass them to the screen/frame that will need it and we wont have to keep initializing them all over the app.
+ * We also initialize the phone, account and sound api here, so that we can pass them to every screen/frame that will need it and we wont have to keep initializing them all over the app.
  *
  */
 
@@ -59,7 +60,11 @@ public class EventManager implements FrameManagerListener {
         account = impl.getAccountApi();
         sound = impl.getSoundApi();
 
+    }
 
+    private void activateGUI(AbstractGUI gui){
+        gui.prepareGUI();
+        gui.showWindow();
     }
 
     /**
@@ -69,11 +74,11 @@ public class EventManager implements FrameManagerListener {
     @Override
     public void onOutgoingCall(CallInstance callInstance) {
         SwingUtilities.invokeLater(() -> {
-            AudioCallGUI audioCallGUI = new AudioCallGUI(phone, sound, callInstance);
+            AudioCallGUI audioCallGUI = new AudioCallGUI(this, phone, sound, callInstance);
 
             callGUIs.put(callInstance, audioCallGUI);
 
-            audioCallGUI.showWindow();
+            activateGUI(audioCallGUI);
         });
     }
 
@@ -88,7 +93,7 @@ public class EventManager implements FrameManagerListener {
 
             callGUIs.put(callInstance, incomingCallGUI);
 
-            incomingCallGUI.showWindow();
+            activateGUI(incomingCallGUI);
         });
 
         sound.ringing(true);
@@ -104,6 +109,8 @@ public class EventManager implements FrameManagerListener {
         for(AbstractGUI s: callGUIs.entrySet().stream().filter(cc -> callInstance.getId().equals(cc.getKey().getId())).map(Map.Entry::getValue).collect(Collectors.toList())){
             s.hideWindow();
 
+            callGUIs.remove(callInstance);
+
             sound.ringing(false);
         }
     }
@@ -118,6 +125,8 @@ public class EventManager implements FrameManagerListener {
             if (c.getKey().getId().equals(callId)) {
 
                 c.getValue().hideWindow();
+
+                callGUIs.remove(c.getKey());
             }
         }
     }
@@ -132,11 +141,11 @@ public class EventManager implements FrameManagerListener {
         hideAcceptCallGUI(callInstance.getId());
 
         SwingUtilities.invokeLater(() -> {
-            AudioCallGUI audioCallGUI = new AudioCallGUI(phone, sound, callInstance);
+            AudioCallGUI audioCallGUI = new AudioCallGUI(this, phone, sound, callInstance);
 
             callGUIs.put(callInstance, audioCallGUI);
 
-            audioCallGUI.showWindow();
+            activateGUI(audioCallGUI);
         });
 
         sound.ringing(false);
@@ -180,12 +189,12 @@ public class EventManager implements FrameManagerListener {
             }
 
             phoneGUI = new PhoneGUI(this, phone, account);
-            phoneGUI.showWindow();
+            activateGUI(phoneGUI);
         });
     }
 
     /**
-     * When the user wants to register/login a new {@link com.wisekrakr.communiwise.gui.layouts.LoginGUI} gets created
+     * When the user wants to register/login a new {@link LoginGUI} gets created
      */
     @Override
     public void onRegistering() {
@@ -194,7 +203,7 @@ public class EventManager implements FrameManagerListener {
             try {
                 loginGUI = new LoginGUI(phone);
 
-                loginGUI.showWindow();
+                activateGUI(loginGUI);
 
             } catch (Exception e) {
                 System.out.println("Login GUI Could not be displayed " + e);
@@ -204,7 +213,7 @@ public class EventManager implements FrameManagerListener {
     }
 
     /**
-     * When the user clicked the register button, the {@link com.wisekrakr.communiwise.gui.layouts.LoginGUI} gets hidden
+     * When the user clicked the register button, the {@link LoginGUI} gets hidden
      */
     @Override
     public void onRegistered() {
@@ -243,7 +252,7 @@ public class EventManager implements FrameManagerListener {
     }
 
     /**
-     * When the user clicks on the menu item contact in the {@link PhoneGUIMenuBar}
+     * When the user clicks on the menu item contact in the {@link PhoneGUIController}
      * Opens up a new {@link ContactListGUI}, only if the user is registered, else opens an {@link AlertFrame}
      */
     @Override
@@ -252,21 +261,20 @@ public class EventManager implements FrameManagerListener {
             try {
                 if(account.isAuthenticated()){
                     contactListGUI = new ContactListGUI(phone, account);
-                    contactListGUI.showWindow();
+                    activateGUI(contactListGUI);
                 }else{
                     onAlert(phoneGUI, "You have to be logged in to see your contacts, go to File --> Login", JOptionPane.INFORMATION_MESSAGE);
                 }
 
 
-            }catch (Throwable e){
-                System.out.println("Contact list GUI could not be displayed " + e);
-
+            }catch (Throwable t){
+                throw new IllegalStateException("Contact list GUI could not be displayed ", t);
             }
         });
     }
 
     /**
-     * When the user clicks on the menu item preferences in the {@link PhoneGUIMenuBar}
+     * When the user clicks on the menu item preferences in the {@link PhoneGUIController}
      * Opens up a new {@link PreferencesGUI}.
      */
     @Override
@@ -274,17 +282,18 @@ public class EventManager implements FrameManagerListener {
         SwingUtilities.invokeLater(() -> {
             try {
                 preferencesGUI = new PreferencesGUI(sound);
-                preferencesGUI.showWindow();
+                activateGUI(preferencesGUI);
 
-            }catch (Throwable e){
-                System.out.println("Preferences GUI could not be displayed " + e);
+            }catch (Throwable t){
+                throw new IllegalStateException("Preferences GUI could not be displayed ", t);
+
 
             }
         });
     }
 
     /**
-     * When the user clicks on the menu item preferences in the {@link PhoneGUIMenuBar}
+     * When the user clicks on the menu item preferences in the {@link PhoneGUIController}
      * Opens up a new {@link AboutFrame}.
      */
     @Override
@@ -292,33 +301,32 @@ public class EventManager implements FrameManagerListener {
         SwingUtilities.invokeLater(() -> {
             try {
                 AboutFrame aboutFrame = new AboutFrame();
-                aboutFrame.showWindow();
+                activateGUI(aboutFrame);
 
-            }catch (Throwable e){
-                System.out.println("Preferences GUI could not be displayed " + e);
-
+            }catch (Throwable t){
+                throw new IllegalStateException("About GUI could not be displayed ", t);
             }
         });
     }
 
     /**
-     * When the user clicks on the menu item preferences in the {@link PhoneGUIMenuBar}
+     * When the user clicks on the menu item preferences in the {@link PhoneGUIController}
      * Opens up a new {@link AccountFrame}.
      */
     @Override
     public void menuAccountOpen() {
         SwingUtilities.invokeLater(() -> {
             try {
+
                 if(account.isAuthenticated()){
                     AccountFrame accountFrame = new AccountFrame(account);
-                    accountFrame.showWindow();
+                    activateGUI(accountFrame);
                 }else{
                     new AlertFrame().showAlert(phoneGUI,"You have to be logged in to see your account information, go to File --> Login", JOptionPane.INFORMATION_MESSAGE);
                 }
 
-            }catch (Throwable e){
-                System.out.println("Preferences GUI could not be displayed " + e);
-
+            }catch (Throwable t){
+                throw new IllegalStateException("Account GUI could not be displayed ", t);
             }
         });
     }

@@ -1,20 +1,12 @@
-package com.wisekrakr.communiwise.gui.layouts.fx.menu;
+package com.wisekrakr.communiwise.gui.layouts.fx.app.menu;
 
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
-import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
 
 import java.awt.*;
 
 public class AboutFrame extends AbstractGUI {
 
-    private JFXPanel jfxPanel;
-
     public AboutFrame() {
-
-        new AboutController().initialize(this);
-
-        prepareGUI();
     }
 
     @Override
@@ -22,19 +14,16 @@ public class AboutFrame extends AbstractGUI {
 
         setUndecorated(true);
 
-        jfxPanel = new JFXPanel();
-        add(jfxPanel, BorderLayout.CENTER);
-
         setPreferredSize(new Dimension(220, 207));
         setLocationRelativeTo(null);
+
+        add(new AboutController(this).initialize("/about.fxml"), BorderLayout.CENTER);
     }
 
     @Override
     public void showWindow() {
         pack();
         setVisible(true);
-
-        initializeJFXPanel(jfxPanel, "/about.fxml");
     }
 
 }

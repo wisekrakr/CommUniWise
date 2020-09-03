@@ -1,8 +1,11 @@
 package com.wisekrakr.communiwise.gui.layouts.fx.call;
 
+import com.wisekrakr.communiwise.gui.EventManager;
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.gui.layouts.fx.ControllerContext;
+import com.wisekrakr.communiwise.gui.layouts.fx.ControllerJFXPanel;
 import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
+import com.wisekrakr.communiwise.gui.layouts.utils.Status;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.operations.apis.SoundAPI;
 import com.wisekrakr.communiwise.phone.calling.CallInstance;
@@ -24,12 +27,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
 
-public class AudioCallController implements ControllerContext, Initializable {
+public class AudioCallController extends ControllerJFXPanel {
 
-    private static PhoneAPI phone;
-    private static SoundAPI sound;
-    private static AbstractGUI gui;
-    private static CallInstance callInstance;
+    private final EventManager eventManager;
+    private final PhoneAPI phone;
+    private final SoundAPI sound;
+    private final AbstractGUI gui;
+    private final CallInstance callInstance;
 
     private final Map<String, Button> buttons = new HashMap<>();
 
@@ -44,15 +48,14 @@ public class AudioCallController implements ControllerContext, Initializable {
 
     private boolean isMuted, isRecording,isPlaying;
 
-    public AudioCallController initialize(PhoneAPI phone, SoundAPI sound, AbstractGUI gui, CallInstance callInstance){
-        AudioCallController.phone = phone;
-        AudioCallController.sound = sound;
-        AudioCallController.gui = gui;
-        AudioCallController.callInstance = callInstance;
+    public AudioCallController(EventManager eventManager, PhoneAPI phone, SoundAPI sound, AbstractGUI gui, CallInstance callInstance){
+        this.eventManager = eventManager;
+        this.phone = phone;
+        this.sound = sound;
+        this.gui = gui;
+        this.callInstance = callInstance;
 
-        return this;
     }
-
 
     private void onHover(){
         for(Button button: buttons.values()){
@@ -99,7 +102,7 @@ public class AudioCallController implements ControllerContext, Initializable {
 
     @FXML
     private void openContactList(){
-
+        eventManager.menuContactListOpen();
     }
 
     private void clickButtonForAction(boolean isDoing, ImageView imageView, String resourceA, String resourceB){
@@ -147,7 +150,7 @@ public class AudioCallController implements ControllerContext, Initializable {
         }
     }
 
-    @Override
+    @FXML
     public void close() {
         phone.hangup(callInstance.getId());
 
@@ -155,12 +158,12 @@ public class AudioCallController implements ControllerContext, Initializable {
     }
 
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    public void initComponents() {
         if(callInstance != null){
             username.setText(callInstance.getSipAddress().toString());
             address.setText(callInstance.getProxyAddress().toString());
 
-            showStatus();
+            Status.show(phone, status);
         }else{
             throw new IllegalStateException("Could not initialize: There is no active call ");
         }
@@ -171,56 +174,8 @@ public class AudioCallController implements ControllerContext, Initializable {
         buttons.put("play", playButton);
         buttons.put("invite", inviteButton);
         buttons.put("contactList", contactListButton);
-
-//        onHover();
     }
 
-    private void showStatus() {
-        System.out.println("STATUS BITCH   ========> " + phone.callStatus());
-        switch (phone.callStatus()){
-            case 603:
-                status.setText("Decline");
-                status.setFill(Color.ORANGE);
-                break;
-            case 486:
-                status.setText("Busy");
-                status.setFill(Color.ORANGE);
-                break;
-            case 408:
-                status.setText("Request Timeout");
-                status.setFill(Color.RED);
-                break;
-            case 403:
-                status.setText("Forbidden");
-                status.setFill(Color.RED);
-                break;
-            case 401:
-                status.setText("Unauthorized");
-                status.setFill(Color.RED);
-                break;
-            case 400:
-                status.setText("Bad Request");
-                status.setFill(Color.RED);
-                break;
-            case 200:
-                status.setText("OK");
-                status.setFill(Color.GREEN);
-                break;
-            case 100:
-                status.setText("Trying");
-                status.setFill(Color.ORANGE);
-                break;
-            case 180:
-                status.setText("Ringing");
-                status.setFill(Color.BLUE);
-                break;
-            case 183:
-                status.setText("Session Progress");
-                status.setFill(Color.YELLOW);
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + phone.callStatus());
-        }
 
-    }
+
 }
