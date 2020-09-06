@@ -2,12 +2,13 @@ package com.wisekrakr.communiwise.main;
 
 
 import com.wisekrakr.communiwise.phone.audio.AudioManager;
-import com.wisekrakr.communiwise.phone.calling.CallInstance;
+import com.wisekrakr.communiwise.user.history.CallInstance;
 import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
 import com.wisekrakr.communiwise.operations.DeviceImplementations;
 import com.wisekrakr.communiwise.gui.EventManager;
 import com.wisekrakr.communiwise.phone.sip.SipManager;
 import com.wisekrakr.communiwise.phone.sip.SipManagerListener;
+import com.wisekrakr.communiwise.user.ContactManager;
 import com.wisekrakr.communiwise.user.SipAccountManager;
 
 import javax.sip.address.Address;
@@ -120,9 +121,11 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void onRemoteBye(CallInstance callInstance) {
-                        rtpConnectionManager.stopStreamingAudio();
 
                         eventManager.onHangUp(callInstance);
+
+                        rtpConnectionManager.stopStreamingAudio();
+
                     }
 
                     @Override
@@ -137,7 +140,6 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void callConfirmed(CallInstance callInstance) {
-                        System.out.println("THIS IS A NEW CALL ======== >" +callInstance.getProxyAddress() + "  name:  " + callInstance.getDisplayName());
                         try {
                             rtpConnectionManager.connectRTPAudio(callInstance.getProxyAddress());
 
@@ -146,8 +148,6 @@ public class PhoneApplication implements Serializable {
                         }
 
                         eventManager.onOutgoingCall(callInstance);
-
-
                     }
 
                     @Override
@@ -160,6 +160,7 @@ public class PhoneApplication implements Serializable {
 
                         eventManager.onIncomingCall(callInstance);
 
+                        System.out.println(" ON RINGING ===>   " + callInstance.getId());
                     }
 
                     @Override
@@ -175,6 +176,9 @@ public class PhoneApplication implements Serializable {
                         }
 
                         eventManager.onAcceptingCall(callInstance);
+
+                        System.out.println(" ON ACCEPTING ===>   " + callInstance.getId());
+
                     }
 
                     @Override
@@ -224,9 +228,11 @@ public class PhoneApplication implements Serializable {
 
         AudioManager audioManager = new AudioManager(rtpConnectionManager.getSocket(), inputLine, outputLine);
 
-        sipManager.initialize(accountManager);
+        ContactManager contactManager = new ContactManager();
 
-        DeviceImplementations impl = new DeviceImplementations(sipManager, rtpConnectionManager, accountManager,audioManager);
+        sipManager.initialize(accountManager,contactManager);
+
+        DeviceImplementations impl = new DeviceImplementations(sipManager, rtpConnectionManager, accountManager,audioManager,contactManager);
 
         eventManager = new EventManager(impl);
         eventManager.open();

@@ -3,7 +3,7 @@ package com.wisekrakr.communiwise.gui.layouts.fx.call;
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.gui.layouts.fx.ControllerJFXPanel;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
-import com.wisekrakr.communiwise.phone.calling.CallInstance;
+import com.wisekrakr.communiwise.user.history.CallInstance;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 

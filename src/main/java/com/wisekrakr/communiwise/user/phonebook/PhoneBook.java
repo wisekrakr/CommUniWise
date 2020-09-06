@@ -10,8 +10,7 @@ public class PhoneBook {
     private final String fileName;
     //Stores entries for this phone book. The entries of this map may be referred to as contacts
     private final HashMap<String,PhoneBookEntry> entriesMap = new HashMap<>();
-    //the number of unsaved changes, such as new or removed contacts, to this phone book.
-    private int numUnsavedChanges = 0;
+
 
     /**
      * Constructs a new phone book with the provided file name.
@@ -54,14 +53,6 @@ public class PhoneBook {
     }
 
     /**
-     *
-     * @return the number of unsaved changes to this PhoneBook
-     */
-    public int getNumUnsavedChanges() {
-        return numUnsavedChanges;
-    }
-
-    /**
      * Attempts to add a new entry to the map of phone book entriesMap by name
      * after validating the name and number.
      * @param username The name of the contact
@@ -92,8 +83,7 @@ public class PhoneBook {
 
                 entriesMap.put(username, entry);
             }
-            //increment the number of unsaved changes
-            numUnsavedChanges++;
+
         } else {
             //fail
             throw new IllegalStateException(PhoneBook.class.getName() + ": Could not add to phonebook");
@@ -111,7 +101,6 @@ public class PhoneBook {
         if(phoneBookEntries != null) {
             for (PhoneBookEntry entry : phoneBookEntries) {
                 if (entry != null) {
-                    //bypass validation and add the contact to the map by name.
                     entriesMap.put(entry.getUsername(), entry);
                 }
             }
@@ -124,13 +113,7 @@ public class PhoneBook {
      */
     public void deleteContact(String name) {
         if(name != null) {
-            //make the name lowercase for consistency
-            name = name.toLowerCase();
-
-            //try to remove the contact from the map by name
-            boolean success = entriesMap.remove(name) != null;
-            //if it was removed, increment the number of unsaved changes by one
-            if (success) numUnsavedChanges++;
+            entriesMap.remove(name.toLowerCase());
         }
     }
 
@@ -156,23 +139,13 @@ public class PhoneBook {
         return name != null && !name.trim().isEmpty();
     }
 
-    /**
-     * Checks whether or not the provided number is a valid phone number
-     * @param number The number to check
-     * @return true if the provided number is a valid phone number
-     */
-    private boolean isValidPhoneNumber(String number) {
-        return number != null && number.replace(" ", "").matches("[0-9]+") && number.length() > 7 && number.length() < 20;
-    }
 
     /**
      * Tries to save this PhoneBook's contacts to disk
      * @return Returns true if the save was successful and false otherwise.
      */
     public boolean save() {
-        boolean success = PhoneBookFileManager.save(this);
-        if(success) numUnsavedChanges = 0;
-        return success;
+        return PhoneBookFileManager.save(this);
     }
 
     /**
@@ -184,10 +157,4 @@ public class PhoneBook {
         return PhoneBookFileManager.load((fileName));
     }
 
-    /**
-     * Enum representing the types of results that can be returned from a call to addContact()
-     */
-    public enum AddContactResult {
-        ADDED, UPDATED, INVALID_NAME, INVALID_NUMBER
-    }
 }

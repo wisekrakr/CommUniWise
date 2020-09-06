@@ -3,15 +3,19 @@ package com.wisekrakr.communiwise.gui.layouts.fx.app;
 import com.wisekrakr.communiwise.gui.EventManager;
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.gui.layouts.components.AlertFrame;
+import com.wisekrakr.communiwise.gui.layouts.components.Contact;
+import com.wisekrakr.communiwise.gui.layouts.components.IconCreator;
 import com.wisekrakr.communiwise.gui.layouts.fx.ControllerJFXPanel;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
-import com.wisekrakr.communiwise.user.SipAccountManager;
+import com.wisekrakr.communiwise.user.history.CallInstance;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Text;
 
 import javax.swing.*;
@@ -23,16 +27,21 @@ public class PhoneGUIController extends ControllerJFXPanel {
     private final AbstractGUI gui;
     private final EventManager eventManager;
 
+    private Contact selectedContact;
+
     @FXML
     private TextField extensionField, domainField, portField;
     @FXML
-    private Label username, address, contacts;
-    @FXML
     private MenuItem loginMenuItem, prefsMenuItem, quitMenuItem, editMenuItem, contactsMenuItem, aboutMenuItem;
     @FXML
-    private ToggleButton showDetails;
+    private Button messengerButton, audioCallButton, videoCallButton, refreshButton, clearButton;
     @FXML
     private Text status;
+    @FXML
+    private TableView<Contact> table;
+    @FXML
+    private TableColumn<Contact, String> colDate, colExtension, colDomain;
+
 
     public PhoneGUIController(EventManager eventManager, PhoneAPI phone, AccountAPI account, AbstractGUI gui) {
         this.eventManager = eventManager;
@@ -51,44 +60,93 @@ public class PhoneGUIController extends ControllerJFXPanel {
     }
 
     @FXML
-    private void showDetails(){
-        if (account.isAuthenticated() && showDetails.isSelected()) {
+    private void clear(){
+        account.clearCallLogBook();
 
-            username.setText("Welcome : " + account.getUserInfo().get(SipAccountManager.UserInfoPart.USERNAME.getInfoPart()));
-            address.setText("your domain: " + account.getUserInfo().get(SipAccountManager.UserInfoPart.DOMAIN.getInfoPart()));
-            contacts.setText("number of contacts " + account.getContacts().size());
+        showRecentCalls();
+    }
 
-            showDetails.setText("Hide");
-        }else if(!showDetails.isSelected()){
-            username.setText("Account details hidden!");
-            address.setText("");
-            contacts.setText("");
+    @FXML
+    private void refresh(){
+        showRecentCalls();
+    }
 
-            showDetails.setText("Show");
+    private void onSelectedTableItem(){
+        table.setOnMouseClicked((MouseEvent event) -> {
 
-        }else{
-            showDetails.setSelected(false);
-            showDetails.setText("Show");
+            if (event.getClickCount() > 1) {
+                if (table.getSelectionModel().getSelectedItem() != null) {
+                    selectedContact = table.getSelectionModel().getSelectedItem();
 
-            new AlertFrame().showAlert(gui, "You have to register first, go to: File -> Login ", JOptionPane.INFORMATION_MESSAGE);
-        }
+                    extensionField.setText(selectedContact.getExtension());
+                    domainField.setText(selectedContact.getDomain());
+                    portField.setText("5060");
+
+                }
+            }
+        });
 
     }
 
     @Override
     public void initComponents() {
 
-        loginMenuItem.setOnAction(event -> {
-            eventManager.onRegistering();
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                loginMenuItem.setOnAction(event -> {
+                    eventManager.onRegistering();
+                });
+                quitMenuItem.setOnAction(event -> eventManager.close());
+                editMenuItem.setOnAction(event -> eventManager.menuAccountOpen());
+                contactsMenuItem.setOnAction(event -> eventManager.menuContactListOpen());
+                aboutMenuItem.setOnAction(event -> eventManager.menuAboutOpen());
+                prefsMenuItem.setOnAction(event -> eventManager.menuPreferencesOpen());
+
+                messengerButton.setGraphic(IconCreator.addIconForButton("/images/chat.png", 20,20 ));
+                audioCallButton.setGraphic(IconCreator.addIconForButton("/images/mic.png", 20,20  ));
+                videoCallButton.setGraphic(IconCreator.addIconForButton("/images/video-call.png", 20,20  ));
+                refreshButton.setGraphic(IconCreator.addIconForButton("/images/refresh.png", 15,15  ));
+                clearButton.setGraphic(IconCreator.addIconForButton("/images/clear.png", 15,15  ));
+
+                colDate.setCellValueFactory(new PropertyValueFactory<>("Name"));
+                colExtension.setCellValueFactory(new PropertyValueFactory<>("Extension"));
+                colDomain.setCellValueFactory(new PropertyValueFactory<>("Domain"));
+            }
         });
-        quitMenuItem.setOnAction(event -> eventManager.close());
-        editMenuItem.setOnAction(event -> eventManager.menuAccountOpen());
-        contactsMenuItem.setOnAction(event -> eventManager.menuContactListOpen());
-        aboutMenuItem.setOnAction(event -> eventManager.menuAboutOpen());
-        prefsMenuItem.setOnAction(event -> eventManager.menuPreferencesOpen());
 
-        username.setText("Login to see your account details!");
 
+
+
+//        if(account.isAuthenticated() && account.getContacts() != null){
+//            for (PhoneBookEntry contact : account.getContacts()) {
+//                contactList.add(new Contact(contact.getUsername(),contact.getDomain(), String.valueOf(contact.getExtension()), contact.getContactId()));
+//            }
+//        }
+
+        showRecentCalls();
+        onSelectedTableItem();
+
+    }
+
+    public void showRecentCalls(){
+        ObservableList<Contact> contactList = FXCollections.observableArrayList();
+
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                if(account.isAuthenticated() && account.getCallLogs() != null){
+                    for (CallInstance callInstance : account.getCallLogs()) {
+
+                        System.out.println(callInstance.getFromCallDate());
+
+                        contactList.add(new Contact(callInstance.getFromCallDate(), callInstance.getProxyAddress().getAddress().getHostName(),callInstance.getDisplayName(), callInstance.getContactId()));
+                    }
+                }
+
+                table.setItems(contactList);
+            }
+        });
     }
 
     private boolean checkForInputs(){

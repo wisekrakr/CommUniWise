@@ -1,46 +1,34 @@
-package com.wisekrakr.communiwise.user.phonebook;
+package com.wisekrakr.communiwise.user.history;
 
 import java.io.*;
 import java.util.Collection;
 import java.util.LinkedList;
 
-/**
- * This class is used to save and load the entries of a PhoneBook to and from file on disk
- * by means of serialization and deserialization
- */
-public class PhoneBookFileManager {
+public class CallLogFileManager {
     /**
-     * Seriliazes Collection of the entries of a PhoneBook and saves in disk.
-     * @param phoneBook The phonebook to be saved
+     * Seriliazes Collection of the entries of a CallLogBook and saves in disk.
+     * @param callLogBook the call log book to be saved
      * @return Returns true if save was successful and false otherwise.
      */
-    protected static boolean save(PhoneBook phoneBook) {
-        if(phoneBook != null) {
-            String fileName = phoneBook.getFileName();
+    protected static boolean save(CallLogBook callLogBook) {
+        if(callLogBook != null) {
+            String fileName = callLogBook.getFileName();
 
-            //make sure the file is a txt file
             String fileNameAndExt = getFileNameWithExtension(fileName);
 
             FileOutputStream fileOutputStream = null;
             ObjectOutputStream objectOutputStream = null;
             try {
-                //create a file output stream to write the objects to
+
                 fileOutputStream = new FileOutputStream(fileNameAndExt);
-                //create an object output stream to write out the objects to the file
+
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
 
-                /*convert the collection of phone book entries into a LinkedList
-                because LinkedLists implement Serializable*/
-                LinkedList<PhoneBookEntry> serializableList = new LinkedList<>(phoneBook.getEntries());
-                //write the serializable list to the object output stream
-                objectOutputStream.writeObject(serializableList);
-                //flush the object output stream
-                objectOutputStream.flush();
+                LinkedList<CallInstance> serializableList = new LinkedList<>(callLogBook.getEntries());
 
-                //set each entry's isNew value to false because they are saved now.
-                for(PhoneBookEntry entry: serializableList) {
-                    entry.setIsNew(false);
-                }
+                objectOutputStream.writeObject(serializableList);
+
+                objectOutputStream.flush();
 
                 return true;
             } catch (IOException e) {
@@ -57,49 +45,42 @@ public class PhoneBookFileManager {
     }
 
     /**
-     * Find the file holding the serialized PhoneBookEntry Collection,
-     * deserialize it and return a containing PhoneBook of its elements.
-     * @param fileName The name of the file from which to load the phone book's entries from.
-     * @return Returns a new PhoneBook if loading succeeded and null otherwise.
+     * Find the file holding the serialized CallInstancesEntry Collection,
+     * deserialize it and return a containing CallLog of its elements.
+     * @param fileName The name of the file from which to load the call log book's entries from.
+     * @return Returns a new CallLogBook if loading succeeded and null otherwise.
      */
-    protected static PhoneBook load(String fileName) throws IOException{
+    protected static CallLogBook load(String fileName) throws IOException{
         if(fileName != null && !fileName.trim().isEmpty()) {
-            //make sure the file is a txt file
             String fileNameWithExt = getFileNameWithExtension(fileName);
 
             FileInputStream fileInputStream = null;
             ObjectInputStream objectinputstream = null;
 
-
             try {
-
-                //create the file input stream with the fileNameWithExt to read the objects from
+//todo find the reason why I cannot create a new book when there is none found
                 fileInputStream = new FileInputStream(fileNameWithExt);
-                //create an object input stream on the file input stream to read in the objects from the file
                 objectinputstream = new ObjectInputStream(fileInputStream);
 
-                //read the deserialized object from the object input stream and cast it to a collection of PhoneBookEntry
-                Collection<PhoneBookEntry> deserializedPhoneBookEntries = (Collection<PhoneBookEntry>) objectinputstream.readObject();
+                Collection<CallInstance> deserializedCallInstancesEntries = (Collection<CallInstance>) objectinputstream.readObject();
 
-                //create a new PhoneBook to load the deserialized entries into
-                PhoneBook phoneBook = new PhoneBook(fileName);
-                //add the collection of phone book entries to the phone book
-                phoneBook.addFromFile(deserializedPhoneBookEntries);
+                CallLogBook callLogBook = new CallLogBook(fileName);
+                callLogBook.addFromFile(deserializedCallInstancesEntries);
 
-                return phoneBook;
+                return callLogBook;
             } catch (Throwable e) {
-                //fail
                 System.out.println("Failed to load file " + e.getMessage());
 
 //                throw new IllegalStateException("Failed to load file ",e);
+
             }  finally {
+
                 //before proceeding, close input streams if they were opened
                 closeCloseable(fileInputStream);
                 closeCloseable(objectinputstream);
             }
         }
 
-        //fail
         return null;
     }
 

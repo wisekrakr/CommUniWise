@@ -1,6 +1,6 @@
 package com.wisekrakr.communiwise.phone.sip;
 
-import com.wisekrakr.communiwise.phone.calling.CallInstance;
+import com.wisekrakr.communiwise.user.history.CallInstance;
 
 import javax.sip.address.Address;
 

@@ -14,8 +14,8 @@ public class PhoneGUI extends AbstractGUI {
     private final PhoneAPI phone;
     private final AccountAPI account;
 
-    private static final int DESIRED_HEIGHT = 257;
-    private static final int DESIRED_WIDTH = 900;
+    private static final int DESIRED_HEIGHT = 310;
+    private static final int DESIRED_WIDTH = 910;
 
 
     public PhoneGUI(EventManager eventManager, PhoneAPI phone, AccountAPI account) {

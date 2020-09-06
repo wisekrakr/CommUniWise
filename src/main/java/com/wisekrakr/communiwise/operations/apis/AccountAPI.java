@@ -1,6 +1,7 @@
 package com.wisekrakr.communiwise.operations.apis;
 
 import com.wisekrakr.communiwise.user.ContactManager;
+import com.wisekrakr.communiwise.user.history.CallInstance;
 import com.wisekrakr.communiwise.user.phonebook.PhoneBookEntry;
 
 import java.util.Collection;
@@ -18,4 +19,10 @@ public interface AccountAPI {
     boolean deleteContact(String username);
     boolean savePhoneBook();
     Collection<PhoneBookEntry>getContacts();
+
+    void addCallInstance(CallInstance callInstance);
+    boolean deleteCallInstance(String id);
+    boolean saveCallLogBook();
+    boolean clearCallLogBook();
+    Collection<CallInstance>getCallLogs();
 }

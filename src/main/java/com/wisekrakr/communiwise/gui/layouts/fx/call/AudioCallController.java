@@ -2,16 +2,17 @@ package com.wisekrakr.communiwise.gui.layouts.fx.call;
 
 import com.wisekrakr.communiwise.gui.EventManager;
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.fx.ControllerContext;
 import com.wisekrakr.communiwise.gui.layouts.fx.ControllerJFXPanel;
 import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
 import com.wisekrakr.communiwise.gui.layouts.utils.Status;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.operations.apis.SoundAPI;
-import com.wisekrakr.communiwise.phone.calling.CallInstance;
+import com.wisekrakr.communiwise.user.history.CallInstance;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -21,11 +22,13 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 
-import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 public class AudioCallController extends ControllerJFXPanel {
 
@@ -40,13 +43,15 @@ public class AudioCallController extends ControllerJFXPanel {
     @FXML
     private Button muteButton, recordButton, hangUpButton, playButton, inviteButton, contactListButton;
     @FXML
-    private Label username, address;
+    private Label username, address,time,date;
     @FXML
     private ImageView muteImage, recordImage, playImage;
     @FXML
     private Text status;
 
     private boolean isMuted, isRecording,isPlaying;
+    private TimeKeeper timeKeeper;
+    private String callTime;
 
     public AudioCallController(EventManager eventManager, PhoneAPI phone, SoundAPI sound, AbstractGUI gui, CallInstance callInstance){
         this.eventManager = eventManager;
@@ -129,9 +134,6 @@ public class AudioCallController extends ControllerJFXPanel {
         }catch (Throwable t){
             throw new IllegalStateException("Could not set new image", t);
         }
-
-
-
     }
 
     @FXML
@@ -154,7 +156,13 @@ public class AudioCallController extends ControllerJFXPanel {
     public void close() {
         phone.hangup(callInstance.getId());
 
+        callInstance.setCallDuration(time.getText());
+
+
+
         gui.hideWindow();
+
+//        timeKeeper.stop();
     }
 
     @Override
@@ -163,6 +171,12 @@ public class AudioCallController extends ControllerJFXPanel {
             username.setText(callInstance.getSipAddress().toString());
             address.setText(callInstance.getProxyAddress().toString());
 
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    date.setText(callInstance.getCallDate());
+                }
+            });
             Status.show(phone, status);
         }else{
             throw new IllegalStateException("Could not initialize: There is no active call ");
@@ -176,6 +190,37 @@ public class AudioCallController extends ControllerJFXPanel {
         buttons.put("contactList", contactListButton);
     }
 
+    class TimeKeeper {
 
+        private Timeline clock;
+        private long time;
+        private String callTime;
+
+        public String getCallTime(){
+
+            clock = new Timeline(new KeyFrame(Duration.ZERO, e -> {
+
+                time = System.currentTimeMillis();
+
+                System.out.println(time);
+
+                DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+                Date date = new Date(time);
+
+                callTime = dateFormat.format(date);
+
+            }), new KeyFrame(Duration.seconds(1)));
+
+//            clock.setCycleCount(Animation.INDEFINITE);
+            clock.play();
+
+            return callTime;
+        }
+
+        public void stop() {
+//            clock.stop();
+            clock.pause();
+        }
+    }
 
 }

@@ -14,7 +14,7 @@ public class AboutFrame extends AbstractGUI {
 
         setUndecorated(true);
 
-        setPreferredSize(new Dimension(220, 207));
+        setPreferredSize(new Dimension(209, 207));
         setLocationRelativeTo(null);
 
         add(new AboutController(this).initialize("/about.fxml"), BorderLayout.CENTER);

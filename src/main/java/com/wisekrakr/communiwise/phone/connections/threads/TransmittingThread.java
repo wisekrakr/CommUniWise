@@ -75,11 +75,7 @@ public class TransmittingThread {
                     while (!Thread.currentThread().isInterrupted()) {
                         int read = rawDataInput.read(rawBuffer);
 
-//                        printData(rawBuffer,read);
-
                         int encoded = g722Encoder.encode(encodingBuffer, rawBuffer, read);
-
-//                        System.out.println("Read : " + read + " encoded : " + encoded);
 
                         encodedDataOutput.write(encodingBuffer, 0, encoded);
                     }

@@ -2,21 +2,16 @@ package com.wisekrakr.communiwise.gui.layouts.fx.call;
 
 import com.wisekrakr.communiwise.gui.EventManager;
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.components.ButtonSpecial;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.operations.apis.SoundAPI;
-import com.wisekrakr.communiwise.phone.calling.CallInstance;
-import javafx.embed.swing.JFXPanel;
+import com.wisekrakr.communiwise.user.history.CallInstance;
 
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 
 public class AudioCallGUI extends AbstractGUI {
     private static final int DESIRED_HEIGHT = 440;
-    private static final int DESIRED_WIDTH = 270;
+    private static final int DESIRED_WIDTH = 245;
 
     private final EventManager eventManager;
     private final PhoneAPI phone;

@@ -9,6 +9,7 @@ import com.wisekrakr.communiwise.operations.apis.SoundAPI;
 import com.wisekrakr.communiwise.phone.sip.SipManager;
 import com.wisekrakr.communiwise.user.ContactManager;
 import com.wisekrakr.communiwise.user.SipAccountManager;
+import com.wisekrakr.communiwise.user.history.CallInstance;
 import com.wisekrakr.communiwise.user.phonebook.PhoneBookEntry;
 
 import javax.sound.sampled.*;
@@ -24,13 +25,12 @@ public class DeviceImplementations {
     private final SipAccountManager accountManager;
     private final ContactManager contactManager;
 
-    public DeviceImplementations(SipManager sipManager, RTPConnectionManager rtpConnectionManager,SipAccountManager accountManager,AudioManager audioManager) {
+    public DeviceImplementations(SipManager sipManager, RTPConnectionManager rtpConnectionManager, SipAccountManager accountManager, AudioManager audioManager, ContactManager contactManager) {
         this.sipManager = sipManager;
         this.rtpConnectionManager = rtpConnectionManager;
         this.accountManager = accountManager;
         this.audioManager = audioManager;
-
-        contactManager = new ContactManager();
+        this.contactManager = contactManager;
     }
 
     public SoundAPI getSoundApi(){
@@ -138,6 +138,12 @@ public class DeviceImplementations {
                 }catch (Throwable e){
                     throw new IllegalArgumentException("Phonebook could not be loaded", e);
                 }
+
+                try {
+                    contactManager.loadCallLogBook("history"+username);
+                }catch (Throwable e){
+                    throw new IllegalArgumentException("Call Log Book could not be loaded", e);
+                }
             }
 
             @Override
@@ -186,6 +192,31 @@ public class DeviceImplementations {
             @Override
             public Collection<PhoneBookEntry> getContacts() {
                 return contactManager.getPhoneBook().getEntries();
+            }
+
+            @Override
+            public void addCallInstance(CallInstance callInstance) {
+                contactManager.addCallInstance(callInstance);
+            }
+
+            @Override
+            public boolean deleteCallInstance(String id) {
+                return contactManager.deleteCallInstance(id);
+            }
+
+            @Override
+            public boolean saveCallLogBook() {
+                return contactManager.saveCallLogBook();
+            }
+
+            @Override
+            public boolean clearCallLogBook() {
+                return contactManager.clearCallLogBook();
+            }
+
+            @Override
+            public Collection<CallInstance> getCallLogs() {
+                return contactManager.getCallLogBook().getEntries();
             }
         };
     }

@@ -2,15 +2,12 @@ package com.wisekrakr.communiwise.gui.layouts.fx.call;
 
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
-import com.wisekrakr.communiwise.phone.calling.CallInstance;
-import javafx.embed.swing.JFXPanel;
+import com.wisekrakr.communiwise.user.history.CallInstance;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.security.SecureRandom;
-import java.util.stream.Collectors;
 
 public class IncomingCallGUI extends AbstractGUI {
 

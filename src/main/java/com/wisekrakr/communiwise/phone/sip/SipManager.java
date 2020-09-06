@@ -1,9 +1,10 @@
 package com.wisekrakr.communiwise.phone.sip;
 
 
-import com.wisekrakr.communiwise.phone.calling.CallInstance;
+import com.wisekrakr.communiwise.user.history.CallInstance;
 import com.wisekrakr.communiwise.phone.sip.ext.SipClient;
 import com.wisekrakr.communiwise.phone.sip.ext.SipSessionState;
+import com.wisekrakr.communiwise.user.ContactManager;
 import com.wisekrakr.communiwise.user.SipAccountManager;
 import gov.nist.javax.sdp.SessionDescriptionImpl;
 import gov.nist.javax.sdp.fields.AttributeField;
@@ -51,6 +52,7 @@ public class SipManager implements SipClient {
     private final String proxyHost;
     private final int proxyPort;
     private SipAccountManager accountManager;
+    private ContactManager contactManager;
 
     private int traceLevel = 0;
     private String serverLogFile;
@@ -104,8 +106,9 @@ public class SipManager implements SipClient {
         return this;
     }
 
-    public void initialize(SipAccountManager accountManager) throws Exception {
+    public void initialize(SipAccountManager accountManager, ContactManager contactManager) throws Exception {
         this.accountManager = accountManager;
+        this.contactManager = contactManager;
 
         sipSessionState = SipSessionState.IDLE;
 
@@ -200,24 +203,20 @@ public class SipManager implements SipClient {
                                 case Request.BYE:
                                     sipSessionState = SipSessionState.IDLE;
 
-                                    System.out.println("BYE received");
-
                                     if (transaction == null) {
                                         System.out.println("Process Bye:  null TID.");
                                     } else {
-                                        Dialog dialog = transaction.getDialog();
                                         Response response = messageFactory.createResponse(Response.OK, requestEvent.getRequest());
                                         transaction.sendResponse(response);
-                                        System.out.println("Sending OK");
-                                        System.out.println("Dialog State = " + dialog.getState());
+
+                                        System.out.println("BYE received");
+
+                                        listener.onRemoteBye(getCurrentCallInstance(callId.getCallId()));
+
+                                        removeFromCallInstances(callId.getCallId());
                                     }
 
-                                    listener.onRemoteBye(getCurrentCallInstance(callId.getCallId()));
-
-                                    removeFromCallInstances(callId.getCallId());
-
                                     break;
-
                                 case Request.ACK:
                                     System.out.println("Process Ack: got an ACK! " + request);
 
@@ -340,9 +339,14 @@ public class SipManager implements SipClient {
 
                                         ToHeader toHeader = (ToHeader) processedResponse.getHeader(ToHeader.NAME);
 
+                                        String name = toHeader.getAddress().toString();
 
+                                        name = name.substring(name.indexOf(":") + 1);
+                                        name = name.substring(0, name.indexOf("@"));
 
-                                        CallInstance callInstance = new CallInstance(callId.getCallId(), toHeader.getAddress().getDisplayName(),
+                                        toHeader.getAddress().setDisplayName(name);
+
+                                        CallInstance callInstance = new CallInstance(callId.getCallId(), name,
                                                 new InetSocketAddress(sessionDescription.getConnection().getAddress(),incomingMediaDescriptor.getMedia().getMediaPort()),
                                                 toHeader.getAddress());
 
@@ -593,6 +597,7 @@ public class SipManager implements SipClient {
         try {
             for (Map.Entry<String, CallInstance> c : callInstances.entrySet()) {
                 if (c.getValue().getId().equals(callId)) {
+
                     callInstances.remove(callId);
                 }
             }
@@ -660,8 +665,7 @@ public class SipManager implements SipClient {
             String rtpPort = StringUtils.substring(requestSDP.toString(),requestSDP.toString().lastIndexOf("m=audio") + 8, requestSDP.toString().lastIndexOf("m=audio") + 13);
 
             for (Map.Entry<String, CallInstance> c : callInstances.entrySet()) {
-                if (c.getValue().getDisplayName().contains(fromHeader.getAddress().getDisplayName())) {
-
+                if (c.getValue().getSipAddress().getURI().equals(fromHeader.getAddress().getURI())) {
                     listener.onAccepted(c.getValue(), Integer.parseInt(rtpPort));
                 }
             }

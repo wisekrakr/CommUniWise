@@ -3,6 +3,8 @@ package com.wisekrakr.communiwise.gui.layouts.components;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 
+import java.time.LocalDate;
+
 public class Contact {
 
     private SimpleStringProperty name;
@@ -12,7 +14,6 @@ public class Contact {
 
     public Contact() {
     }
-
 
     public Contact(String name, String domain, String extension, double id) {
         this.name = new SimpleStringProperty(name);

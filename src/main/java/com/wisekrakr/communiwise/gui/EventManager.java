@@ -15,7 +15,7 @@ import com.wisekrakr.communiwise.operations.DeviceImplementations;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.operations.apis.SoundAPI;
-import com.wisekrakr.communiwise.phone.calling.CallInstance;
+import com.wisekrakr.communiwise.user.history.CallInstance;
 
 
 import javax.sip.address.Address;
@@ -106,12 +106,14 @@ public class EventManager implements FrameManagerListener {
      */
     @Override
     public void onHangUp(CallInstance callInstance) {
+
         for(AbstractGUI s: callGUIs.entrySet().stream().filter(cc -> callInstance.getId().equals(cc.getKey().getId())).map(Map.Entry::getValue).collect(Collectors.toList())){
             s.hideWindow();
 
             callGUIs.remove(callInstance);
 
-            sound.ringing(false);
+            account.addCallInstance(callInstance);
+            account.saveCallLogBook();
         }
     }
 
@@ -176,7 +178,7 @@ public class EventManager implements FrameManagerListener {
     }
 
     /**
-     * When the user start the app. A new {@link PhoneGUI} gets created.
+     * When the user starts the app. A new {@link LoginGUI} gets created.
      */
     @Override
     public void open() {
@@ -188,8 +190,11 @@ public class EventManager implements FrameManagerListener {
                 System.out.println("WARNING: unable to set look and feel, will continue");
             }
 
-            phoneGUI = new PhoneGUI(this, phone, account);
-            activateGUI(phoneGUI);
+//            phoneGUI = new PhoneGUI(this, phone, account);
+//            activateGUI(phoneGUI);
+
+            loginGUI = new LoginGUI(phone);
+            activateGUI(loginGUI);
         });
     }
 
@@ -213,7 +218,7 @@ public class EventManager implements FrameManagerListener {
     }
 
     /**
-     * When the user clicked the register button, the {@link LoginGUI} gets hidden
+     * When the user clicked the register button, the {@link LoginGUI} gets hidden and a new app {@link PhoneGUI} starts up
      */
     @Override
     public void onRegistered() {
@@ -222,6 +227,9 @@ public class EventManager implements FrameManagerListener {
 
         try {
             loginGUI.hideWindow();
+
+            phoneGUI = new PhoneGUI(this, phone, account);
+            activateGUI(phoneGUI);
         } catch (Exception e) {
             e.printStackTrace();
         }

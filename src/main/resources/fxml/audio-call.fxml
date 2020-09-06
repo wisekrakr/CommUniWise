@@ -9,7 +9,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane fx:id="container" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="440.0" prefWidth="240.0" style="-fx-background-color: #125f65;" xmlns="http://javafx.com/javafx/8.0.101" xmlns:fx="http://javafx.com/fxml/1" >
+<AnchorPane fx:id="container" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="440.0" prefWidth="245.0" style="-fx-background-color: #125f65; -fx-border-color: #b0e4ea; -fx-border-style: solid;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <ImageView fitHeight="166.0" fitWidth="152.0" layoutX="44.0" layoutY="103.0" pickOnBounds="true" preserveRatio="true">
          <image>
@@ -24,10 +24,20 @@
          <font>
             <Font name="FilmotypeMeredith-Regular" size="15.0" />
          </font></Label>
-      <Text fx:id="status" layoutX="205.0" layoutY="12.0" strokeType="OUTSIDE" strokeWidth="0.0" text="status" wrappingWidth="42.212890625" />
-      <AnchorPane layoutY="255.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="187.0" prefWidth="241.0">
+      <Text fx:id="status" layoutX="209.0" layoutY="18.0" strokeType="OUTSIDE" strokeWidth="0.0" text="status" wrappingWidth="33.212890625" />
+      <Label fx:id="time" layoutX="44.0" layoutY="262.0" prefHeight="17.0" prefWidth="152.0" text="time" textFill="WHITE">
+         <font>
+            <Font name="FilmotypeMeredith-Regular" size="12.0" />
+         </font>
+      </Label>
+      <Label fx:id="date" layoutX="3.0" layoutY="6.0" prefHeight="17.0" prefWidth="152.0" text="date" textFill="WHITE">
+         <font>
+            <Font name="FilmotypeMeredith-Regular" size="12.0" />
+         </font>
+      </Label>
+      <AnchorPane layoutX="3.0" layoutY="280.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="152.0" prefWidth="240.0">
          <children>
-            <Button fx:id="muteButton" layoutY="67.0" mnemonicParsing="false" onMouseClicked="#mute" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" wrapText="true" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="67.0">
+            <Button fx:id="muteButton" layoutY="37.0" mnemonicParsing="false" onMouseClicked="#mute" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" wrapText="true" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="37.0">
                <tooltip>
                   <Tooltip style="-fx-background-color: #115358;" text="Mute">
                      <font>
@@ -46,7 +56,7 @@
                   <Font size="1.0" />
                </font>
             </Button>
-            <Button fx:id="recordButton" layoutX="60.0" layoutY="67.0" mnemonicParsing="false" onMouseClicked="#record" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" AnchorPane.leftAnchor="60.0" AnchorPane.topAnchor="67.0">
+            <Button fx:id="recordButton" layoutX="60.0" layoutY="37.0" mnemonicParsing="false" onMouseClicked="#record" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" AnchorPane.leftAnchor="60.0" AnchorPane.topAnchor="37.0">
                <tooltip>
                   <Tooltip style="-fx-background-color: #115358;" text="Record">
                      <font>
@@ -62,7 +72,7 @@
                   </ImageView>
                </graphic>
             </Button>
-            <Button fx:id="inviteButton" layoutY="127.0" mnemonicParsing="false" onMouseClicked="#invite" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" wrapText="true">
+            <Button fx:id="inviteButton" layoutY="97.0" mnemonicParsing="false" onMouseClicked="#invite" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" wrapText="true">
                <tooltip>
                   <Tooltip style="-fx-background-color: #115358;" text="Invite contact to call">
                      <font>
@@ -81,7 +91,7 @@
                   <Font size="1.0" />
                </font>
             </Button>
-            <Button fx:id="contactListButton" layoutX="60.0" layoutY="127.0" mnemonicParsing="false" onMouseClicked="#openContactList" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css">
+            <Button fx:id="contactListButton" layoutX="60.0" layoutY="97.0" mnemonicParsing="false" onMouseClicked="#openContactList" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css">
                <tooltip>
                   <Tooltip style="-fx-background-color: #115358;" text="Contact List">
                      <font>
@@ -97,7 +107,7 @@
                   </ImageView>
                </graphic>
             </Button>
-            <Button fx:id="muteButton2" layoutX="120.0" layoutY="67.0" mnemonicParsing="false" onMouseClicked="#mute" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" wrapText="true">
+            <Button defaultButton="true" layoutX="120.0" layoutY="37.0" mnemonicParsing="false" onMouseClicked="#mute" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" wrapText="true">
                <tooltip>
                   <Tooltip style="-fx-background-color: #115358;">
                      <font>
@@ -106,13 +116,13 @@
                   </Tooltip>
                </tooltip>
                <graphic>
-                  <ImageView fx:id="muteImage2" fitHeight="45.0" fitWidth="45.0" pickOnBounds="true" preserveRatio="true" />
+                  <ImageView fitHeight="45.0" fitWidth="45.0" pickOnBounds="true" preserveRatio="true" />
                </graphic>
                <font>
                   <Font size="1.0" />
                </font>
             </Button>
-            <Button fx:id="playButton" layoutX="180.0" layoutY="67.0" mnemonicParsing="false" onMouseClicked="#play" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css">
+            <Button fx:id="playButton" layoutX="180.0" layoutY="37.0" mnemonicParsing="false" onMouseClicked="#play" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css">
                <tooltip>
                   <Tooltip style="-fx-background-color: #115358;" text="Play Remote Sound">
                      <font>
@@ -128,7 +138,7 @@
                   </ImageView>
                </graphic>
             </Button>
-            <Button fx:id="muteButton11" layoutX="120.0" layoutY="127.0" mnemonicParsing="false" onMouseClicked="#mute" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" wrapText="true">
+            <Button layoutX="120.0" layoutY="97.0" mnemonicParsing="false" onMouseClicked="#mute" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css" wrapText="true">
                <tooltip>
                   <Tooltip style="-fx-background-color: #115358;">
                      <font>
@@ -137,13 +147,13 @@
                   </Tooltip>
                </tooltip>
                <graphic>
-                  <ImageView fx:id="muteImage11" fitHeight="45.0" fitWidth="45.0" pickOnBounds="true" preserveRatio="true" />
+                  <ImageView fitHeight="45.0" fitWidth="45.0" pickOnBounds="true" preserveRatio="true" />
                </graphic>
                <font>
                   <Font size="1.0" />
                </font>
             </Button>
-            <Button fx:id="hangUpButton" layoutX="180.0" layoutY="127.0" mnemonicParsing="false" onMouseClicked="#close" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css">
+            <Button fx:id="hangUpButton" layoutX="180.0" layoutY="97.0" mnemonicParsing="false" onMouseClicked="#close" prefHeight="60.0" prefWidth="60.0" style="-fx-background-color: #125f65; -fx-border-color: #115358; -fx-border-width: 3; -fx-border-style: solid;" stylesheets="@../css/buttons.css">
                <tooltip>
                   <Tooltip style="-fx-background-color: #115358;" text="Hang Up">
                      <font>
@@ -159,11 +169,6 @@
                   </ImageView>
                </graphic>
             </Button>
-            <Label layoutX="45.0" layoutY="14.0" prefHeight="17.0" prefWidth="152.0" text="time" textFill="WHITE">
-               <font>
-                  <Font name="FilmotypeMeredith-Regular" size="12.0" />
-               </font>
-            </Label>
          </children>
       </AnchorPane>
    </children>
