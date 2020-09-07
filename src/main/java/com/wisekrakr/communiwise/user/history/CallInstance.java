@@ -1,11 +1,15 @@
 package com.wisekrakr.communiwise.user.history;
 
 
+import org.ocpsoft.prettytime.PrettyTime;
+
 import javax.sip.address.Address;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
-import java.time.LocalDateTime;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 public class CallInstance implements Serializable {
     private static final long serialVersionUID = 31L;
@@ -14,8 +18,7 @@ public class CallInstance implements Serializable {
     private final String displayName;
     private final InetSocketAddress proxyAddress;
     private final Address sipAddress;
-    private LocalDateTime fromDate;
-    private final LocalDateTime date;
+    private final Date date;
     private final double contactId;
     private String callTime;
 
@@ -25,7 +28,7 @@ public class CallInstance implements Serializable {
         this.proxyAddress = proxyAddress;
         this.sipAddress = sipAddress;
 
-        date = LocalDateTime.now();
+        date = new Date();
 
         contactId = Math.random() * 100000000;
     }
@@ -55,15 +58,16 @@ public class CallInstance implements Serializable {
     }
 
     public String getCallDate(){
-        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("E, MMM dd yyyy HH:mm");
-        return dateFormat.format(date);
+        SimpleDateFormat DateFor = new SimpleDateFormat("E, MMM dd yyyy HH:mm");
+
+        return DateFor.format(date.getTime());
     }
 
     public String getFromCallDate(){
-        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd HH:mm");
-        fromDate = LocalDateTime.from(date);
 
-        return fromDate + " ago";
+        PrettyTime prettyTime = new PrettyTime();
+
+        return prettyTime.format(date);
     }
 
     public double getContactId() {

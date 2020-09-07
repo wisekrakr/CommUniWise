@@ -14,11 +14,27 @@
     <version>1.0-SNAPSHOT</version>
 
     <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>org.ocpsoft.prettytime</groupId>-->
-<!--            <artifactId>prettytime</artifactId>-->
-<!--            <version>4.0.5.Final</version>-->
-<!--        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/javax.sip/jain-sip-ri -->
+        <dependency>
+            <groupId>javax.sip</groupId>
+            <artifactId>jain-sip-ri</artifactId>
+            <version>1.3.0-91</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/javax.sip/jain-sip-api -->
+        <dependency>
+            <groupId>javax.sip</groupId>
+            <artifactId>jain-sip-api</artifactId>
+            <version>1.2.1.4</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ocpsoft.prettytime</groupId>
+            <artifactId>prettytime</artifactId>
+            <version>4.0.5.Final</version>
+        </dependency>
 
         <dependency>
             <groupId>junit</groupId>

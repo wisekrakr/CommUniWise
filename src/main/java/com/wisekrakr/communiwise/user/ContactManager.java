@@ -119,6 +119,7 @@ public class ContactManager {
     public boolean clearCallLogBook(){
         try {
             callLogBook.clearCallLogBook();
+            callLogBook.save();
             return true;
 
         }catch (Throwable e){

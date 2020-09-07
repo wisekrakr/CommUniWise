@@ -7,9 +7,8 @@ import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
 import com.wisekrakr.communiwise.gui.layouts.utils.Status;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.operations.apis.SoundAPI;
+import com.wisekrakr.communiwise.phone.TimeKeeper;
 import com.wisekrakr.communiwise.user.history.CallInstance;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -22,11 +21,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import javafx.util.Duration;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,6 +34,7 @@ public class AudioCallController extends ControllerJFXPanel {
     private final CallInstance callInstance;
 
     private final Map<String, Button> buttons = new HashMap<>();
+    private TimeKeeper timeKeeper;
 
     @FXML
     private Button muteButton, recordButton, hangUpButton, playButton, inviteButton, contactListButton;
@@ -50,8 +46,6 @@ public class AudioCallController extends ControllerJFXPanel {
     private Text status;
 
     private boolean isMuted, isRecording,isPlaying;
-    private TimeKeeper timeKeeper;
-    private String callTime;
 
     public AudioCallController(EventManager eventManager, PhoneAPI phone, SoundAPI sound, AbstractGUI gui, CallInstance callInstance){
         this.eventManager = eventManager;
@@ -158,11 +152,10 @@ public class AudioCallController extends ControllerJFXPanel {
 
         callInstance.setCallDuration(time.getText());
 
-
-
         gui.hideWindow();
 
-//        timeKeeper.stop();
+        timeKeeper.stop();
+
     }
 
     @Override
@@ -188,39 +181,17 @@ public class AudioCallController extends ControllerJFXPanel {
         buttons.put("play", playButton);
         buttons.put("invite", inviteButton);
         buttons.put("contactList", contactListButton);
-    }
 
-    class TimeKeeper {
+        timeKeeper = new TimeKeeper();
+        timeKeeper.start();
 
-        private Timeline clock;
-        private long time;
-        private String callTime;
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                time.setText(timeKeeper.getCallTime());
+            }
+        });
 
-        public String getCallTime(){
-
-            clock = new Timeline(new KeyFrame(Duration.ZERO, e -> {
-
-                time = System.currentTimeMillis();
-
-                System.out.println(time);
-
-                DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-                Date date = new Date(time);
-
-                callTime = dateFormat.format(date);
-
-            }), new KeyFrame(Duration.seconds(1)));
-
-//            clock.setCycleCount(Animation.INDEFINITE);
-            clock.play();
-
-            return callTime;
-        }
-
-        public void stop() {
-//            clock.stop();
-            clock.pause();
-        }
     }
 
 }

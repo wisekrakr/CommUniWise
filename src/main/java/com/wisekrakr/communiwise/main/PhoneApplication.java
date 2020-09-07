@@ -1,21 +1,21 @@
 package com.wisekrakr.communiwise.main;
 
 
-import com.wisekrakr.communiwise.phone.audio.AudioManager;
-import com.wisekrakr.communiwise.user.history.CallInstance;
-import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
-import com.wisekrakr.communiwise.operations.DeviceImplementations;
 import com.wisekrakr.communiwise.gui.EventManager;
+import com.wisekrakr.communiwise.operations.DeviceImplementations;
+import com.wisekrakr.communiwise.phone.TimeKeeper;
+import com.wisekrakr.communiwise.phone.audio.AudioManager;
+import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
 import com.wisekrakr.communiwise.phone.sip.SipManager;
 import com.wisekrakr.communiwise.phone.sip.SipManagerListener;
 import com.wisekrakr.communiwise.user.ContactManager;
 import com.wisekrakr.communiwise.user.SipAccountManager;
+import com.wisekrakr.communiwise.user.history.CallInstance;
 
 import javax.sip.address.Address;
 import javax.sound.sampled.*;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
 
 public class PhoneApplication implements Serializable {
 
@@ -23,8 +23,6 @@ public class PhoneApplication implements Serializable {
 
     private RTPConnectionManager rtpConnectionManager;
     private EventManager eventManager;
-
-    private HashMap<String, CallInstance> callInstances = new HashMap<>();
 
     private static void printHelp(String message) {
         System.out.println(message);
@@ -72,8 +70,6 @@ public class PhoneApplication implements Serializable {
                 printHelp("Output line not found " + args[2]);
                 System.exit(1);
             }
-
-            int playBuffer = 100 * Math.max(10, 12);
 
             inputLine.open(FORMAT);
             outputLine.open(FORMAT);
@@ -125,7 +121,6 @@ public class PhoneApplication implements Serializable {
                         eventManager.onHangUp(callInstance);
 
                         rtpConnectionManager.stopStreamingAudio();
-
                     }
 
                     @Override
@@ -148,6 +143,7 @@ public class PhoneApplication implements Serializable {
                         }
 
                         eventManager.onOutgoingCall(callInstance);
+
                     }
 
                     @Override
@@ -157,10 +153,7 @@ public class PhoneApplication implements Serializable {
 
                     @Override
                     public void onRinging(CallInstance callInstance) {
-
                         eventManager.onIncomingCall(callInstance);
-
-                        System.out.println(" ON RINGING ===>   " + callInstance.getId());
                     }
 
                     @Override
@@ -176,8 +169,6 @@ public class PhoneApplication implements Serializable {
                         }
 
                         eventManager.onAcceptingCall(callInstance);
-
-                        System.out.println(" ON ACCEPTING ===>   " + callInstance.getId());
 
                     }
 

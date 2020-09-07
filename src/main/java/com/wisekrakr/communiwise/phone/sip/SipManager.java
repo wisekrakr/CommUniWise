@@ -246,6 +246,7 @@ public class SipManager implements SipClient {
 
                                         InetSocketAddress proxyAddress = new InetSocketAddress(sp.getRemoteAddress().getHostAddress(), sp.getRemotePort());
 
+
                                         CallInstance callInstance = new CallInstance(callId.getCallId(), sp.getFrom().getAddress().getDisplayName(),proxyAddress,
                                                 addressFactory.createAddress(sp.getFromHeader().getAddress().getURI()));
 

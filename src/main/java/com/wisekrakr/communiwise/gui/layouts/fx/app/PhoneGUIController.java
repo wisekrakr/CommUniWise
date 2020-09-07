@@ -12,13 +12,16 @@ import com.wisekrakr.communiwise.user.history.CallInstance;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Text;
+import javafx.util.Callback;
 
 import javax.swing.*;
+import java.util.Observable;
 
 public class PhoneGUIController extends ControllerJFXPanel {
 
@@ -115,18 +118,8 @@ public class PhoneGUIController extends ControllerJFXPanel {
             }
         });
 
-
-
-
-//        if(account.isAuthenticated() && account.getContacts() != null){
-//            for (PhoneBookEntry contact : account.getContacts()) {
-//                contactList.add(new Contact(contact.getUsername(),contact.getDomain(), String.valueOf(contact.getExtension()), contact.getContactId()));
-//            }
-//        }
-
         showRecentCalls();
         onSelectedTableItem();
-
     }
 
     public void showRecentCalls(){
@@ -138,12 +131,14 @@ public class PhoneGUIController extends ControllerJFXPanel {
                 if(account.isAuthenticated() && account.getCallLogs() != null){
                     for (CallInstance callInstance : account.getCallLogs()) {
 
-                        System.out.println(callInstance.getFromCallDate());
+                        String name = callInstance.getSipAddress().toString();
 
-                        contactList.add(new Contact(callInstance.getFromCallDate(), callInstance.getProxyAddress().getAddress().getHostName(),callInstance.getDisplayName(), callInstance.getContactId()));
+                        name = name.substring(name.indexOf(":") + 1);
+                        name = name.substring(0, name.indexOf("@"));
+
+                        contactList.add(new Contact(callInstance.getFromCallDate(), callInstance.getProxyAddress().getAddress().getHostName(),name, callInstance.getContactId()));
                     }
                 }
-
                 table.setItems(contactList);
             }
         });

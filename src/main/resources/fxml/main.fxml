@@ -108,8 +108,8 @@
                         <TableView fx:id="table" prefHeight="405.0" prefWidth="297.0">
                            <columns>
                               <TableColumn fx:id="colExtension" prefWidth="64.0" text="Extension" />
-                              <TableColumn fx:id="colDomain" prefWidth="124.0" text="Domain" />
-                              <TableColumn fx:id="colDate" prefWidth="111.0" text="Date" />
+                              <TableColumn fx:id="colDomain" prefWidth="124.0" sortable="false" text="Domain" />
+                              <TableColumn fx:id="colDate" prefWidth="111.0" sortType="DESCENDING" text="Date" />
                            </columns>
                         </TableView>
                      </children>
