@@ -34,7 +34,7 @@ public class AudioCallController extends ControllerJFXPanel {
     private final CallInstance callInstance;
 
     private final Map<String, Button> buttons = new HashMap<>();
-    private TimeKeeper timeKeeper;
+//    private TimeKeeper timeKeeper;
 
     @FXML
     private Button muteButton, recordButton, hangUpButton, playButton, inviteButton, contactListButton;
@@ -154,7 +154,7 @@ public class AudioCallController extends ControllerJFXPanel {
 
         gui.hideWindow();
 
-        timeKeeper.stop();
+//        timeKeeper.stop();
 
     }
 
@@ -182,15 +182,15 @@ public class AudioCallController extends ControllerJFXPanel {
         buttons.put("invite", inviteButton);
         buttons.put("contactList", contactListButton);
 
-        timeKeeper = new TimeKeeper();
-        timeKeeper.start();
+//        timeKeeper = new TimeKeeper();
+//        timeKeeper.start();
 
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                time.setText(timeKeeper.getCallTime());
-            }
-        });
+//        Platform.runLater(new Runnable() {
+//            @Override
+//            public void run() {
+//                time.setText(timeKeeper.getCallTime());
+//            }
+//        });
 
     }
 
