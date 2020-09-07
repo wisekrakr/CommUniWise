@@ -3,7 +3,6 @@ package com.wisekrakr.communiwise.main;
 
 import com.wisekrakr.communiwise.gui.EventManager;
 import com.wisekrakr.communiwise.operations.DeviceImplementations;
-import com.wisekrakr.communiwise.phone.TimeKeeper;
 import com.wisekrakr.communiwise.phone.audio.AudioManager;
 import com.wisekrakr.communiwise.phone.connections.RTPConnectionManager;
 import com.wisekrakr.communiwise.phone.sip.SipManager;
