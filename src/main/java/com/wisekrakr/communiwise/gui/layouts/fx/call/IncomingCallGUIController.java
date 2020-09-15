@@ -1,36 +1,45 @@
 package com.wisekrakr.communiwise.gui.layouts.fx.call;
 
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.fx.ControllerJFXPanel;
+import com.wisekrakr.communiwise.gui.layouts.AbstractJFXPanel;
+import com.wisekrakr.communiwise.gui.layouts.fx.ControllerContext;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.user.history.CallInstance;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.layout.AnchorPane;
 
 import javax.swing.*;
 import java.security.SecureRandom;
 import java.util.stream.Collectors;
 
-public class IncomingCallController extends ControllerJFXPanel {
+public class IncomingCallGUIController extends AbstractJFXPanel implements ControllerContext {
     private AbstractGUI gui;
     private CallInstance callInstance;
     private PhoneAPI phone;
     private Timer timer;
 
     @FXML
+    private AnchorPane container;
+    @FXML
     private Label username;
 
-    public IncomingCallController(PhoneAPI phone, AbstractGUI gui, CallInstance callInstance) {
+    public IncomingCallGUIController(PhoneAPI phone, AbstractGUI gui, CallInstance callInstance) {
         this.phone = phone;
         this.gui = gui;
         this.callInstance = callInstance;
     }
 
     @FXML
+    @Override
     public void close() {
         phone.reject();
 
         gui.hideWindow();
+    }
+
+    @Override
+    public void drag() {
     }
 
     @FXML

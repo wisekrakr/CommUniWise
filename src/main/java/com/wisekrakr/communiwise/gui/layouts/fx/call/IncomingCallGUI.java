@@ -27,7 +27,7 @@ public class IncomingCallGUI extends AbstractGUI {
         setUndecorated(true);
         setBounds(getScreenSize().width, getScreenSize().height + DESIRED_HEIGHT, DESIRED_WIDTH, DESIRED_HEIGHT);
 
-        IncomingCallController controller = (IncomingCallController) new IncomingCallController(phone, this, callInstance).initialize("/incoming-call.fxml");
+        IncomingCallGUIController controller = (IncomingCallGUIController) new IncomingCallGUIController(phone, this, callInstance).initialize("/incoming-call.fxml");
         controller.initComponents();
 
         add(controller, BorderLayout.CENTER);

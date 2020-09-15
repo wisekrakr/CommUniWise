@@ -2,7 +2,6 @@ package com.wisekrakr.communiwise.gui.layouts.fx.app.menu;
 
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.operations.apis.SoundAPI;
-import javafx.embed.swing.JFXPanel;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
@@ -29,7 +28,7 @@ public class PreferencesGUI extends AbstractGUI {
         setUndecorated(true);
         setPreferredSize(new Dimension(DESIRED_WIDTH,DESIRED_HEIGHT));
 
-        PreferencesController controller = (PreferencesController) new PreferencesController(sound, this).initialize("/preferences.fxml");
+        PreferencesGUIController controller = (PreferencesGUIController) new PreferencesGUIController(sound, this).initialize("/preferences.fxml");
         controller.initComponents();
         add(controller, BorderLayout.CENTER);
     }

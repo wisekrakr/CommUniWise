@@ -87,19 +87,21 @@ public class RTPConnectionManager {
     }
 
     public void mute(){
-        if (inputLine != null && inputLine.isRunning()) {
-            BooleanControl control = (BooleanControl) inputLine.getControl(BooleanControl.Type.MUTE);
-            control.setValue(true);
+
+        try {
+            transmittingThread.mute();
+        } catch (Throwable t) {
+            throw new IllegalStateException("Could not mute the transmitting thread", t);
         }
     }
 
     public void unmute() {
 
-        if (inputLine != null && !inputLine.isRunning()) {
-            BooleanControl control = (BooleanControl) inputLine.getControl(BooleanControl.Type.MUTE);
-            control.setValue(false);
+        try {
+            transmittingThread.unmute();
+        } catch (Throwable t) {
+            throw new IllegalStateException("Could unmute the transmitting thread", t);
         }
-
     }
 
     public DatagramSocket getSocket() {

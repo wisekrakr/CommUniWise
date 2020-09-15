@@ -23,6 +23,7 @@ public class TransmittingThread {
     private Thread rtpSenderThread;
 
     private final G722Encoder g722Encoder = new G722Encoder(2000);
+    private boolean isMuted;
 
     public TransmittingThread(DatagramSocket socket, TargetDataLine targetDataLine) {
         this.socket = socket;
@@ -150,7 +151,9 @@ public class TransmittingThread {
 
                 if (!socket.isClosed()) {
                     try {
-                        socket.send(datagramPacket);
+                        if(!isMuted){
+                            socket.send(datagramPacket);
+                        }
                     } catch (IOException | SecurityException e) {
                         System.out.println(" error while sending datagram packet " + e);
                     }
@@ -171,6 +174,17 @@ public class TransmittingThread {
 
     }
 
+    public void mute(){
+
+        System.out.println("MUTE === > TargetDataLine is running: " + targetDataLine.isRunning());
+        isMuted = true;
+    }
+
+    public void unmute(){
+
+        System.out.println("UNMUTE === > TargetDataLine is running: " + targetDataLine.isRunning());
+        isMuted = false;
+    }
 
 
     public static final int SAMPLE_SIZE = 16;

@@ -23,7 +23,7 @@ public class AccountFrame extends AbstractGUI {
         setPreferredSize(new Dimension(DESIRED_WIDTH, DESIRED_HEIGHT));
         setLocationRelativeTo(null);
 
-        AccountController controller = (AccountController) new AccountController(account.getUserInfo(), this).initialize("/account.fxml");
+        AccountGUIController controller = (AccountGUIController) new AccountGUIController(account.getUserInfo(), this).initialize("/account.fxml");
         controller.initComponents();
 
         add(controller,BorderLayout.CENTER);

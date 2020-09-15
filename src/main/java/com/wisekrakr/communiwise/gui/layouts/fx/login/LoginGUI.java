@@ -22,7 +22,7 @@ public class LoginGUI extends AbstractGUI {
         setUndecorated(true);
         setBounds((getScreenSize().width - DESIRED_WIDTH) / 2, (getScreenSize().height - DESIRED_HEIGHT) / 2, DESIRED_WIDTH, DESIRED_HEIGHT);
 
-        LoginController controller = (LoginController) new LoginController(phone, this).initialize("/login.fxml");
+        LoginGUIController controller = (LoginGUIController) new LoginGUIController(phone, this).initialize("/login.fxml");
         controller.initComponents();
 
         add(controller, BorderLayout.CENTER);

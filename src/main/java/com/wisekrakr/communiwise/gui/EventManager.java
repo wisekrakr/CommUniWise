@@ -190,8 +190,6 @@ public class EventManager implements FrameManagerListener {
                 System.out.println("WARNING: unable to set look and feel, will continue");
             }
 
-//            phoneGUI = new PhoneGUI(this, phone, account);
-//            activateGUI(phoneGUI);
 
             loginGUI = new LoginGUI(phone);
             activateGUI(loginGUI);

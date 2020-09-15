@@ -1,37 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="207.0" prefWidth="209.0" style="-fx-background-color: #125f65;" xmlns="http://javafx.com/javafx/8.0.101" xmlns:fx="http://javafx.com/fxml/1" >
+<AnchorPane fx:id="container" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseDragged="#drag" prefHeight="335.0" prefWidth="322.0" style="-fx-background-color: #125f65;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <ImageView fitHeight="207.0" fitWidth="207.0" opacity="0.14" pickOnBounds="true" preserveRatio="true">
+      <ImageView fitHeight="324.0" fitWidth="396.0" opacity="0.14" pickOnBounds="true" preserveRatio="true">
          <image>
             <Image url="@../images/logo.png" />
          </image>
       </ImageView>
-      <Label layoutX="25.0" layoutY="14.0" text="CommUniWise" textFill="WHITE">
+      <Label alignment="CENTER" layoutX="23.0" layoutY="103.0" prefHeight="35.0" prefWidth="284.0" text="CommUniWise" textFill="#c3faff">
          <font>
-            <Font size="24.0" />
+            <Font size="41.0" />
          </font>
       </Label>
-      <Label layoutX="3.0" layoutY="69.0" prefHeight="25.0" prefWidth="207.0" text="the java SIP push-to-talk softphone" textFill="WHITE">
+      <Label alignment="CENTER" contentDisplay="CENTER" layoutX="13.0" layoutY="151.0" prefHeight="25.0" prefWidth="304.0" text="A Java Sip Phone Extraordinaire" textAlignment="CENTER" textFill="#c3faff">
+         <font>
+            <Font name="FilmotypeMeredith-Regular" size="20.0" />
+         </font>
+      </Label>
+      <Label layoutX="182.0" layoutY="313.0" text="Copyright 2020 Wisekrakr" textFill="WHITE" />
+      <Hyperlink alignment="CENTER" contentDisplay="CENTER" layoutX="9.0" layoutY="237.0" prefHeight="23.0" prefWidth="304.0" text="https://github.com/wisekrakr/SIP_dev_pushToTalk" textFill="WHITE">
          <font>
             <Font size="13.0" />
-         </font>
-      </Label>
-      <Label layoutX="73.0" layoutY="185.0" text="Copyright 2020 Wisekrakr" textFill="WHITE" />
-      <Hyperlink layoutX="28.0" layoutY="117.0" text="www.github.com/wisekrakr" textFill="#c3faff" />
-      <Label fx:id="close" layoutX="196.0" layoutY="-3.0" onMouseClicked="#close" text="X" textFill="#c6feff">
+         </font></Hyperlink>
+      <Label fx:id="close" layoutX="308.0" onMouseClicked="#close" text="X" textFill="#c6feff">
          <font>
             <Font size="17.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
+      </Label>
+      <Label alignment="CENTER" contentDisplay="CENTER" layoutX="22.0" layoutY="212.0" prefHeight="25.0" prefWidth="278.0" text="build with CommUniWise PTT" textAlignment="CENTER" textFill="WHITE">
+         <font>
+            <Font size="16.0" />
+         </font>
       </Label>
    </children>
 </AnchorPane>

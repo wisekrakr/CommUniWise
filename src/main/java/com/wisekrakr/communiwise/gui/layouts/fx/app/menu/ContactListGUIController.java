@@ -3,7 +3,8 @@ package com.wisekrakr.communiwise.gui.layouts.fx.app.menu;
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.gui.layouts.components.AlertFrame;
 import com.wisekrakr.communiwise.gui.layouts.components.Contact;
-import com.wisekrakr.communiwise.gui.layouts.fx.ControllerJFXPanel;
+import com.wisekrakr.communiwise.gui.layouts.AbstractJFXPanel;
+import com.wisekrakr.communiwise.gui.layouts.fx.ControllerContext;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.user.phonebook.PhoneBookEntry;
@@ -16,10 +17,11 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 
 import javax.swing.*;
 
-public class ContactListController extends ControllerJFXPanel {
+public class ContactListGUIController extends AbstractJFXPanel implements ControllerContext {
 
     private final PhoneAPI phone;
     private final AccountAPI account;
@@ -30,6 +32,8 @@ public class ContactListController extends ControllerJFXPanel {
 
 
     @FXML
+    private AnchorPane container;
+    @FXML
     private TableView<Contact> table;
     @FXML
     private TableColumn<Contact, String> colName, colExtension, colDomain;
@@ -39,7 +43,7 @@ public class ContactListController extends ControllerJFXPanel {
     private TextField nameField, extensionField, domainField;
 
 
-    public ContactListController(PhoneAPI phone, AccountAPI account, AbstractGUI gui) {
+    public ContactListGUIController(PhoneAPI phone, AccountAPI account, AbstractGUI gui) {
         this.phone = phone;
         this.account = account;
         this.gui = gui;
@@ -115,10 +119,16 @@ public class ContactListController extends ControllerJFXPanel {
 
 
     @FXML
-    private void close() {
+    @Override
+    public void close() {
         gui.hideWindow();
     }
 
+    @FXML
+    @Override
+    public void drag() {
+        addDraggability(gui, container);
+    }
 
     @Override
     public void initComponents() {

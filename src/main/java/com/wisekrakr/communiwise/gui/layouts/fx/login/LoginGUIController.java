@@ -1,23 +1,27 @@
 package com.wisekrakr.communiwise.gui.layouts.fx.login;
 
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.fx.ControllerJFXPanel;
+import com.wisekrakr.communiwise.gui.layouts.AbstractJFXPanel;
+import com.wisekrakr.communiwise.gui.layouts.fx.ControllerContext;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 
 
-public class LoginController extends ControllerJFXPanel {
+public class LoginGUIController extends AbstractJFXPanel implements ControllerContext {
     private final PhoneAPI phone;
     private final AbstractGUI gui;
 
+    @FXML
+    private AnchorPane container;
     @FXML
     private TextField username, address, domain, realm;
     @FXML
     private PasswordField password;
 
-    public LoginController(PhoneAPI phone, AbstractGUI gui) {
+    public LoginGUIController(PhoneAPI phone, AbstractGUI gui) {
         this.phone = phone;
         this.gui = gui;
 
@@ -52,8 +56,15 @@ public class LoginController extends ControllerJFXPanel {
     }
 
     @FXML
+    @Override
     public void close(){
         gui.hideWindow();
+    }
+
+    @FXML
+    @Override
+    public void drag() {
+        addDraggability(gui, container);
     }
 
     @Override

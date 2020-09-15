@@ -30,7 +30,7 @@ public class AudioCallGUI extends AbstractGUI {
         setUndecorated(true);
         setBounds((getScreenSize().width - DESIRED_WIDTH) / 2, (getScreenSize().height - DESIRED_HEIGHT) / 2, DESIRED_WIDTH, DESIRED_HEIGHT);
 
-        AudioCallController controller = (AudioCallController) new AudioCallController(eventManager, phone, sound, this, callInstance).initialize("/audio-call.fxml");
+        AudioCallGUIController controller = (AudioCallGUIController) new AudioCallGUIController(eventManager, phone, sound, this, callInstance).initialize("/audio-call.fxml");
 
         controller.initComponents();
 

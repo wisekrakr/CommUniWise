@@ -2,7 +2,8 @@ package com.wisekrakr.communiwise.gui.layouts.fx.call;
 
 import com.wisekrakr.communiwise.gui.EventManager;
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
-import com.wisekrakr.communiwise.gui.layouts.fx.ControllerJFXPanel;
+import com.wisekrakr.communiwise.gui.layouts.AbstractJFXPanel;
+import com.wisekrakr.communiwise.gui.layouts.fx.ControllerContext;
 import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
 import com.wisekrakr.communiwise.gui.layouts.utils.Status;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
@@ -15,7 +16,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -24,7 +24,7 @@ import javafx.scene.text.Text;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AudioCallController extends ControllerJFXPanel {
+public class AudioCallGUIController extends AbstractJFXPanel implements ControllerContext {
 
     private final EventManager eventManager;
     private final PhoneAPI phone;
@@ -36,6 +36,8 @@ public class AudioCallController extends ControllerJFXPanel {
 //    private TimeKeeper timeKeeper;
 
     @FXML
+    private AnchorPane container;
+    @FXML
     private Button muteButton, recordButton, hangUpButton, playButton, inviteButton, contactListButton;
     @FXML
     private Label username, address,time,date;
@@ -46,7 +48,7 @@ public class AudioCallController extends ControllerJFXPanel {
 
     private boolean isMuted, isRecording,isPlaying;
 
-    public AudioCallController(EventManager eventManager, PhoneAPI phone, SoundAPI sound, AbstractGUI gui, CallInstance callInstance){
+    public AudioCallGUIController(EventManager eventManager, PhoneAPI phone, SoundAPI sound, AbstractGUI gui, CallInstance callInstance){
         this.eventManager = eventManager;
         this.phone = phone;
         this.sound = sound;
@@ -55,27 +57,16 @@ public class AudioCallController extends ControllerJFXPanel {
 
     }
 
-    private void onHover(){
-        for(Button button: buttons.values()){
-
-            button.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                @Override
-                public void handle(MouseEvent event) {
-                    button.setBorder(new Border(
-                            new BorderStroke(Color.rgb(Constants.SUNSET_ORANGE.getRed(), Constants.SUNSET_ORANGE.getGreen(), Constants.SUNSET_ORANGE.getBlue()),
-                                    BorderStrokeStyle.SOLID,
-                                    CornerRadii.EMPTY,
-                                    BorderWidths.FULL)));
-                }
-            });
-        }
-
-    }
-
     @FXML
     private void mute(){
         clickButtonForAction(isMuted, muteImage, "/images/mute.png","/images/unmute.png");
         isMuted = !isMuted;
+
+        if(isMuted){
+            sound.mute();
+        }else {
+            sound.unmute();
+        }
     }
 
     @FXML
@@ -83,6 +74,12 @@ public class AudioCallController extends ControllerJFXPanel {
         clickButtonForAction(isRecording, recordImage, "/images/record.png","/images/not-record.png");
 
         isRecording = !isRecording;
+
+        if(isRecording){
+            sound.startRecording();
+        }else {
+            sound.stopRecording();
+        }
     }
 
     @FXML
@@ -91,6 +88,11 @@ public class AudioCallController extends ControllerJFXPanel {
 
         isPlaying = !isPlaying;
 
+        if(isPlaying){
+            sound.playRemoteSound("/sounds/shake_bake.wav");
+        }else{
+            sound.stopRemoteSound();
+        }
     }
 
     @FXML
@@ -103,25 +105,22 @@ public class AudioCallController extends ControllerJFXPanel {
         eventManager.menuContactListOpen();
     }
 
+    /**
+     * Simple method to change images when clicked
+     * @param isDoing boolean for the button being clicked
+     * @param imageView the image of the button being changed
+     * @param resourceA first image resource path
+     * @param resourceB second image resource path
+     */
     private void clickButtonForAction(boolean isDoing, ImageView imageView, String resourceA, String resourceB){
         Image image;
         try {
             if(!isDoing){
                 image = new Image(getClass().getResourceAsStream(resourceA));
 
-                if(imageView.getId().equals(recordImage.getId())){
-                    sound.startRecording();
-                }else if(imageView.getId().equals(playImage.getId())){
-                    sound.playRemoteSound("/sounds/shake_bake.wav");
-                }
             }else{
                 image = new Image(getClass().getResourceAsStream(resourceB));
 
-                if(imageView.getId().equals(recordImage.getId())){
-                    sound.stopRecording();
-                }else if(imageView.getId().equals(playImage.getId())){
-                    sound.stopRemoteSound();
-                }
             }
             imageView.setImage(image);
         }catch (Throwable t){
@@ -130,22 +129,13 @@ public class AudioCallController extends ControllerJFXPanel {
     }
 
     @FXML
-    private void keyPressed(KeyEvent event) {
-        System.out.println("pressed");
-        switch (event.getCode()) {
-            case SPACE:
-                mute();
-                break;
-            case Z:
-                close();
-                break;
-            default:
-                System.out.println("This key has not been bound to an action");
-                break;
-        }
+    @Override
+    public void drag() {
+        addDraggability(gui, container);
     }
 
     @FXML
+    @Override
     public void close() {
         phone.hangup(callInstance.getId());
 
@@ -169,6 +159,7 @@ public class AudioCallController extends ControllerJFXPanel {
                     date.setText(callInstance.getCallDate());
                 }
             });
+
             Status.show(phone, status);
         }else{
             throw new IllegalStateException("Could not initialize: There is no active call ");

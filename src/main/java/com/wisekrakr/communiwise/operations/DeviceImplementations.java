@@ -85,6 +85,11 @@ public class DeviceImplementations {
             public void mute() {
                 rtpConnectionManager.mute();
             }
+
+            @Override
+            public void unmute() {
+                rtpConnectionManager.unmute();
+            }
         };
     }
 

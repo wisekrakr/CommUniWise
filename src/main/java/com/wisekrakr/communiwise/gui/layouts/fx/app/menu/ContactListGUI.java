@@ -25,7 +25,7 @@ public class ContactListGUI extends AbstractGUI {
         setUndecorated(true);
         setBounds((getScreenSize().width - DESIRED_WIDTH) / 2, (getScreenSize().height - DESIRED_HEIGHT) / 2, DESIRED_WIDTH, DESIRED_HEIGHT);
 
-        ContactListController controller = (ContactListController) new ContactListController(phone,account, this).initialize("/contact-list.fxml");
+        ContactListGUIController controller = (ContactListGUIController) new ContactListGUIController(phone,account, this).initialize("/contact-list.fxml");
         controller.initComponents();
         add(controller, BorderLayout.CENTER);
 

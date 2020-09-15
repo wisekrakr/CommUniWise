@@ -5,25 +5,25 @@ import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.gui.layouts.components.AlertFrame;
 import com.wisekrakr.communiwise.gui.layouts.components.Contact;
 import com.wisekrakr.communiwise.gui.layouts.components.IconCreator;
-import com.wisekrakr.communiwise.gui.layouts.fx.ControllerJFXPanel;
+import com.wisekrakr.communiwise.gui.layouts.AbstractJFXPanel;
+import com.wisekrakr.communiwise.gui.layouts.fx.ControllerContext;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.user.history.CallInstance;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import javafx.util.Callback;
 
 import javax.swing.*;
-import java.util.Observable;
 
-public class PhoneGUIController extends ControllerJFXPanel {
+public class PhoneGUIController extends AbstractJFXPanel implements ControllerContext {
 
     private final PhoneAPI phone;
     private final AccountAPI account;
@@ -32,6 +32,8 @@ public class PhoneGUIController extends ControllerJFXPanel {
 
     private Contact selectedContact;
 
+    @FXML
+    private AnchorPane container;
     @FXML
     private TextField extensionField, domainField, portField;
     @FXML
@@ -67,6 +69,18 @@ public class PhoneGUIController extends ControllerJFXPanel {
         account.clearCallLogBook();
 
         showRecentCalls();
+    }
+
+    @Override
+    public void close() {
+
+    }
+
+    @FXML
+    @Override
+    public void drag() {
+        addDraggability(gui, container);
+        System.out.println("DRAG");
     }
 
     @FXML
