@@ -9,19 +9,23 @@ import com.wisekrakr.communiwise.gui.layouts.AbstractJFXPanel;
 import com.wisekrakr.communiwise.gui.layouts.fx.ControllerContext;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
+import com.wisekrakr.communiwise.operations.apis.SoundAPI;
 import com.wisekrakr.communiwise.user.history.CallInstance;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 
 import javax.swing.*;
+import java.net.URL;
 
 public class PhoneGUIController extends AbstractJFXPanel implements ControllerContext {
 
@@ -34,6 +38,8 @@ public class PhoneGUIController extends AbstractJFXPanel implements ControllerCo
 
     @FXML
     private AnchorPane container;
+    @FXML
+    private MenuBar menubar;
     @FXML
     private TextField extensionField, domainField, portField;
     @FXML
@@ -48,7 +54,7 @@ public class PhoneGUIController extends AbstractJFXPanel implements ControllerCo
     private TableColumn<Contact, String> colDate, colExtension, colDomain;
 
 
-    public PhoneGUIController(EventManager eventManager, PhoneAPI phone, AccountAPI account, AbstractGUI gui) {
+    public PhoneGUIController(EventManager eventManager, PhoneAPI phone,  AccountAPI account, AbstractGUI gui) {
         this.eventManager = eventManager;
         this.phone = phone;
         this.account = account;
@@ -59,6 +65,24 @@ public class PhoneGUIController extends AbstractJFXPanel implements ControllerCo
     private void call(){
         if(account.isAuthenticated() && checkForInputs()){
             phone.initiateCall(extensionField.getText().trim(), domainField.getText().trim());
+        }else{
+            new AlertFrame().showAlert(gui, "You have to register first, go to: File -> Login ", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    @FXML
+    private void yell(){
+        if(account.isAuthenticated() && checkForInputs()){
+            phone.sendVoiceMessage(extensionField.getText().trim(), domainField.getText().trim());
+        }else{
+            new AlertFrame().showAlert(gui, "You have to register first, go to: File -> Login ", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    @FXML
+    private void chat(){
+        if(account.isAuthenticated() ){
+            eventManager.onOpenChat();
         }else{
             new AlertFrame().showAlert(gui, "You have to register first, go to: File -> Login ", JOptionPane.INFORMATION_MESSAGE);
         }
@@ -108,29 +132,34 @@ public class PhoneGUIController extends AbstractJFXPanel implements ControllerCo
     @Override
     public void initComponents() {
 
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                loginMenuItem.setOnAction(event -> {
-                    eventManager.onRegistering();
-                });
-                quitMenuItem.setOnAction(event -> eventManager.close());
-                editMenuItem.setOnAction(event -> eventManager.menuAccountOpen());
-                contactsMenuItem.setOnAction(event -> eventManager.menuContactListOpen());
-                aboutMenuItem.setOnAction(event -> eventManager.menuAboutOpen());
-                prefsMenuItem.setOnAction(event -> eventManager.menuPreferencesOpen());
-
-                messengerButton.setGraphic(IconCreator.addIconForButton("/images/chat.png", 20,20 ));
-                audioCallButton.setGraphic(IconCreator.addIconForButton("/images/mic.png", 20,20  ));
-                videoCallButton.setGraphic(IconCreator.addIconForButton("/images/video-call.png", 20,20  ));
-                refreshButton.setGraphic(IconCreator.addIconForButton("/images/refresh.png", 15,15  ));
-                clearButton.setGraphic(IconCreator.addIconForButton("/images/clear.png", 15,15  ));
-
-                colDate.setCellValueFactory(new PropertyValueFactory<>("Name"));
-                colExtension.setCellValueFactory(new PropertyValueFactory<>("Extension"));
-                colDomain.setCellValueFactory(new PropertyValueFactory<>("Domain"));
-            }
+        loginMenuItem.setOnAction(event -> {
+            eventManager.onRegistering();
         });
+        quitMenuItem.setOnAction(event -> eventManager.close());
+        editMenuItem.setOnAction(event -> eventManager.menuAccountOpen());
+        contactsMenuItem.setOnAction(event -> eventManager.menuContactListOpen());
+        aboutMenuItem.setOnAction(event -> eventManager.menuAboutOpen());
+        prefsMenuItem.setOnAction(event -> eventManager.menuPreferencesOpen());
+
+        messengerButton.setGraphic(IconCreator.addIconForButton("/images/chat.png", 20,20 ));
+        audioCallButton.setGraphic(IconCreator.addIconForButton("/images/mic.png", 20,20  ));
+        videoCallButton.setGraphic(IconCreator.addIconForButton("/images/video-call.png", 20,20  ));
+        refreshButton.setGraphic(IconCreator.addIconForButton("/images/refresh.png", 15,15  ));
+        clearButton.setGraphic(IconCreator.addIconForButton("/images/clear.png", 15,15  ));
+
+        colDate.setCellValueFactory(new PropertyValueFactory<>("Name"));
+        colExtension.setCellValueFactory(new PropertyValueFactory<>("Extension"));
+        colDomain.setCellValueFactory(new PropertyValueFactory<>("Domain"));
+
+        menubar.setBackground(
+                new Background(
+                        new BackgroundImage(
+                                new Image(getClass().getResource("/images/connect.jpg").toString(), false),
+                                BackgroundRepeat.NO_REPEAT,
+                                BackgroundRepeat.NO_REPEAT,
+                                BackgroundPosition.CENTER,
+                                BackgroundSize.DEFAULT)));
+
 
         showRecentCalls();
         onSelectedTableItem();
@@ -139,23 +168,19 @@ public class PhoneGUIController extends AbstractJFXPanel implements ControllerCo
     public void showRecentCalls(){
         ObservableList<Contact> contactList = FXCollections.observableArrayList();
 
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                if(account.isAuthenticated() && account.getCallLogs() != null){
-                    for (CallInstance callInstance : account.getCallLogs()) {
+        if(account.isAuthenticated() && account.getCallLogs() != null){
+            for (CallInstance callInstance : account.getCallLogs()) {
 
-                        String name = callInstance.getSipAddress().toString();
+                String name = callInstance.getSipAddress().toString();
 
-                        name = name.substring(name.indexOf(":") + 1);
-                        name = name.substring(0, name.indexOf("@"));
+                name = name.substring(name.indexOf(":") + 1);
+                name = name.substring(0, name.indexOf("@"));
 
-                        contactList.add(new Contact(callInstance.getFromCallDate(), callInstance.getProxyAddress().getAddress().getHostName(),name, callInstance.getContactId()));
-                    }
-                }
-                table.setItems(contactList);
+                contactList.add(new Contact(callInstance.getFromCallDate(), callInstance.getProxyAddress().getAddress().getHostName(),name, callInstance.getContactId()));
             }
-        });
+        }
+        table.setItems(contactList);
+
     }
 
     private boolean checkForInputs(){

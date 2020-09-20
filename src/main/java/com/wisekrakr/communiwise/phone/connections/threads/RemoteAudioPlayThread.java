@@ -23,7 +23,7 @@ public class RemoteAudioPlayThread {
     private Thread encodeFileThread;
     private Thread rtpFileSenderThread;
 
-    private final G722Encoder g722Encoder = new G722Encoder(1000);
+    private final G722Encoder g722Encoder = new G722Encoder(2000);
 
     public RemoteAudioPlayThread(DatagramSocket socket) {
 
@@ -43,20 +43,25 @@ public class RemoteAudioPlayThread {
         PipedInputStream encodedDataInput = new PipedInputStream(encodedDataOutput, PIPE_SIZE);
 
         audioFileThread = new Thread(()->{
+            byte[] buffer = new byte[BUFFER_SIZE];
+
             try {
-                byte[] buffer = new byte[BUFFER_SIZE];
 
-                int actuallyRead;
+                while (!Thread.currentThread().isInterrupted()) {
+                    int actuallyRead = audioStream.read(buffer, 0, buffer.length);
 
-                while ((actuallyRead = audioStream.read(buffer)) != -1) {
                     rawDataOutput.write(buffer, 0, actuallyRead);
 
                     if (actuallyRead < buffer.length) {
+                        System.out.println("   Couldn't read what I wanted");
+
                         break;
                     }
                 }
-                audioStream.close();
+
                 rawDataOutput.close();
+
+                audioStream.close();
             }catch (Throwable e){
                 System.out.println("Audio file thread has stopped unexpectedly " + e.getMessage());
             }
@@ -119,7 +124,7 @@ public class RemoteAudioPlayThread {
                 //     The CSRC list identifies the contributing sources for the payload contained in this packet. The number of identifiers is given by the CC field.
                 //     If there are more than 15 contributing sources, only 15 may be identified. CSRC identifiers are inserted by mixers, using the SSRC identifiers
                 //     of contributing sources.
-                rtpPacket.setCsrcList(new long[rtpPacket.getCsrcCount()]); //todo is this needed?
+                rtpPacket.setCsrcList(new long[rtpPacket.getCsrcCount()]);
 
                 byte[] buffer = new byte[BUFFER_SIZE];
 

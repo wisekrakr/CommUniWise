@@ -28,7 +28,6 @@ import javax.sip.message.Message;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -152,18 +151,6 @@ public class SipManager implements SipClient {
                 new SipListener() {
                     @Override
                     public void processRequest(RequestEvent requestEvent) {
-//                        if (requestEvent.getServerTransaction() == null) {
-//                            System.out.println("Sending request\n" + requestEvent.getRequest());
-//                            try {
-//                                sipProvider.sendRequest(requestEvent.getRequest());
-//
-//                            } catch (Exception e) {
-//                                System.out.println("Whatever " + e.getMessage());
-//                                e.printStackTrace();
-//
-//                            }
-//                            return;
-//                        }
 
                         System.out.println("Processing server request\n" + requestEvent.getRequest());
                         System.out.println("SipSessionState :" + sipSessionState);
@@ -191,12 +178,11 @@ public class SipManager implements SipClient {
                                     String message = null;
                                     try {
                                         message = sp.getMessageContent();
-                                    } catch (UnsupportedEncodingException e) {
-                                        System.out.println("ERROR: unsupported encoding receiving message");
-                                        break;
+                                    } catch (Throwable e) {
+                                        throw new IllegalStateException("No message could be received",e);
                                     }
 
-                                    listener.onTextMessage(message, sp.getFrom().getAddress().toString());
+                                    listener.onReceiveMessage(message, sp.getFrom().getAddress().toString());
 
                                     break;
 
@@ -304,15 +290,18 @@ public class SipManager implements SipClient {
 
                             status = processedResponse.getStatusCode();
 
+
                             if (status == Response.PROXY_AUTHENTICATION_REQUIRED || status == Response.UNAUTHORIZED) {
                                 System.out.println("Go for Authentication");
 
                                 try {
                                     authenticationHelper.handleChallenge(processedResponse, clientTransaction, sipProvider, 5).sendRequest();
-                                } catch (Exception e) {
+                                } catch (Throwable e) {
                                     listener.authenticationFailed();
 
                                     sipSessionState = SipSessionState.IDLE;
+
+                                    throw new IllegalStateException("Not authenticated", e);
                                 }
                             } else if (processedResponse.getStatusCode() == Response.OK) {
                                 switch (cseq.getMethod()) {
@@ -332,11 +321,12 @@ public class SipManager implements SipClient {
 
                                         SessionDescriptionImpl sessionDescription = getSessionDescription(processedResponse);
 
+                                        MediaDescription incomingMediaDescriptor = (MediaDescription) sessionDescription.getMediaDescriptions(false).get(0);
+
                                         if (sessionDescription.getMediaDescriptions(true).size() != 1) {
                                             System.out.println("number of media descriptions != 1, will take the first anyway");
                                         }
 
-                                        MediaDescription incomingMediaDescriptor = (MediaDescription) sessionDescription.getMediaDescriptions(false).get(0);
 
                                         ToHeader toHeader = (ToHeader) processedResponse.getHeader(ToHeader.NAME);
 
@@ -347,13 +337,13 @@ public class SipManager implements SipClient {
 
                                         toHeader.getAddress().setDisplayName(name);
 
-                                        CallInstance callInstance = new CallInstance(callId.getCallId(), name,
+                                        CallInstance call = new CallInstance(callId.getCallId(), name,
                                                 new InetSocketAddress(sessionDescription.getConnection().getAddress(),incomingMediaDescriptor.getMedia().getMediaPort()),
                                                 toHeader.getAddress());
 
-                                        callInstances.put(callId.getCallId(), callInstance);
+                                        callInstances.put(callId.getCallId(), call);
 
-                                        listener.callConfirmed(callInstance);
+                                        listener.callConfirmed(call);
 
                                         break;
 
@@ -578,6 +568,18 @@ public class SipManager implements SipClient {
     }
 
     @Override
+    public void sendVoiceMessage(String recipient, int localRtpPort) {
+
+        try {
+            this.sipProvider.getNewClientTransaction(makeInviteRequest(recipient, localRtpPort)).sendRequest();
+        } catch (Throwable e) {
+            sipSessionState = SipSessionState.IDLE;
+
+            throw new IllegalStateException("Voice message failed " , e);
+        }
+    }
+
+    @Override
     public void hangup(String recipient, String callId) {
 
         try{
@@ -714,53 +716,25 @@ public class SipManager implements SipClient {
         return createRequest(addressFactory.createAddress("sip:" + proxyHost + ":" + proxyPort).getURI(), clientAddress, clientAddress, Request.REGISTER, null);
     }
 
-    @Deprecated
-    private Request makeByeRequest(String to) throws ParseException, InvalidArgumentException{
-        return createRequest(addressFactory.createURI(to), clientAddress, addressFactory.createAddress(to), Request.BYE, null);
-    }
-
     public Request makeInviteRequest(String to, int localRtpPort) throws ParseException, InvalidArgumentException {
         Request callRequest = createRequest(addressFactory.createURI(to), clientAddress, addressFactory.createAddress(to), Request.INVITE, null);
 
-        // Create ContentTypeHeader
         ContentTypeHeader contentTypeHeader = headerFactory.createContentTypeHeader("application", "sdp");
 
-        // Create the contact name address.
         SipURI contactURI = addressFactory.createSipURI(accountManager.getUserInfo().get(SipAccountManager.UserInfoPart.USERNAME.getInfoPart()), localSipAddress);
         contactURI.setPort(localSipPort);
 
         callRequest.addHeader(headerFactory.createContactHeader(addressFactory.createAddress(contactURI)));
-
-
-//            String sdpData= "v=0\r\n" +
-//                    "o=- 13760799956958020 13760799956958020" + " IN IP4 " + sipProfile.getLocalIp() +"\r\n" +
-//                    "s=mysession session\r\n" +
-//                    "s=-\r\n" +
-//                    //"p=+46 8 52018010\r\n" +
-//                    "c=IN IP4 " + sipProfile.getLocalIp()+"\r\n" +
-//                    "t=0 0\r\n" +
-//                    "m=audio " + port + " RTP/AVP 0\r\n" +
-//                    "m=audio " + port + " RTP/AVP 0 4 18\r\n" +
-//                    "a=rtpmap:0 PCMU/8000\r\n" + //was PCMA
-//                    "a=rtpmap:4 G723/8000\r\n" +
-//                    "a=rtpmap:18 G729A/8000\r\n" +
-////                    "a=rtpmap:18 G7222/16000\r\n" +
-//                    "a=ptime:20\r\n";
 
         callRequest.setContent(("v=0\r\n" +
                 "o=- 13760799956958020 13760799956958020" + " IN IP4 " + localSipAddress + "\r\n" +
                 "s=mysession session\r\n" +
                 "c=IN IP4 " + localSipAddress + "\r\n" +
                 "t=0 0\r\n" +
-                "m=audio " + localRtpPort + " RTP/AVP 9\r\n" +
-//                "m=audio " + localRtpPort + " RTP/AVP 0 4 18 101\r\n" +
-//                "a=rtpmap:0 PCMU/8000\r\n" +
+                "m=audio " + localRtpPort + " RTP/AVP 9 \r\n" +
                 "a=rtpmap:9 G722/8000\r\n" +
-//                "a=rtpmap:18 G729A/8000\r\n" +
-//                "a=rtpmap:101 telephone-event/8000\r\n" +
                 "a=maxptime:150\r\n" +
                 "a=sendrecv\r\n"
-//                "a=ptime:20\r\n"
         ).getBytes(), contentTypeHeader);
 
         callRequest.addHeader(headerFactory.createHeader("sipphone.Call-Info", "<http://www.antd.nist.gov>"));
@@ -768,7 +742,6 @@ public class SipManager implements SipClient {
         System.out.println("Our INVITE Request: \r\n" + callRequest);
 
         return callRequest;
-
     }
 
     private final AtomicLong sequenceNumberGenerator = new AtomicLong();
@@ -778,10 +751,7 @@ public class SipManager implements SipClient {
     }
 
     public Request makeMessageRequest(String to, String content) throws ParseException, InvalidArgumentException {
-        URI toAddress = addressFactory.createURI(to);
-        Address toNameAddress = addressFactory.createAddress(toAddress);
-
-        return createRequest(toAddress, clientAddress, toNameAddress, Request.MESSAGE, content);
+        return createRequest(addressFactory.createURI(to), clientAddress, addressFactory.createAddress(to), Request.MESSAGE, content);
     }
 
     private String currentCallTag(){
@@ -817,6 +787,7 @@ public class SipManager implements SipClient {
 
         if (content != null) {
             ContentTypeHeader contentTypeHeader = headerFactory.createContentTypeHeader("text", "plain");
+            contentTypeHeader.setParameter("charset","UTF-8");
             request.setContent(content, contentTypeHeader);
         }
         authenticationHelper.setAuthenticationHeaders(request);

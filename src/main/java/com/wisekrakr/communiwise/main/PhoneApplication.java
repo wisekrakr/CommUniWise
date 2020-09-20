@@ -186,9 +186,10 @@ public class PhoneApplication implements Serializable {
                 listener(new SipManagerListener() {
 
                     @Override
-                    public void onTextMessage(String message, String from) {
+                    public void onReceiveMessage(String message, String from) {
                         System.out.println("Received message from " + from + " :" + message);
                     }
+
 
                     @Override
                     public void onRemoteBye(CallInstance callInstance) {

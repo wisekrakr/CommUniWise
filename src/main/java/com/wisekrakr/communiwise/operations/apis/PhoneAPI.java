@@ -14,5 +14,7 @@ public interface PhoneAPI {
 
     int callStatus();
 
+    void sendMessage(String recipient, String message);
 
+    void sendVoiceMessage(String extension, String domain);
 }

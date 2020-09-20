@@ -1,0 +1,21 @@
+/**
+Menu and Menu Items
+*/
+
+.menu .label{
+    -fx-text-fill: #fff;
+}
+
+.menu-item .label {
+    -fx-text-fill: #125f65;
+}
+
+.menu-item:focused {
+     -fx-background-color: #125f65;
+}
+
+.menu-item:focused .label {
+    -fx-text-fill: #fff;
+}
+
+

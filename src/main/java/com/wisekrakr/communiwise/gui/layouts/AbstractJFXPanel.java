@@ -11,7 +11,12 @@ import javafx.scene.input.MouseEvent;
 
 import java.io.IOException;
 
-public class AbstractJFXPanel extends JFXPanel implements AbstractGUIContext {
+/**
+ * With this JFXPanel there is no need to set the controller in a fxml file, it gets set here.
+ * A controller will be initialized in the parent gui class and parameters can be passed to the controller.
+ * The controller can still use @FXML methods for easy control. These methods are set in the fxml file.
+ */
+public class AbstractJFXPanel extends JFXPanel implements AbstractPanelContext {
 
     private Parent root;
 
@@ -20,13 +25,19 @@ public class AbstractJFXPanel extends JFXPanel implements AbstractGUIContext {
         setScene(scene);
     }
 
+    /**
+     * Add draggability to a JFrame with JFXPanel.
+     * @param parentGUI the GUI that needs to be draggable
+     * @param node the visual Swing component that gets dragged
+     */
     @Override
-    public void addDraggability(AbstractGUI parentGUI, Node pane) {
+    public void addDraggability(AbstractGUI parentGUI, Node node) {
 
-        pane.setOnMouseDragged(new EventHandler<MouseEvent>() {
+        node.setOnMouseDragged(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 parentGUI.setBounds((int)(event.getScreenX()), (int)(event.getScreenY()), parentGUI.getWidth(), parentGUI.getHeight());
+
             }
         });
     }

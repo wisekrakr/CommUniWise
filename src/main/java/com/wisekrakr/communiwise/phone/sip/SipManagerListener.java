@@ -6,7 +6,7 @@ import javax.sip.address.Address;
 
 public interface SipManagerListener {
 
-    void onTextMessage(String message, String from);
+    void onReceiveMessage(String message, String from);
 
     void onRemoteBye(CallInstance callInstance);
 

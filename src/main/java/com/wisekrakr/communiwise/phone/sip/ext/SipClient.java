@@ -13,4 +13,6 @@ public interface SipClient {
     void acceptCall(final int port);
 
     int getStatus();
+
+    void sendVoiceMessage(String recipient, int localRtpPort);
 }

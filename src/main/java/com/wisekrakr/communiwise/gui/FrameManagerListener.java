@@ -24,4 +24,5 @@ public interface FrameManagerListener {
     void menuAccountOpen();
     void onNotFound(Address proxyAddress);
     void onAlert(Component component, String text, int messageCode);
+    void onOpenChat();
 }

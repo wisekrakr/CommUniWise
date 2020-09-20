@@ -6,6 +6,7 @@ import com.wisekrakr.communiwise.gui.layouts.fx.app.PhoneGUI;
 import com.wisekrakr.communiwise.gui.layouts.fx.app.PhoneGUIController;
 import com.wisekrakr.communiwise.gui.layouts.fx.call.IncomingCallGUI;
 import com.wisekrakr.communiwise.gui.layouts.fx.call.AudioCallGUI;
+import com.wisekrakr.communiwise.gui.layouts.fx.chat.ChatGUI;
 import com.wisekrakr.communiwise.gui.layouts.fx.login.LoginGUI;
 import com.wisekrakr.communiwise.gui.layouts.fx.app.menu.AboutFrame;
 import com.wisekrakr.communiwise.gui.layouts.fx.app.menu.AccountFrame;
@@ -40,8 +41,6 @@ import java.util.stream.Collectors;
 public class EventManager implements FrameManagerListener {
 
     private PhoneGUI phoneGUI;
-    private ContactListGUI contactListGUI;
-    private PreferencesGUI preferencesGUI;
     private LoginGUI loginGUI;
 
     private final Map<CallInstance, AbstractGUI> callGUIs = new HashMap<>();
@@ -73,14 +72,33 @@ public class EventManager implements FrameManagerListener {
      */
     @Override
     public void onOutgoingCall(CallInstance callInstance) {
-        SwingUtilities.invokeLater(() -> {
+
+        try {
             AudioCallGUI audioCallGUI = new AudioCallGUI(this, phone, sound, callInstance);
 
             callGUIs.put(callInstance, audioCallGUI);
 
             activateGUI(audioCallGUI);
-        });
+        }catch (Throwable e) {
+            throw new IllegalStateException("Audio Call GUI could not be displayed " ,e);
+        }
+
+
     }
+
+    @Override
+    public void onOpenChat() {
+        try {
+            ChatGUI chatGUI = new ChatGUI(phone);
+
+            callGUIs.put(new CallInstance("1", "blabla", null,null), chatGUI);
+
+            activateGUI(chatGUI);
+        }catch (Throwable e) {
+            throw new IllegalStateException("Audio Call GUI could not be displayed " ,e);
+        }
+    }
+
 
     /**
      * When the user get an incoming call. A new {@link IncomingCallGUI}gets created and put into a HashMap of  {@link AbstractGUI}
@@ -88,13 +106,18 @@ public class EventManager implements FrameManagerListener {
      */
     @Override
     public void onIncomingCall(CallInstance callInstance) {
-        SwingUtilities.invokeLater(() -> {
+
+        try {
             IncomingCallGUI incomingCallGUI = new IncomingCallGUI(phone, callInstance);
 
             callGUIs.put(callInstance, incomingCallGUI);
 
             activateGUI(incomingCallGUI);
-        });
+        }catch (Throwable e) {
+            throw new IllegalStateException("Incoming Call GUI could not be displayed " ,e);
+        }
+
+
 
         sound.ringing(true);
     }
@@ -142,13 +165,17 @@ public class EventManager implements FrameManagerListener {
     public void onAcceptingCall(CallInstance callInstance) {
         hideAcceptCallGUI(callInstance.getId());
 
-        SwingUtilities.invokeLater(() -> {
+        try{
             AudioCallGUI audioCallGUI = new AudioCallGUI(this, phone, sound, callInstance);
 
             callGUIs.put(callInstance, audioCallGUI);
 
             activateGUI(audioCallGUI);
-        });
+        }catch (Throwable e) {
+            throw new IllegalStateException("Audio Call GUI could not be displayed " ,e);
+        }
+
+
 
         sound.ringing(false);
     }
@@ -182,18 +209,15 @@ public class EventManager implements FrameManagerListener {
      */
     @Override
     public void open() {
-
-        SwingUtilities.invokeLater(() -> {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Throwable e) {
-                System.out.println("WARNING: unable to set look and feel, will continue");
-            }
-
-
+        try {
             loginGUI = new LoginGUI(phone);
+
             activateGUI(loginGUI);
-        });
+
+        } catch (Throwable e) {
+            throw new IllegalStateException("Login GUI could not be displayed " ,e);
+        }
+
     }
 
     /**
@@ -201,18 +225,14 @@ public class EventManager implements FrameManagerListener {
      */
     @Override
     public void onRegistering() {
+        try {
+            loginGUI = new LoginGUI(phone);
 
-        SwingUtilities.invokeLater(() -> {
-            try {
-                loginGUI = new LoginGUI(phone);
+            activateGUI(loginGUI);
 
-                activateGUI(loginGUI);
-
-            } catch (Exception e) {
-                System.out.println("Login GUI Could not be displayed " + e);
-            }
-
-        });
+        } catch (Throwable e) {
+            throw new IllegalStateException("Login GUI could not be displayed " ,e);
+        }
     }
 
     /**
@@ -228,9 +248,11 @@ public class EventManager implements FrameManagerListener {
 
             phoneGUI = new PhoneGUI(this, phone, account);
             activateGUI(phoneGUI);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            throw new IllegalStateException("Phone GUI could not be displayed " ,e);
         }
+
+
 
     }
 
@@ -243,8 +265,8 @@ public class EventManager implements FrameManagerListener {
             if(loginGUI.isActive()){
                 onAlert(loginGUI, "Wrong credentials received....Please try again.", JOptionPane.ERROR_MESSAGE);
             }
-        }catch (Throwable e){
-            System.out.println("Login GUI Could not be displayed " + e);
+        }catch (Throwable e) {
+            throw new IllegalStateException("Login GUI could not be displayed " ,e);
 
         }
     }
@@ -263,20 +285,20 @@ public class EventManager implements FrameManagerListener {
      */
     @Override
     public void menuContactListOpen() {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                if(account.isAuthenticated()){
-                    contactListGUI = new ContactListGUI(phone, account);
-                    activateGUI(contactListGUI);
-                }else{
-                    onAlert(phoneGUI, "You have to be logged in to see your contacts, go to File --> Login", JOptionPane.INFORMATION_MESSAGE);
-                }
 
-
-            }catch (Throwable t){
-                throw new IllegalStateException("Contact list GUI could not be displayed ", t);
+        try {
+            if(account.isAuthenticated()){
+                ContactListGUI contactListGUI = new ContactListGUI(phone, account);
+                activateGUI(contactListGUI);
+            }else{
+                onAlert(phoneGUI, "You have to be logged in to see your contacts, go to File --> Login", JOptionPane.INFORMATION_MESSAGE);
             }
-        });
+
+
+        }catch (Throwable t){
+            throw new IllegalStateException("Contact list GUI could not be displayed ", t);
+        }
+
     }
 
     /**
@@ -285,17 +307,15 @@ public class EventManager implements FrameManagerListener {
      */
     @Override
     public void menuPreferencesOpen() {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                preferencesGUI = new PreferencesGUI(sound);
-                activateGUI(preferencesGUI);
 
-            }catch (Throwable t){
-                throw new IllegalStateException("Preferences GUI could not be displayed ", t);
+        try {
+            PreferencesGUI preferencesGUI = new PreferencesGUI(sound);
+            activateGUI(preferencesGUI);
 
+        }catch (Throwable t){
+            throw new IllegalStateException("Preferences GUI could not be displayed ", t);
 
-            }
-        });
+        }
     }
 
     /**
@@ -304,15 +324,13 @@ public class EventManager implements FrameManagerListener {
      */
     @Override
     public void menuAboutOpen() {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                AboutFrame aboutFrame = new AboutFrame();
-                activateGUI(aboutFrame);
+        try {
+            AboutFrame aboutFrame = new AboutFrame();
+            activateGUI(aboutFrame);
 
-            }catch (Throwable t){
-                throw new IllegalStateException("About GUI could not be displayed ", t);
-            }
-        });
+        }catch (Throwable t){
+            throw new IllegalStateException("About GUI could not be displayed ", t);
+        }
     }
 
     /**
@@ -321,20 +339,20 @@ public class EventManager implements FrameManagerListener {
      */
     @Override
     public void menuAccountOpen() {
-        SwingUtilities.invokeLater(() -> {
-            try {
 
-                if(account.isAuthenticated()){
-                    AccountFrame accountFrame = new AccountFrame(account);
-                    activateGUI(accountFrame);
-                }else{
-                    new AlertFrame().showAlert(phoneGUI,"You have to be logged in to see your account information, go to File --> Login", JOptionPane.INFORMATION_MESSAGE);
-                }
+        try {
 
-            }catch (Throwable t){
-                throw new IllegalStateException("Account GUI could not be displayed ", t);
+            if(account.isAuthenticated()){
+                AccountFrame accountFrame = new AccountFrame(account);
+                activateGUI(accountFrame);
+            }else{
+                new AlertFrame().showAlert(phoneGUI,"You have to be logged in to see your account information, go to File --> Login", JOptionPane.INFORMATION_MESSAGE);
             }
-        });
+
+        }catch (Throwable t){
+            throw new IllegalStateException("Account GUI could not be displayed ", t);
+        }
+
     }
 
     /**
@@ -356,7 +374,5 @@ public class EventManager implements FrameManagerListener {
     public void onAlert(Component component, String text, int messageCode) {
         new AlertFrame().showAlert(component,text, messageCode);
     }
-
-
 
 }

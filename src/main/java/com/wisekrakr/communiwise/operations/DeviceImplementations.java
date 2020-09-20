@@ -61,8 +61,8 @@ public class DeviceImplementations {
                     AudioInputStream lowResAudioStream = AudioSystem.getAudioInputStream(FORMAT, audioStream);
 
                     audioManager.startSendingAudio(lowResAudioStream);
-                } catch (IOException | UnsupportedAudioFileException e) {
-                    System.out.println(" error while sending audio file " + e);
+                } catch (Throwable t) {
+                    throw new IllegalStateException("Could not play remote sound",t);
                 }
             }
 
@@ -111,6 +111,13 @@ public class DeviceImplementations {
             }
 
             @Override
+            public void sendVoiceMessage(String extension, String domain) {
+                sipManager.sendVoiceMessage(sipAddressMaker(extension, domain), rtpConnectionManager.getSocket().getLocalPort());
+
+                proxyAddress = extension;
+            }
+
+            @Override
             public void accept(String sipAddress) {
                 sipManager.acceptCall(rtpConnectionManager.getSocket().getLocalPort());
 
@@ -133,6 +140,10 @@ public class DeviceImplementations {
 
             }
 
+            @Override
+            public void sendMessage(String recipient, String message) {
+                sipManager.sendTextMessage(recipient, message);
+            }
 
             @Override
             public void register(String realm, String domain, String username, String password, String fromAddress) {

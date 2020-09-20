@@ -34,7 +34,7 @@ public class AudioManager {
     public void ringing(boolean isRinging){
         try{
             if (isRinging){
-                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("src/main/resources/sounds/ring.wav").getAbsoluteFile());
+                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/ring.wav"));
 
                 ringingClip = AudioSystem.getClip();
 

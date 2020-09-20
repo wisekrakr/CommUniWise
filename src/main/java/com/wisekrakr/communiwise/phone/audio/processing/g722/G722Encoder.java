@@ -262,38 +262,9 @@ public class G722Encoder  {
         return g722_bytes;
     }
 
-    private void printData(byte[] buffer, int actuallyRead) {
-        short[] converted = CodecUtil.bytesToShorts(buffer, actuallyRead);
-
-        boolean something = false;
-        for (int i = 0; i < converted.length; i++) {
-            if (Math.abs(converted[i]) > 200) {
-                System.out.print(String.format("%6d ", converted[i]));
-                something = true;
-            }
-        }
-
-        if (something) {
-            System.out.println("");
-        }
-    }
-
-
     public int encode(byte[] result, byte[] raw, int bufferSize) {
 
-
-
-        int count = process(result, CodecUtil.bytesToShorts(raw, bufferSize));
-
-//        byte[] decoded = new G722Decoder().decode(result, count);
-
-//        System.out.println("RAW");
-//        printData(raw, bufferSize);
-//        System.out.println("RAW ENCODED DECODED");
-//        printData(decoded, bufferSize);
-
-
-        return count;
+        return process(result, CodecUtil.bytesToShorts(raw, bufferSize));
     }
 
 

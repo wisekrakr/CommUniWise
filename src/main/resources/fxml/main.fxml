@@ -28,7 +28,7 @@
    <children>
       <VBox layoutX="14.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="310.0" prefWidth="910.0">
         <children>
-          <MenuBar id="menubar" style="-fx-background-color: #b0e4ea;" VBox.vgrow="NEVER">
+          <MenuBar fx:id="menubar" blendMode="SRC_ATOP" style="-fx-background-color: #b0e4ea;" stylesheets="@../css/style.css" VBox.vgrow="NEVER">
             <menus>
               <Menu mnemonicParsing="false" text="File">
                 <items>
@@ -94,11 +94,16 @@
                                     <Font name="FilmotypeMeredith-Regular" size="15.0" />
                                  </font>
                               </Label>
-                              <AnchorPane layoutY="177.0" prefHeight="53.0" prefWidth="438.0">
+                              <AnchorPane layoutX="-3.0" layoutY="165.0" prefHeight="67.0" prefWidth="444.0">
                                  <children>
-                                    <Button fx:id="messengerButton" layoutX="49.0" layoutY="12.0" mnemonicParsing="false" style="-fx-background-color: #b0e4ea; -fx-border-style: solid; -fx-border-color: #115358; -fx-border-width: 2;" text="Messenger" textAlignment="CENTER" />
-                                    <Button fx:id="audioCallButton" layoutX="180.0" layoutY="12.0" mnemonicParsing="false" onMouseClicked="#call" style="-fx-background-color: #b0e4ea; -fx-border-style: solid; -fx-border-color: #115358; -fx-border-width: 2;" text="Audio Call" textAlignment="CENTER" />
-                                    <Button fx:id="videoCallButton" layoutX="308.0" layoutY="12.0" mnemonicParsing="false" style="-fx-background-color: #b0e4ea; -fx-border-style: solid; -fx-border-color: #115358; -fx-border-width: 2;" text="Video Call" textAlignment="CENTER" />
+                                    <Button fx:id="messengerButton" layoutX="39.0" layoutY="3.0" mnemonicParsing="false" onMouseClicked="#chat" style="-fx-background-color: #b0e4ea; -fx-border-style: solid; -fx-border-color: #115358; -fx-border-width: 2;" text="Messenger" textAlignment="CENTER" />
+                                    <Button fx:id="audioCallButton" layoutX="178.0" layoutY="3.0" mnemonicParsing="false" onMouseClicked="#call" style="-fx-background-color: #b0e4ea; -fx-border-style: solid; -fx-border-color: #115358; -fx-border-width: 2;" text="Audio Call" textAlignment="CENTER" />
+                                    <Button fx:id="videoCallButton" layoutX="306.0" layoutY="3.0" mnemonicParsing="false" style="-fx-background-color: #b0e4ea; -fx-border-style: solid; -fx-border-color: #115358; -fx-border-width: 2;" text="Video Call" textAlignment="CENTER" />
+                                    <Button fx:id="yellButton" layoutX="177.0" layoutY="40.0" mnemonicParsing="false" onMouseClicked="#yell" prefHeight="27.0" prefWidth="78.0" style="-fx-background-color: #b0e4ea; -fx-border-style: solid; -fx-border-color: #115358; -fx-border-width: 2;" text="Hey!" textAlignment="CENTER">
+                                       <font>
+                                          <Font size="10.0" />
+                                       </font>
+                                    </Button>
                                  </children>
                               </AnchorPane>
                               <TextField fx:id="extensionField" layoutX="212.0" layoutY="51.0" prefHeight="25.0" prefWidth="181.0" promptText="Contact number" />
@@ -162,7 +167,7 @@
           </HBox>
         </children>
       </VBox>
-      <Label layoutX="2.0" layoutY="147.0" prefHeight="17.0" prefWidth="14.0" text="|||" />
-      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#b0e4ea" height="27.0" layoutX="-9.0" stroke="TRANSPARENT" strokeType="INSIDE" width="25.0" />
+      <Label layoutX="2.0" layoutY="2.0" prefHeight="17.0" prefWidth="14.0" text="|||" />
+      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="TRANSPARENT" height="27.0" layoutX="-9.0" stroke="TRANSPARENT" strokeType="INSIDE" width="25.0" />
    </children>
 </AnchorPane>

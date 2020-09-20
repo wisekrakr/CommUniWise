@@ -2,7 +2,7 @@ package com.wisekrakr.communiwise.gui.layouts;
 
 import javafx.scene.Node;
 
-public interface AbstractGUIContext {
+public interface AbstractPanelContext {
 
     AbstractJFXPanel initialize(String fxmlPath);
     void addDraggability(AbstractGUI parentGUI, Node pane);

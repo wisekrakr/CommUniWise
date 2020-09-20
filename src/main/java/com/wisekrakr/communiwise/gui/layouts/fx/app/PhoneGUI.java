@@ -5,6 +5,7 @@ import com.wisekrakr.communiwise.gui.EventManager;
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.operations.apis.AccountAPI;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
+import com.wisekrakr.communiwise.operations.apis.SoundAPI;
 
 import java.awt.*;
 

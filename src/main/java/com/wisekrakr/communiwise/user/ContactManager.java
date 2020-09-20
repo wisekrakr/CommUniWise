@@ -24,16 +24,14 @@ public class ContactManager {
         //try to load the user's phone book with the file name
         try {
             phoneBook = PhoneBook.load(filename);
+
+            if(phoneBook == null){
+                phoneBook = new PhoneBook(filename);
+            }
         } catch (Throwable e) {
             throw new IllegalArgumentException("Could not load phonebook", e);
         }
 
-        if(phoneBook != null) {
-            phoneBook.display();
-        } else {
-            //no phone book loaded. create new one
-            phoneBook = new PhoneBook(filename);
-        }
     }
 
     /**
@@ -44,12 +42,12 @@ public class ContactManager {
         //try to load the user's phone book with the file name
         try {
             callLogBook = CallLogBook.load(filename);
+
+            if(callLogBook == null){
+                callLogBook = new CallLogBook(filename);
+            }
         } catch (Throwable e) {
             throw new IllegalArgumentException("Could not load call log book", e);
-        }
-
-        if(callLogBook == null){
-            callLogBook = new CallLogBook(filename);
         }
     }
 

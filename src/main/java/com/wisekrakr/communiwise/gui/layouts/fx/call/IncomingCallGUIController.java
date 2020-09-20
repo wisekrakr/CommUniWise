@@ -59,31 +59,5 @@ public class IncomingCallGUIController extends AbstractJFXPanel implements Contr
         }
     }
 
-    @FXML
-    private void showInfo(){
-//        Platform.runLater(()->{
-//            timer = new Timer(1, new ActionListener() {
-//                public void actionPerformed(ActionEvent e) {
-//                    String randomCode = createRandomCode(8, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-//
-//                    username.setText(randomCode);
-//
-//                }
-//            });
-//            timer.start();
-//        });
 
-//        if(callInstance != null){
-//            username.setText(callInstance.getDisplayName());
-//        }
-//        timer.stop();
-    }
-
-    private static String createRandomCode(int codeLength, String id) {
-        return new SecureRandom()
-                .ints(codeLength, 0, id.length())
-                .mapToObj(id::charAt)
-                .map(Object::toString)
-                .collect(Collectors.joining());
-    }
 }
