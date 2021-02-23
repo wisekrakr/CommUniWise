@@ -14,7 +14,7 @@
             
        
 
-CommUniWise provides an object-oriented JavaScript API for embedding
+CommUniWise provides an object-oriented Java API for embedding
 two-way audio (video and message(WIP)). This is a pure client-side solution and requires zero 
 server-side logic on your part.
 
