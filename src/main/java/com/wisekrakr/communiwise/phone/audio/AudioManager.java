@@ -11,9 +11,9 @@ public class AudioManager {
 
     private Thread recorder;
     private RemoteAudioPlayThread remoteAudioPlayThread;
-    private DatagramSocket socket;
-    private TargetDataLine targetDataLine;
-    private SourceDataLine sourceDataLine;
+    private final DatagramSocket socket;
+    private final TargetDataLine targetDataLine;
+    private final SourceDataLine sourceDataLine;
 
     static AudioFormat WAV_FORMAT = new AudioFormat(16000, 8,2, true, true);
     static AudioFormat MP3_FORMAT = new AudioFormat(44100, 16,2, true, true);
@@ -26,7 +26,9 @@ public class AudioManager {
         this.sourceDataLine = sourceDataLine;
     }
 
+
     public void startSendingAudio(AudioInputStream audioStream) throws IOException{
+
         remoteAudioPlayThread = new RemoteAudioPlayThread(socket);
         remoteAudioPlayThread.startSending(audioStream);
     }

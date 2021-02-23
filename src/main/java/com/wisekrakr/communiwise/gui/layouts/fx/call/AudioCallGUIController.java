@@ -4,23 +4,24 @@ import com.wisekrakr.communiwise.gui.EventManager;
 import com.wisekrakr.communiwise.gui.layouts.AbstractGUI;
 import com.wisekrakr.communiwise.gui.layouts.AbstractJFXPanel;
 import com.wisekrakr.communiwise.gui.layouts.fx.ControllerContext;
-import com.wisekrakr.communiwise.gui.layouts.utils.Constants;
+import com.wisekrakr.communiwise.gui.layouts.utils.LevelMeter;
 import com.wisekrakr.communiwise.gui.layouts.utils.Status;
 import com.wisekrakr.communiwise.operations.apis.PhoneAPI;
 import com.wisekrakr.communiwise.operations.apis.SoundAPI;
 import com.wisekrakr.communiwise.user.history.CallInstance;
 import javafx.application.Platform;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 
+import javax.sound.sampled.TargetDataLine;
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,7 +34,7 @@ public class AudioCallGUIController extends AbstractJFXPanel implements Controll
     private final CallInstance callInstance;
 
     private final Map<String, Button> buttons = new HashMap<>();
-//    private TimeKeeper timeKeeper;
+
 
     @FXML
     private AnchorPane container;
@@ -45,6 +46,8 @@ public class AudioCallGUIController extends AbstractJFXPanel implements Controll
     private ImageView muteImage, recordImage, playImage;
     @FXML
     private Text status;
+    @FXML
+    private ProgressBar bar;
 
     private boolean isMuted, isRecording,isPlaying;
 
@@ -84,7 +87,7 @@ public class AudioCallGUIController extends AbstractJFXPanel implements Controll
 
     @FXML
     private void play(){
-        clickButtonForAction(isPlaying, playImage, "/images/play.png","/images/pause.png");
+        clickButtonForAction(isPlaying, playImage, "/images/play.png","/images/play.png");
 
         isPlaying = !isPlaying;
 
@@ -99,6 +102,7 @@ public class AudioCallGUIController extends AbstractJFXPanel implements Controll
     private void invite(){
 
     }
+
 
     @FXML
     private void openContactList(){
@@ -143,9 +147,8 @@ public class AudioCallGUIController extends AbstractJFXPanel implements Controll
 
         gui.hideWindow();
 
-//        timeKeeper.stop();
-
     }
+
 
     @Override
     public void initComponents() {
@@ -157,6 +160,7 @@ public class AudioCallGUIController extends AbstractJFXPanel implements Controll
                 @Override
                 public void run() {
                     date.setText(callInstance.getCallDate());
+
                 }
             });
 
@@ -172,16 +176,12 @@ public class AudioCallGUIController extends AbstractJFXPanel implements Controll
         buttons.put("invite", inviteButton);
         buttons.put("contactList", contactListButton);
 
-//        timeKeeper = new TimeKeeper();
-//        timeKeeper.start();
 
-//        Platform.runLater(new Runnable() {
-//            @Override
-//            public void run() {
-//                time.setText(timeKeeper.getCallTime());
-//            }
-//        });
+
+
+
 
     }
+
 
 }

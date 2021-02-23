@@ -13,7 +13,10 @@ import com.wisekrakr.communiwise.user.history.CallInstance;
 import com.wisekrakr.communiwise.user.phonebook.PhoneBookEntry;
 
 import javax.sound.sampled.*;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 
@@ -59,8 +62,9 @@ public class DeviceImplementations {
 
                     AudioInputStream audioStream = AudioSystem.getAudioInputStream(getClass().getResource(resource));
                     AudioInputStream lowResAudioStream = AudioSystem.getAudioInputStream(FORMAT, audioStream);
-
                     audioManager.startSendingAudio(lowResAudioStream);
+
+
                 } catch (Throwable t) {
                     throw new IllegalStateException("Could not play remote sound",t);
                 }
@@ -90,6 +94,11 @@ public class DeviceImplementations {
             public void unmute() {
                 rtpConnectionManager.unmute();
             }
+
+            @Override
+            public int getMicBytesRead() {
+                return rtpConnectionManager.getMicBytesRead();
+            }
         };
     }
 
@@ -106,13 +115,6 @@ public class DeviceImplementations {
             public void initiateCall(String extension, String domain) {
 
                 sipManager.initiateCall(sipAddressMaker(extension, domain), rtpConnectionManager.getSocket().getLocalPort());
-
-                proxyAddress = extension;
-            }
-
-            @Override
-            public void sendVoiceMessage(String extension, String domain) {
-                sipManager.sendVoiceMessage(sipAddressMaker(extension, domain), rtpConnectionManager.getSocket().getLocalPort());
 
                 proxyAddress = extension;
             }

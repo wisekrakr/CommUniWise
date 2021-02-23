@@ -28,18 +28,6 @@ public class RTPConnectionManager {
         this.socket = new DatagramSocket();
     }
 
-    //todo this not here
-//    public void connectRTPChat(int port){
-//
-//        chatThread = new Thread(new ReadThread(socket,socket.getInetAddress(),port));
-//        chatThread.setName("Chat thread");
-//        chatThread.setDaemon(true);
-//        chatThread.start();
-//
-//        System.out.println(" RTP Connection Chat Client: " + socket.isConnected());
-//
-//    }
-
     public void connectRTPAudio(InetSocketAddress remoteAddress) throws IOException{
         socket.connect(remoteAddress);
 
@@ -106,5 +94,10 @@ public class RTPConnectionManager {
 
     public DatagramSocket getSocket() {
         return socket;
+    }
+
+
+    public int getMicBytesRead() {
+        return transmittingThread.getActuallyRead();
     }
 }

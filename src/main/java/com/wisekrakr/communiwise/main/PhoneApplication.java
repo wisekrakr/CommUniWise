@@ -25,24 +25,11 @@ public class PhoneApplication implements Serializable {
     private RTPConnectionManager rtpConnectionManager;
     private EventManager eventManager;
 
-    private static void printHelp(String message) {
-        System.out.println(message);
-        System.out.println("Arguments: <local address> <audio input> <audio output>");
-
-        Mixer.Info[] mixers = AudioSystem.getMixerInfo();
-
-        System.out.println("Available: ");
-        for (int i = 0; i < mixers.length; i++) {
-            System.out.println(String.format("%-50s %50s %30s %30s", mixers[i].getName(), mixers[i].getDescription(), mixers[i].getVersion(), mixers[i].getVendor()));
-        }
-    }
-
     public static void main(String[] args) {
         System.out.println(" =======>< CommUniWise activated ><======= ");
 
         CommandConsole commandConsole = new CommandConsole();
         commandConsole.start();
-
 
         Options options = new Options();
 

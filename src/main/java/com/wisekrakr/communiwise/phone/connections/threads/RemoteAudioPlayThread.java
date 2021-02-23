@@ -6,6 +6,7 @@ import com.wisekrakr.communiwise.rtp.RTPParser;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.TargetDataLine;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -26,7 +27,6 @@ public class RemoteAudioPlayThread {
     private final G722Encoder g722Encoder = new G722Encoder(2000);
 
     public RemoteAudioPlayThread(DatagramSocket socket) {
-
         this.socket = socket;
     }
 
@@ -55,7 +55,7 @@ public class RemoteAudioPlayThread {
                     if (actuallyRead < buffer.length) {
                         System.out.println("   Couldn't read what I wanted");
 
-                        break;
+                        stopSending();
                     }
                 }
 

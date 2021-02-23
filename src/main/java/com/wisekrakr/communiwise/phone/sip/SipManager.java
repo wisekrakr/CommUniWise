@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Manages a single SIP session
  */
 public class SipManager implements SipClient {
-    private static final String STACK_NAME = "WiseKrakrSIP";
+    private static final String STACK_NAME = "WisekrakrSIP";
     //    private static final String STACK_DOMAIN_NAME = "com.wisekrakr";
     private static final int MAX_MESSAGE_SIZE = 1048576;
 
@@ -567,17 +567,6 @@ public class SipManager implements SipClient {
         }
     }
 
-    @Override
-    public void sendVoiceMessage(String recipient, int localRtpPort) {
-
-        try {
-            this.sipProvider.getNewClientTransaction(makeInviteRequest(recipient, localRtpPort)).sendRequest();
-        } catch (Throwable e) {
-            sipSessionState = SipSessionState.IDLE;
-
-            throw new IllegalStateException("Voice message failed " , e);
-        }
-    }
 
     @Override
     public void hangup(String recipient, String callId) {

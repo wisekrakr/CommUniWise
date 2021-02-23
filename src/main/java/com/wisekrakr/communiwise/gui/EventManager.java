@@ -83,7 +83,6 @@ public class EventManager implements FrameManagerListener {
             throw new IllegalStateException("Audio Call GUI could not be displayed " ,e);
         }
 
-
     }
 
     @Override

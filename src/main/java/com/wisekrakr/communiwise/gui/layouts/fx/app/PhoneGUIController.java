@@ -73,7 +73,7 @@ public class PhoneGUIController extends AbstractJFXPanel implements ControllerCo
     @FXML
     private void yell(){
         if(account.isAuthenticated() && checkForInputs()){
-            phone.sendVoiceMessage(extensionField.getText().trim(), domainField.getText().trim());
+            phone.initiateCall(extensionField.getText().trim(), domainField.getText().trim());
         }else{
             new AlertFrame().showAlert(gui, "You have to register first, go to: File -> Login ", JOptionPane.INFORMATION_MESSAGE);
         }

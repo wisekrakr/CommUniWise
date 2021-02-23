@@ -24,10 +24,15 @@ public class TransmittingThread {
 
     private final G722Encoder g722Encoder = new G722Encoder(2000);
     private boolean isMuted;
+    private int actuallyRead;
 
     public TransmittingThread(DatagramSocket socket, TargetDataLine targetDataLine) {
         this.socket = socket;
         this.targetDataLine = targetDataLine;
+    }
+
+    public int getActuallyRead() {
+        return actuallyRead;
     }
 
     public void start() throws IOException {
@@ -44,7 +49,7 @@ public class TransmittingThread {
                 targetDataLine.start();
 
                 while (!Thread.currentThread().isInterrupted()) {
-                    int actuallyRead = targetDataLine.read(buffer, 0, buffer.length);
+                    actuallyRead = targetDataLine.read(buffer, 0, buffer.length);
 
                     rawDataOutput.write(buffer, 0, actuallyRead);
 

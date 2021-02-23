@@ -16,5 +16,4 @@ public interface PhoneAPI {
 
     void sendMessage(String recipient, String message);
 
-    void sendVoiceMessage(String extension, String domain);
 }

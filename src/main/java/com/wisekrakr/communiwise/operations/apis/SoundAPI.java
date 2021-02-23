@@ -12,5 +12,6 @@ public interface SoundAPI {
     void unmute();
     void ringing(boolean isRinging);
     LineManager getLineManager();
+    int getMicBytesRead();
 
 }

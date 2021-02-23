@@ -47,7 +47,7 @@
             <Font name="System Bold" size="22.0" />
          </font>
       </Label>
-      <Label layoutX="63.0" layoutY="227.0" text="A Push-To-Talk Sip Phone" textFill="WHITE">
+      <Label layoutX="32.0" layoutY="224.0" text="A SIP Application, by Wisekrakr" textFill="WHITE">
          <font>
             <Font size="18.0" />
          </font>
