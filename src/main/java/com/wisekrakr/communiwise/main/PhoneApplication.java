@@ -168,7 +168,7 @@ public class PhoneApplication implements Serializable {
 
     private void initialize(TargetDataLine inputLine, SourceDataLine outputLine, String localAddress, String proxyHost) throws Exception {
 
-        SipManager sipManager = new SipManager(proxyHost, 5060, localAddress, 5080, "udp").
+        SipManager sipManager = new SipManager(proxyHost, 5060, localAddress, 5081, "udp").
                 logging("server.log", "debug.log", 16).
                 listener(new SipManagerListener() {
 

@@ -45,8 +45,7 @@ public class LoginGUIController extends AbstractJFXPanel implements ControllerCo
 
             realm.setText(realmOnly);
         });
-        password.setText("45jf83f");
-        
+
     }
 
     @FXML
@@ -69,10 +68,6 @@ public class LoginGUIController extends AbstractJFXPanel implements ControllerCo
 
     @Override
     public void initComponents() {
-        username.setText("damian2");
-        domain.setText("asterisk.interzone");
-        password.setText("45jf83f");
-        realm.setText("asterisk");
-        address.setText("sip:"+ username.getText() + "@" + domain.getText());
+ 
     }
 }

@@ -19,6 +19,7 @@ two-way audio (video and message(WIP)). This is a pure client-side solution and 
 server-side logic on your part.
 
 CommUniWise also uses my own build library to create Swing JFrames, but with the aesthetics of a JavaFX Pane.
+https://github.com/wisekrakr/SwingFX
 
 CommUniWise requires an already setup server. Register or login with username and password.
 

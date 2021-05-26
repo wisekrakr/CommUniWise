@@ -144,8 +144,8 @@ public class PhoneGUIController extends AbstractJFXPanel implements ControllerCo
         messengerButton.setGraphic(IconCreator.addIconForButton("/images/chat.png", 20,20 ));
         audioCallButton.setGraphic(IconCreator.addIconForButton("/images/mic.png", 20,20  ));
         videoCallButton.setGraphic(IconCreator.addIconForButton("/images/video-call.png", 20,20  ));
-        refreshButton.setGraphic(IconCreator.addIconForButton("/images/refresh.png", 15,15  ));
-        clearButton.setGraphic(IconCreator.addIconForButton("/images/clear.png", 15,15  ));
+//        refreshButton.setGraphic(IconCreator.addIconForButton("/images/refresh.png", 15,15  ));
+//        clearButton.setGraphic(IconCreator.addIconForButton("/images/clear.png", 15,15  ));
 
         colDate.setCellValueFactory(new PropertyValueFactory<>("Name"));
         colExtension.setCellValueFactory(new PropertyValueFactory<>("Extension"));
