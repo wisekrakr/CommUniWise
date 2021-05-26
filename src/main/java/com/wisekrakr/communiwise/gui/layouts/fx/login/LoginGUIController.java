@@ -68,6 +68,6 @@ public class LoginGUIController extends AbstractJFXPanel implements ControllerCo
 
     @Override
     public void initComponents() {
- 
+
     }
 }
